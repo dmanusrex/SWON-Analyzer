@@ -1,0 +1,29 @@
+
+# Development dependencies
+mypy
+pyinstaller
+pylint
+pytest
+pytest-pylint
+pytest-mypy
+
+# Application dependencies
+pandas==2.0.2
+python_docx==0.8.11
+ttkwidgets==0.13.0
+customtkinter
+semver
+
+#datetime
+#python-dateutil
+#types-python-dateutil
+#pillow
+#requests
+#types-requests
+#semver
+#watchdog
+
+# Documentation dependencies
+#plantweb
+#rstcheck
+#sphinx_rtd_theme
