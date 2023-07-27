@@ -57,7 +57,6 @@ class _Data_Loader(Thread):
 
     def run(self):
         html_file = self._config.get_str("officials_list")
-        csv_file = self._config.get_str("affiliate_list")
         self.club_list_names_df = pd.DataFrame
         self.club_list_names = []
         logging.info("Loading RTR Data")
@@ -70,25 +69,24 @@ class _Data_Loader(Thread):
             return
         self.df.columns = self.df.iloc[0]   # The first row is the column names
         self.df = self.df[1:]
+
+        # Club Level exports include blank rows, purge those out
+        self.df.drop(index=self.df[self.df['Registration Id'].isnull()].index, inplace=True)
+
         logging.info("Loaded %d officials" % self.df.shape[0])
 
-        self.club_list_names_df = self.df[['ClubCode','Club']].drop_duplicates()
+        # We exclude affiliated offiicals from determining the list of clubs. This is important for club leve exports.
+        self.club_list_names_df = self.df.loc[self.df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
         self.club_list_names = self.club_list_names_df.values.tolist()
         self.club_list_names.sort(key=lambda x:x[0])
 
-        logging.info("Loading Affiliation Data")
-        try:
-            self.affiliates = pd.read_csv(csv_file, header=0)
-        except:
-            logging.info("Unable to load affiliated officials file")
-            self.affiliates = pd.DataFrame
-            return
-        if "RegistrationID" not in self.affiliates.columns:
-            logging.info("Invalid CSV file")
-            self.affiliates = pd.DataFrame
-            return
-        self.affiliates[("RegistrationID")] = self.affiliates[("RegistrationID")].astype(str)
-        logging.info("Loaded %d affiliation records" % self.affiliates.shape[0])
+        logging.info("Extracting Affiliation Data")
+
+        # Find officials with affiliated clubs. For sanctioning affiliated offiicals must have a certification level
+        self.affiliates = self.df[~self.df['AffiliatedClubs'].isnull() & ~self.df['Current_CertificationLevel'].isnull()].copy()
+        self.affiliates['AffiliatedClubs'] = self.affiliates['AffiliatedClubs'].str.split(',')
+        self.affiliates = self.affiliates.explode('AffiliatedClubs')
+        logging.info("Extracted %d affiliation records" % self.affiliates.shape[0])
 
         logging.info("Loading Complete")
 
@@ -113,7 +111,6 @@ class _Generate_Reports(Thread):
         club_list_names = club_list_names_df.values.tolist()
         club_list_names.sort(key=lambda x:x[0])
 
-#        club_list_names = [["WAAC", "Aces"],["CAJ","Cambridge"]]
         club_summaries = []
 
         status_values = ["Active"]
@@ -124,8 +121,6 @@ class _Generate_Reports(Thread):
         if self._config.get_bool("incl_pso_pending"):
             status_values.append("PSO Pending")
 
-#   No longer generate the text document, just the word versions
-
         report_time = datetime.now().strftime("%B %d %Y %I:%M%p")
 
         if _full_report:
@@ -134,9 +129,9 @@ class _Generate_Reports(Thread):
             logging.info("Processing %s" % club_full)
             affiliation_reg_ids = []
             if _use_affiliates and not self._affiliates.empty:
-                affiliation_club_list = self._affiliates[self._affiliates["Affiliate"] == club]
+                affiliation_club_list = self._affiliates[self._affiliates["AffiliatedClubs"] == club]
                 if not affiliation_club_list.empty:
-                    affiliation_reg_ids = affiliation_club_list[("RegistrationID")].values.tolist()
+                    affiliation_reg_ids = affiliation_club_list[("Registration Id")].values.tolist()
             club_data = self._df[(self._df["ClubCode"] == club) | (self._df["Registration Id"].isin(affiliation_reg_ids))]
             club_data = club_data[club_data["Status"].isin(status_values)]
             club_stat = club_summary(club, club_data, self._config)
@@ -204,9 +199,9 @@ class _Cohost_Analyzer(Thread):
         logging.info("Processing Co-Hosting for %s" % club_full)
         affiliation_reg_ids = []
         if _use_affiliates and not self._affiliates.empty:
-            affiliation_club_list = self._affiliates[self._affiliates["Affiliate"].isin(club_codes)]
+            affiliation_club_list = self._affiliates[self._affiliates["AffiliatedClubs"].isin(club_codes)]
             if not affiliation_club_list.empty:
-                affiliation_reg_ids = affiliation_club_list[("RegistrationID")].values.tolist()
+                affiliation_reg_ids = affiliation_club_list[("Registration Id")].values.tolist()
         club_data = self._df[(self._df["ClubCode"].isin(club_codes)) | (self._df["Registration Id"].isin(affiliation_reg_ids))]
         club_data = club_data[club_data["Status"].isin(status_values)]
         club_stat = club_summary("COHOST", club_data, self._config)
@@ -224,7 +219,6 @@ class _Configuration_Files(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
         super().__init__(container)
         self._config = config
         self._officials_list = StringVar(value=self._config.get_str("officials_list"))
-        self._affiliate_list = StringVar(value=self._config.get_str("affiliate_list"))
         self._report_directory = StringVar(value=self._config.get_str("report_directory"))
         self._ctk_theme = StringVar(value=self._config.get_str("Theme"))
         self._ctk_size = StringVar(value=self._config.get_str("Scaling"))
@@ -245,15 +239,8 @@ class _Configuration_Files(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
         btn1 = ctk.CTkButton(fr1, text="RTR List", command=self._handle_officials_browse)
         btn1.grid(column=0, row=0, padx=20, pady=10)
         ToolTip(btn1, text="Select the RTR officials export file")   # pylint: disable=C0330
-        # row 2: Officials Affiliation List
-        fr2 = ctk.CTkFrame(self)
-        fr2.grid(column=0, row=2, sticky="news")
-        fr2.rowconfigure(0, weight=1)
-        affiliate_label = ctk.CTkLabel(fr2, textvariable=self._affiliate_list)
-        affiliate_label.grid(column=1, row=0, sticky="ew")
-        btn2 = ctk.CTkButton(fr2, text="Affiliate List", command=self._handle_affiliate_browse)
-        btn2.grid(column=0, row=0, padx=20, pady=10)
-        ToolTip(btn2, text="Select the officials affiliation list")   # pylint: disable=C0330
+        # row 2: reserved for multi-datafile loader
+
         # row 3: Output Directory
         fr3 = ctk.CTkFrame(self)
         fr3.grid(column=0, row=3, sticky="news")
@@ -298,13 +285,6 @@ class _Configuration_Files(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
             return
         self._config.set_str("officials_list", directory)
         self._officials_list.set(directory)
-
-    def _handle_affiliate_browse(self) -> None:
-        directory = filedialog.askopenfilename()
-        if len(directory) == 0:
-            return
-        self._config.set_str("affiliate_list", directory)
-        self._affiliate_list.set(directory)
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()

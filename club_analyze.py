@@ -15,12 +15,6 @@ import sys
 
 def main():
     '''Runs the Offiicals Analyzer'''
-    is_frozen = getattr(sys, 'frozen', False)
-
-    if is_frozen:
-        # pylint: disable=import-error,import-outside-toplevel 
-        import pyi_splash # type: ignore
-        pyi_splash.update_text("Loading...")
 
     bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
@@ -33,19 +27,14 @@ def main():
     root.title("Swim Ontario - Officials Analyzer")
     icon_file = os.path.abspath(os.path.join(bundle_dir, 'media','swon-analyzer.ico'))
     root.iconbitmap(icon_file)
-    root.geometry(f"{1100}x{700}")
+    root.geometry(f"{1100}x{800}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.resizable(True, True)
     content = ui.SwonApp(root, config)
     content.grid(column=0, row=0, sticky="news")
 
-    # If the splash logo is there in exe mode, turn it off
-    root.update()
-    if is_frozen:
-        pyi_splash.close()
-
-    """    try:
+    try:
         root.update()
         # pylint: disable=import-error,import-outside-toplevel
         import pyi_splash  # type: ignore
@@ -56,7 +45,6 @@ def main():
         pass
     except RuntimeError:
         pass
-    """
 
     root.mainloop()
 

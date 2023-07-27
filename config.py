@@ -19,7 +19,6 @@ class AnalyzerConfig:
     # Configuration defaults if not present in the config file
     _CONFIG_DEFAULTS = {_INI_HEADING: {
         "officials_list": "./officials_list.xls",   # Location of RTR export file
-        "affiliate_list": "./affiliate_list.csv",   # Affiliated officials list
         "report_directory": ".",                    # Report output directory
         "report_file": "club_analysis.txt",         # test output file 
         "report_file_docx": "club_analysis.docx",   # Word File name
