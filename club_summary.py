@@ -129,7 +129,8 @@ class club_summary:
                 ( self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"]) or
                 self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"]) ) ):
                     para_dom = row["Para Domestic"]
-                    self.Qualified_Refs.append([ref_name, para_dom])
+                    para_emodule = row["Para Swimming eModule"]
+                    self.Qualified_Refs.append([ref_name, para_dom, para_emodule])
         self.Qual_Refs = len(self.Qualified_Refs)
 
     def _find_all_level4_5s(self):
@@ -184,11 +185,11 @@ class club_summary:
         self.NoLevel_Has_II = has_level_ii
         
     def _count_certifications_detail(self, cert_name, cert_date_1, cert_date_2):
-        cert_total = 0
-        cert_1so = 0 
-        cert_2so = 0
-        qual_list = []
-        cert_list = []
+        cert_total = 0  # Count of clinics taken
+        cert_1so = 0    # Has 1 Sign-Off
+        cert_2so = 0    # Has 2 Sign-Offs (fully qualified)
+        qual_list = []  # List of officials fully qualified
+        cert_list = []  # List of offiicals certified (excludes full qualified officials)
 
         for index, row in self._club_data.iterrows():
             if row[cert_name].lower() == "yes":
@@ -449,17 +450,13 @@ class club_summary:
         if len(self.Qualified_Refs) > 0:
             doc.add_heading("Qualified Level III Referees", level = 3)
             refp = doc.add_paragraph()
-            newline = False
             for ref in self.Qualified_Refs:
-                if pd.isnull(ref[1]):
-                    refname = ref[0]
-                else:
-                    refname = ref[0] + " ("+ref[1]+")"
-                if newline: 
-                    refp.add_run("\n"+refname)
-                else:
-                    refp.add_run(refname)
-                    newline = True
+                refname = ref[0]
+                if ref[2] == "yes":
+                    refname += " (Para eModule)"
+                if not pd.isnull(ref[1]):
+                    refname += " (Para National: "+ref[1]+")"
+                refp.add_run("\n"+refname)
 
         if self._config.get_bool("incl_affiliates") and affiliates:
             affiliated_officials = self._club_data_full[self._club_data_full["Registration Id"].isin(affiliates)]
@@ -503,33 +500,17 @@ class club_summary:
             if self.NoLevel_Missing_Cert:
                 doc.add_heading("RTR Error Detected - Official(s) missing Level I Certification Record", level = 2)
                 error_p = doc.add_paragraph()
-                newline = False
-                for official in self.NoLevel_Missing_Cert:
-                    if newline:
-                        error_p.add_run("\n"+official)
-                    else:
-                        error_p.add_run(official)
-                        newline = True
+                error_p.add_run('\n'.join(self.NoLevel_Missing_Cert))
+
             if self.NoLevel_Missing_SM:
                 doc.add_heading("RTR Warning - Level I Partially Complete - Need Safety Marshal", level = 2)
                 warn_p = doc.add_paragraph()
-                newline = False
-                for official in self.NoLevel_Missing_SM:
-                    if newline:
-                        warn_p.add_run("\n"+official)
-                    else:
-                        warn_p.add_run(official)
-                        newline = True
+                warn_p.add_run('\n'.join(self.NoLevel_Missing_SM))
+
             if self.NoLevel_Has_II:
                 doc.add_heading("RTR Warning - Official has Level II clinics - Missing Level I Certification", level = 2)
-                warn_p = doc.add_paragraph()
-                newline = False
-                for official in self.NoLevel_Has_II:
-                    if newline:
-                        warn_p.add_run("\n"+official)
-                    else:
-                        warn_p.add_run(official)
-                        newline = True
+                warn_p2 = doc.add_paragraph()
+                warn_p2.add_run('\n'.join(self.NoLevel_Has_II))
 
 if __name__ == '__main__':
     ''' Testing -- Incomplete'''

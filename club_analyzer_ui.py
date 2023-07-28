@@ -8,6 +8,7 @@
 
 import os
 import pandas as pd
+import numpy as np
 import logging
 import tkinter as tk
 import customtkinter as ctk
@@ -73,20 +74,13 @@ class _Data_Loader(Thread):
         # Club Level exports include blank rows, purge those out
         self.df.drop(index=self.df[self.df['Registration Id'].isnull()].index, inplace=True)
 
+        # The RTR has 2 types of "empty" dates.  One is blank the other is 0001-01-01.  Fix that.
+        self.df.replace('0001-01-01', np.nan, inplace=True)
+
+        # The RTR export is inconsistent on column values for certifications. Fix that.
+        self.df.replace('Yes','yes', inplace=True)    # We don't use the no value so no need to fix it 
+
         logging.info("Loaded %d officials" % self.df.shape[0])
-
-        # We exclude affiliated offiicals from determining the list of clubs. This is important for club leve exports.
-        self.club_list_names_df = self.df.loc[self.df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
-        self.club_list_names = self.club_list_names_df.values.tolist()
-        self.club_list_names.sort(key=lambda x:x[0])
-
-        logging.info("Extracting Affiliation Data")
-
-        # Find officials with affiliated clubs. For sanctioning affiliated offiicals must have a certification level
-        self.affiliates = self.df[~self.df['AffiliatedClubs'].isnull() & ~self.df['Current_CertificationLevel'].isnull()].copy()
-        self.affiliates['AffiliatedClubs'] = self.affiliates['AffiliatedClubs'].str.split(',')
-        self.affiliates = self.affiliates.explode('AffiliatedClubs')
-        logging.info("Extracted %d affiliation records" % self.affiliates.shape[0])
 
         logging.info("Loading Complete")
 
@@ -107,7 +101,7 @@ class _Generate_Reports(Thread):
         _per_club = self._config.get_bool("gen_1_per_club")
         _use_affiliates = self._config.get_bool("incl_affiliates")
 
-        club_list_names_df = self._df[['ClubCode','Club']].drop_duplicates()
+        club_list_names_df = self._df.loc[self._df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
         club_list_names = club_list_names_df.values.tolist()
         club_list_names.sort(key=lambda x:x[0])
 
@@ -360,8 +354,6 @@ class _AnalyzerTab(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
         self._incl_inv_pending_var = BooleanVar(frame, value=self._config.get_bool("incl_inv_pending"))
-#        ctk.CTkCheckBox(frame, text = "Include Invoice Pending", variable=self._incl_inv_pending_var, onvalue = True, offvalue=False,
-#            command=self._handle_incl_inv_pending).grid(column=1, row=0, sticky="n", padx=20, pady=10) # pylint: disable=C0330
         ctk.CTkSwitch(frame, text = "Invoice Pending", variable=self._incl_inv_pending_var, onvalue = True, offvalue=False,
             command=self._handle_incl_inv_pending).grid(column=1, row=0, sticky="n", padx=20, pady=10) # pylint: disable=C0330
         ToolTip(frame, "Select to include Invoice Pending status")
@@ -609,14 +601,14 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         configfiles.grid(column=0, row=0, sticky="news")
         self.load_btn = ctk.CTkButton(self.tabview.tab("Configuration"), text="Load Datafile", command=self._handle_load_btn)
         self.load_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
+        self.reset_btn = ctk.CTkButton(self.tabview.tab("Configuration"), text="Reset", command=self._handle_reset_btn)
+        self.reset_btn.grid(column=0, row=2, sticky="news", padx=20, pady=10)
 
 
         # Analyzer Tab
         self.tabview.tab("Analyzer/Report Settings").grid_columnconfigure(0, weight=1)
         analyzer = _AnalyzerTab(self.tabview.tab("Analyzer/Report Settings"), self._config)
         analyzer.grid(column=0, row=0, sticky="news")
-    #    self.run_btn = ctk.CTkButton(self.tabview.tab("Analyzer"), text="Run Analyzer", command=self._handle_run_analyzer_btn)
-    #    self.run_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
 
         # Report Tab
         self.tabview.tab("Reports").grid_columnconfigure(0, weight=1)
@@ -655,6 +647,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             logging.info ("Load data first...")
             return
         self.load_btn.configure(state = "disabled")
+        self.reset_btn.configure(state = "disabled")
         self.reports_btn.configure(state = "disabled")
         self.cohost_btn.configure(state = "disabled")
         reports_thread = _Generate_Reports(self.df, self.affiliates, self._config)
@@ -664,17 +657,36 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
     def _handle_load_btn(self) -> None:
         self.load_btn.configure(state = "disabled")
+        self.reset_btn.configure(state = "disabled")
         self.reports_btn.configure(state = "disabled")
         self.cohost_btn.configure(state = "disabled")
         load_thread = _Data_Loader(self._config)
         load_thread.start()
         self.monitor_load_thread(load_thread)
 
+    def _handle_reset_btn(self) -> None:
+        self.load_btn.configure(state = "disabled")
+        self.reset_btn.configure(state = "disabled")
+        self.reports_btn.configure(state = "disabled")
+        self.cohost_btn.configure(state = "disabled")
+        self.df = pd.DataFrame()
+        self.affiliates = pd.DataFrame()
+        self.club_list_names_df = pd.DataFrame()
+        self.club_list_names = []
+        self.cohost.refresh_club_list(self.club_list_names)
+        logging.info("Reset Complete")
+        self.load_btn.configure(state = "enabled")
+        self.reset_btn.configure(state = "enabled")
+        self.reports_btn.configure(state = "enabled")
+        self.cohost_btn.configure(state = "enabled")
+
+
     def _handle_cohost_btn(self) -> None:
         if self.df.empty:
             logging.info ("Load data first...")
             return
         self.load_btn.configure(state = "disabled")
+        self.reset_btn.configure(state = "disabled")
         self.reports_btn.configure(state = "disabled")
         self.cohost_btn.configure(state = "disabled")
         club_list = self.cohost.get_clubs()
@@ -686,6 +698,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         else:
             logging.info("Please select at least 1 club first")
             self.load_btn.configure(state = "enabled")
+            self.reset_btn.configure(state = "enabled")
             self.reports_btn.configure(state = "enabled")
             self.cohost_btn.configure(state = "enabled")
 
@@ -694,13 +707,32 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             # check the thread every 100ms 
             self.after(100, lambda: self.monitor_load_thread(thread))
         else:
-            # Retrieve data from the loading process
-            self.df = thread.df
-            self.affiliates = thread.affiliates
-            self.club_list_names_df = thread.club_list_names_df
-            self.club_list_names = thread.club_list_names
+            # Retrieve data from the loading process and merge it with already loaded data
+            if self.df.empty:
+                self.df = thread.df
+            else:
+                self.df = pd.concat([self.df,thread.df], axis=0).drop_duplicates()
+                logging.info("%d officials records merged" % self.df.shape[0])
+ 
+            # We exclude affiliated offiicals from determining the list of clubs. This is important for club leve exports.
+            self.club_list_names_df = self.df.loc[self.df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
+            self.club_list_names = self.club_list_names_df.values.tolist()
+            self.club_list_names.sort(key=lambda x:x[0])
+
+            logging.info("Extracting Affiliation Data")
+
+            # Find officials with affiliated clubs. For sanctioning affiliated offiicals must have a certification level
+            self.affiliates = self.df[~self.df['AffiliatedClubs'].isnull() & ~self.df['Current_CertificationLevel'].isnull()].copy()
+            if self.affiliates.empty:
+                logging.info("No affiliation records found")
+            else:
+                self.affiliates['AffiliatedClubs'] = self.affiliates['AffiliatedClubs'].str.split(',')
+                self.affiliates = self.affiliates.explode('AffiliatedClubs')
+                logging.info("Extracted %d affiliation records" % self.affiliates.shape[0])
+
             self.cohost.refresh_club_list(self.club_list_names)
             self.load_btn.configure(state = "enabled")
+            self.reset_btn.configure(state = "enabled")
             self.reports_btn.configure(state = "enabled")
             self.cohost_btn.configure(state = "enabled")
             thread.join()
@@ -713,6 +745,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             # load frame from process
 #            self.df = thread.df
             self.load_btn.configure(state = "enabled")
+            self.reset_btn.configure(state = "enabled")
             self.reports_btn.configure(state = "enabled")
             self.cohost_btn.configure(state = "enabled")
             thread.join()
@@ -725,6 +758,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             # load frame from process
 #            self.df = thread.df
             self.load_btn.configure(state = "enabled")
+            self.reset_btn.configure(state = "enabled")
             self.reports_btn.configure(state = "enabled")
             self.cohost_btn.configure(state = "enabled")
             thread.join()
