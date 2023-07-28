@@ -139,15 +139,17 @@ class _Generate_Reports(Thread):
                 club_stat.dump_data_docx(club_doc, club_full, report_time, affiliation_reg_ids)
                 try:
                     club_doc.save(_club_file)
-                except:
-                    logging.info("Unable to save individual report")
+                except Exception as e:
+                    logging.info("Unable to save individual report: {}".format(type(e).__name__))
+                    logging.info("Exception message: {}".format(e))
             club_summaries.append ([club, club_full, club_stat])
         
         if _full_report:
             try:
                 doc.save(_full_report_file)
-            except:
-                logging.info("Unable to save full report")
+            except Exception as e:
+                logging.info("Unable to save full report: {}".format(type(e).__name__))
+                logging.info("Exception message: {}".format(e))
 
         logging.info("Reports Complete")
 
@@ -193,7 +195,8 @@ class _Cohost_Analyzer(Thread):
         logging.info("Processing Co-Hosting for %s" % club_full)
         affiliation_reg_ids = []
         if _use_affiliates and not self._affiliates.empty:
-            affiliation_club_list = self._affiliates[self._affiliates["AffiliatedClubs"].isin(club_codes)]
+            # Affiliation is removed if the offiical is from one of the host clubs
+            affiliation_club_list = self._affiliates[self._affiliates["AffiliatedClubs"].isin(club_codes) & ~self._affiliates["ClubCode"].isin(club_codes)]
             if not affiliation_club_list.empty:
                 affiliation_reg_ids = affiliation_club_list[("Registration Id")].values.tolist()
         club_data = self._df[(self._df["ClubCode"].isin(club_codes)) | (self._df["Registration Id"].isin(affiliation_reg_ids))]
@@ -517,7 +520,7 @@ class _CohostTab(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-i
 
         self.report_file_label = ctk.CTkLabel(self, textvariable=self._report_file)
         self.report_file_label.grid(column=0, row=5, sticky="ew", padx=20, pady=(0, 10))
-        btn1 = ctk.CTkButton(self, text="Master Report File Name", command=self._handle_cohost_file_browse)
+        btn1 = ctk.CTkButton(self, text="Co-Hosting Report File Name", command=self._handle_cohost_file_browse)
         btn1.grid(column=0, row=4, padx=20, pady=(20, 10))
 
 
@@ -588,7 +591,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
         # Use Tabs for readabilty
 
-        self.tabview = ctk.CTkTabview(self)
+        self.tabview = ctk.CTkTabview(self, width=container.winfo_width())
         self.tabview.grid(row=0, column=0, padx=(20, 0), pady=(20, 0), sticky="nsew")
         self.tabview.add("Configuration")
         self.tabview.add("Analyzer/Report Settings")
@@ -640,55 +643,45 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         version_label = ctk.CTkLabel(fr8, text="Version "+ANALYZER_VERSION)
         version_label.grid(column=1, row=0, sticky="nes")
 
-
+    def buttons(self, newstate) -> None:
+        '''Enable/disable all buttons on the UI'''
+        self.load_btn.configure(state = newstate)
+        self.reset_btn.configure(state = newstate)
+        self.reports_btn.configure(state = newstate)
+        self.cohost_btn.configure(state = newstate)
 
     def _handle_reports_btn(self) -> None:
         if self.df.empty:
             logging.info ("Load data first...")
             return
-        self.load_btn.configure(state = "disabled")
-        self.reset_btn.configure(state = "disabled")
-        self.reports_btn.configure(state = "disabled")
-        self.cohost_btn.configure(state = "disabled")
+        self.buttons("disabled")
         reports_thread = _Generate_Reports(self.df, self.affiliates, self._config)
         reports_thread.start()
         self.monitor_reports_thread(reports_thread)
 
 
     def _handle_load_btn(self) -> None:
-        self.load_btn.configure(state = "disabled")
-        self.reset_btn.configure(state = "disabled")
-        self.reports_btn.configure(state = "disabled")
-        self.cohost_btn.configure(state = "disabled")
+        self.buttons("disabled")
         load_thread = _Data_Loader(self._config)
         load_thread.start()
         self.monitor_load_thread(load_thread)
 
     def _handle_reset_btn(self) -> None:
-        self.load_btn.configure(state = "disabled")
-        self.reset_btn.configure(state = "disabled")
-        self.reports_btn.configure(state = "disabled")
-        self.cohost_btn.configure(state = "disabled")
+        self.buttons("disabled")
         self.df = pd.DataFrame()
         self.affiliates = pd.DataFrame()
         self.club_list_names_df = pd.DataFrame()
         self.club_list_names = []
         self.cohost.refresh_club_list(self.club_list_names)
         logging.info("Reset Complete")
-        self.load_btn.configure(state = "enabled")
-        self.reset_btn.configure(state = "enabled")
-        self.reports_btn.configure(state = "enabled")
-        self.cohost_btn.configure(state = "enabled")
+        self.buttons("enabled")
 
 
     def _handle_cohost_btn(self) -> None:
         if self.df.empty:
             logging.info ("Load data first...")
             return
-        self.load_btn.configure(state = "disabled")
-        self.reset_btn.configure(state = "disabled")
-        self.reports_btn.configure(state = "disabled")
-        self.cohost_btn.configure(state = "disabled")
+        self.buttons("disabled")
         club_list = self.cohost.get_clubs()
 
         if club_list:
@@ -697,10 +690,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             self.monitor_cohost_thread(cohost_thread)
         else:
             logging.info("Please select at least 1 club first")
-            self.load_btn.configure(state = "enabled")
-            self.reset_btn.configure(state = "enabled")
-            self.reports_btn.configure(state = "enabled")
-            self.cohost_btn.configure(state = "enabled")
+            self.buttons("enabled")
 
     def monitor_load_thread(self, thread):
         if thread.is_alive():
@@ -714,7 +704,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
                 self.df = pd.concat([self.df,thread.df], axis=0).drop_duplicates()
                 logging.info("%d officials records merged" % self.df.shape[0])
  
-            # We exclude affiliated offiicals from determining the list of clubs. This is important for club leve exports.
+            # We exclude affiliated offiicals from determining the list of clubs. This is important for club level exports.
             self.club_list_names_df = self.df.loc[self.df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
             self.club_list_names = self.club_list_names_df.values.tolist()
             self.club_list_names.sort(key=lambda x:x[0])
@@ -731,10 +721,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
                 logging.info("Extracted %d affiliation records" % self.affiliates.shape[0])
 
             self.cohost.refresh_club_list(self.club_list_names)
-            self.load_btn.configure(state = "enabled")
-            self.reset_btn.configure(state = "enabled")
-            self.reports_btn.configure(state = "enabled")
-            self.cohost_btn.configure(state = "enabled")
+            self.buttons("enabled")
             thread.join()
 
     def monitor_reports_thread(self, thread):
@@ -742,12 +729,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             # check the thread every 100ms 
             self.after(100, lambda: self.monitor_reports_thread(thread))
         else:
-            # load frame from process
-#            self.df = thread.df
-            self.load_btn.configure(state = "enabled")
-            self.reset_btn.configure(state = "enabled")
-            self.reports_btn.configure(state = "enabled")
-            self.cohost_btn.configure(state = "enabled")
+            self.buttons("enabled")
             thread.join()
         
     def monitor_cohost_thread(self, thread):
@@ -755,12 +737,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             # check the thread every 100ms 
             self.after(100, lambda: self.monitor_cohost_thread(thread))
         else:
-            # load frame from process
-#            self.df = thread.df
-            self.load_btn.configure(state = "enabled")
-            self.reset_btn.configure(state = "enabled")
-            self.reports_btn.configure(state = "enabled")
-            self.cohost_btn.configure(state = "enabled")
+            self.buttons("enabled")
             thread.join()
         
 def main():
