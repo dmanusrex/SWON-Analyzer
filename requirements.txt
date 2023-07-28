@@ -8,7 +8,7 @@ pytest-pylint
 pytest-mypy
 
 # Application dependencies
-pandas
+pandas 
 python_docx
 ttkwidgets
 customtkinter
