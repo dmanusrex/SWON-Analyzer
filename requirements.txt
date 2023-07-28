@@ -8,10 +8,11 @@ pytest-pylint
 pytest-mypy
 
 # Application dependencies
-pandas==2.0.2
-python_docx==0.8.11
-ttkwidgets==0.13.0
+pandas
+python_docx
+ttkwidgets
 customtkinter
+requests
 semver
 
 #datetime

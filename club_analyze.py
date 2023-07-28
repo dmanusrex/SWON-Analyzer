@@ -9,8 +9,29 @@
 import customtkinter as ctk
 import club_analyzer_ui as ui
 from config import AnalyzerConfig
+import swon_version
 import os
 import sys
+import logging
+from requests.exceptions import RequestException
+
+from version import ANALYZER_VERSION
+
+def check_for_update() -> None:
+    """Notifies if there's a newer released version"""
+    current_version = ANALYZER_VERSION
+    try:
+        latest_version = swon_version.latest()
+        if latest_version is not None and not swon_version.is_latest_version(
+            latest_version, current_version
+        ):
+            logging.info(
+                f"New version available {latest_version.tag}"
+            )
+            logging.info(f"Download URL: {latest_version.url}")
+#           Make it clickable???  webbrowser.open(latest_version.url))
+    except RequestException as ex:
+        logging.warning("Error checking for update: %s", ex)
 
 
 def main():
@@ -33,6 +54,7 @@ def main():
     root.resizable(True, True)
     content = ui.SwonApp(root, config)
     content.grid(column=0, row=0, sticky="news")
+    check_for_update()
 
     try:
         root.update()

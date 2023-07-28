@@ -1,0 +1,10 @@
+/__pycache__/
+/.mypy_cache/
+/.pytest_cache/
+/.venv/
+/.vscode/
+/SWON-Analyzer.exe
+/SWON-Analyzer.ini
+/SWON-Analyzer.zip
+/build/
+/SWON-Analyzer.fileinfo
