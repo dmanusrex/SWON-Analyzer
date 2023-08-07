@@ -30,15 +30,4 @@ This will run on on Windows 10 or Windows 11 PC.   The user must have COA, ROR o
 This software is licensed under the GNU Affero General Public License version
 3. See the [LICENSE](LICENSE) file for full details.
 
-## Changelog
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
-
-### [Unreleased]
-
-- TBD
-- :sparkles: Basic [docs](http://SWON-Analyzer.readthedocs.io/)  [WIP]
-
-### [0.5.5] - 2023-07-28
-- :sparkles: Baseline release for testing
-- :bug: Fixed a bunch of bugs
