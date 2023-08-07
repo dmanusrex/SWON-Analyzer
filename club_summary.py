@@ -97,6 +97,8 @@ class club_summary:
         self.NoLevel_Missing_Cert : List = []
         self.NoLevel_Missing_SM : List = []
         self.NoLevel_Has_II : List = []
+        self.Missing_Level_II : List = []
+        self.Missing_Level_III : List = []
         self.Sanction_Level : List = []
 
         self.Failed_Sanctions : List = []
@@ -107,6 +109,8 @@ class club_summary:
         self._find_all_level4_5s()
         self._check_no_levels()
         self._check_sanctions()
+        self._check_missing_Level_III()
+        self._check_missing_Level_II()
         self._config = config
 
 
@@ -199,7 +203,71 @@ class club_summary:
         self.NoLevel_Missing_Cert = has_both
         self.NoLevel_Missing_SM = has_intro_only
         self.NoLevel_Has_II = has_level_ii
-        
+
+    def _check_missing_Level_III(self):
+        level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
+        self.Missing_Level_III = []
+
+        if level_2_list.empty: return
+
+        for index, row in level_2_list.iterrows():
+            official_name = row["Last Name"] + ", " + row["First Name"]
+            if (row["Recorder-Scorer"].lower() == "yes" and
+               row["Chief Timekeeper"].lower() == "yes" and
+               row["Clerk of Course"].lower() == "yes" and
+               row["Starter"].lower() == "yes" and
+               row["Chief Finish Judge/Chief Judge"].lower() == "yes" and
+               row["Meet Manager"].lower() == "yes"):
+                cert_count = 0
+                if self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #2 Date"]):
+                    cert_count += 1
+                if self._is_valid_date(row["Clerk of Course-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Clerk of Course-Deck Evaluation #2 Date"]):
+                    cert_count += 1
+                if self._is_valid_date(row["Starter-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Starter-Deck Evaluation #2 Date"]):
+                    cert_count += 1
+                if self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"]):
+                    cert_count += 1
+                if self._is_valid_date(row["Meet Manager-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"]):
+                    cert_count += 1
+                if cert_count >= 4:
+                    self.Missing_Level_III.append(official_name)        
+
+    def _check_missing_Level_II(self):
+            level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
+            self.Missing_Level_II = []
+
+            if level_1_list.empty: return
+
+            for index, row in level_1_list.iterrows():
+                official_name = row["Last Name"] + ", " + row["First Name"]
+
+                if (self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #1 Date"]) and
+                    self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #2 Date"]) and
+                    self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"]) and
+                    self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])):
+
+                    cert_count = 0
+                    if ( row["Chief Timekeeper"].lower() == "yes" and
+                        self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #2 Date"])):
+                        cert_count += 1
+                    if ( row["Clerk of Course"].lower() == "yes" and
+                        self._is_valid_date(row["Clerk of Course-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Clerk of Course-Deck Evaluation #2 Date"])):
+                        cert_count += 1
+                    if ( row["Starter"].lower() == "yes" and
+                        self._is_valid_date(row["Starter-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Starter-Deck Evaluation #2 Date"])):
+                        cert_count += 1
+                    if ( row["Chief Finish Judge/Chief Judge"].lower() == "yes" and
+                        self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"]) and 
+                        self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"])):
+                        cert_count += 1
+                    if ( row["Meet Manager"].lower() == "yes" and
+                        self._is_valid_date(row["Meet Manager-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"])):
+                        cert_count += 1
+                    if cert_count >= 1:
+                        self.Missing_Level_II.append(official_name)        
+
+
+         
     def _count_certifications_detail(self, cert_name, cert_date_1, cert_date_2):
         cert_total = 0  # Count of clinics taken
         cert_1so = 0    # Has 1 Sign-Off
@@ -517,6 +585,17 @@ class club_summary:
                 doc.add_heading("RTR Error Detected - Official(s) missing Level I Certification Record", level = 2)
                 error_p = doc.add_paragraph()
                 error_p.add_run('\n'.join(self.NoLevel_Missing_Cert))
+
+            if self.Missing_Level_III:
+                doc.add_heading("RTR Possible Error - Official(s) missing Level III Certification Record", level = 2)
+                error_p2 = doc.add_paragraph()
+                error_p2.add_run('* COA to check last certification date and para certification status\n')
+                error_p2.add_run('\n'.join(self.Missing_Level_III))
+
+            if self.Missing_Level_II:
+                doc.add_heading("RTR Error - Official(s) missing Level II Certification Record", level = 2)
+                error_p3 = doc.add_paragraph()
+                error_p3.add_run('\n'.join(self.Missing_Level_II))
 
             if self.NoLevel_Missing_SM:
                 doc.add_heading("RTR Warning - Level I Partially Complete - Need Safety Marshal", level = 2)

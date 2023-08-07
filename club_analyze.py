@@ -1,4 +1,4 @@
-# club_analyze.py - https://github.com/dmanusrex/SWON-Analyzer
+# Club Analyzer - https://github.com/dmanusrex/SWON-Analyzer
 # Copyright (C) 2021 - Darren Richer
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
