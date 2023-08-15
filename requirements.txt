@@ -15,16 +15,8 @@ customtkinter
 requests
 semver
 
-#datetime
-#python-dateutil
-#types-python-dateutil
-#pillow
-#requests
-#types-requests
-#semver
-#watchdog
-
 # Documentation dependencies
-#plantweb
-#rstcheck
-#sphinx_rtd_theme
+plantweb
+rstcheck
+sphinx_rtd_theme
+sphinx-tabs
