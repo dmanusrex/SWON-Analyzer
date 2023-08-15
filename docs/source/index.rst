@@ -41,11 +41,11 @@ License
 The software is licensed under the MIT License.
 
 If you are interested in contributing, `check out the project's repository on
-GitHub. <https://github.com/dmanuxrex/SWON-Analyzer>`_:
+GitHub. <https://github.com/dmanusrex/SWON-Analyzer>`_:
 
-- `View the latest releases <https://github.com/dmanuxrex/SWON-Analyzer/releases>`_ ✨
-- `Ask Questions <https://github.com/dmanuxrex/SWON-Analyzer/discussions>`_ 💬
-- `File bug reports <https://github.com/dmanuxrex/SWON-Analyzer/issues>`_ 🐞
-- `Download the source code <https://github.com/dmanuxrex/SWON-Analyzer>`_ 📦
-- `Contribute enhancements <https://github.com/dmanuxrex/SWON-Analyzer/pulls>`_ 🍻`
+- `View the latest releases <https://github.com/dmanusrex/SWON-Analyzer/releases>`_ ✨
+- `Ask Questions <https://github.com/dmanusrex/SWON-Analyzer/discussions>`_ 💬
+- `File bug reports <https://github.com/dmanusrex/SWON-Analyzer/issues>`_ 🐞
+- `Download the source code <https://github.com/dmanusrex/SWON-Analyzer>`_ 📦
+- `Contribute enhancements <https://github.com/dmanusrex/SWON-Analyzer/pulls>`_ 🍻`
 

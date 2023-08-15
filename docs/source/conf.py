@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sphinx_rtd_theme
 
-project = 'DocGen'
+project = 'SWON Analyzer'
 copyright = '2023, Darren Richer'
 author = 'Darren Richer'
 # release = '0.1'
