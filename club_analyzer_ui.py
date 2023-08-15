@@ -26,6 +26,7 @@ import os
 import pandas as pd
 import numpy as np
 import logging
+import webbrowser
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import filedialog, ttk, BooleanVar, StringVar
@@ -602,7 +603,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         self.grid(column=0, row=0, sticky="news")
         self.columnconfigure(0, weight=1)
         # Odd rows are empty filler to distribute vertical whitespace
-        for i in [1, 3, 5, 7, 9]:
+        for i in [1, 3, 5, 7]:
             self.rowconfigure(i, weight=1)
 
         # Use Tabs for readabilty
@@ -654,8 +655,13 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         fr8.rowconfigure(0, weight=1)
         fr8.columnconfigure(0, weight=1)
         link_label = ctk.CTkLabel(fr8,
-            text="Documentation: https://www.swimontario.com/")  # pylint: disable=C0330
+            text="Documentation: https://swon-analyzer.readthedocs.io")  # pylint: disable=C0330
         link_label.grid(column=0, row=0, sticky="w")
+        # Custom Tkinter clickable label example https://github.com/TomSchimansky/CustomTkinter/issues/1208
+        link_label.bind("<Button-1>", lambda event: webbrowser.open("https://swon-analyzer.readthedocs.io")) # link the command function
+        link_label.bind("<Enter>", lambda event: link_label.configure(font=("",13,"underline"), cursor="hand2"))
+        link_label.bind("<Leave>", lambda event: link_label.configure(font=("",13), cursor="arrow"))
+
         version_label = ctk.CTkLabel(fr8, text="Version "+ANALYZER_VERSION)
         version_label.grid(column=1, row=0, sticky="nes")
 
