@@ -240,6 +240,8 @@ class _Configuration_Files(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
 
          # self is a vertical container
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        
         # row 0: label
         lbl1 = ctk.CTkLabel(self, text="Files, Directories and UI Options")
         lbl1.grid(column=0, row=0, sticky="ws")
@@ -328,7 +330,7 @@ class _AnalyzerTab(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
         super().__init__(container) # , text="General Settings", padding=5
         self._config = config
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
+        self.columnconfigure(1, weight=0)
 
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)

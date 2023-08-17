@@ -13,3 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [0.6.0] - 2023-08-07
 - :sparkles: Add checks for missing Level II / III Certifications
+
+### [0.7.0] - 2023-08-17
+- :sparkles: Updated for the latest sanctioning matrix
+- :sparkles: Changes to stroke & turn staffing to better support upcoming Fall 2023 SNC Changes
+- :bug: Fixed a bug where the RTR filename would not update on UI when re-selected
+

@@ -84,6 +84,8 @@ class club_summary:
         # Each list contains a summary count of the number of offiicals with 0, 1, or 2 certification dates
         self.Intro : List = []
         self.SandT : List = []
+        self.IT : List = []     # Starting sept/23 IT & Judge of Stroke will be separated
+        self.JoS : List = []    # Starting sept/23 IT & Judge of Stroke will be separated
         self.ChiefT : List = []
         self.Clerk : List = []
         self.MeetM : List = []
@@ -178,6 +180,10 @@ class club_summary:
             self.CFJ[4].extend(self.Level_4_5s)
             self.SandT[3].extend(self.Level_4_5s)
             self.SandT[4].extend(self.Level_4_5s)
+            self.IT[3].extend(self.Level_4_5s)
+            self.IT[4].extend(self.Level_4_5s)
+            self.JoS[3].extend(self.Level_4_5s)
+            self.JoS[4].extend(self.Level_4_5s)
 
     def _check_no_levels(self):
         no_level_list = self._club_data.query("Current_CertificationLevel.isnull()")
@@ -290,6 +296,8 @@ class club_summary:
     def _count_certifications(self):
         self.Intro = self._count_certifications_detail("Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date")
         self.SandT = self._count_certifications_detail("Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date")
+        self.IT = self._count_certifications_detail("Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date")
+        self.JoS = self._count_certifications_detail("Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date")
         self.ChiefT = self._count_certifications_detail("Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date")
         self.Clerk = self._count_certifications_detail("Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date")
         self.MeetM = self._count_certifications_detail("Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date")
@@ -312,34 +320,35 @@ class club_summary:
         # of Clerks needed (qualified, certified)
         # of Starters needed (qualified, certified)
         # of CFJs needed (qualified, certified)
-        # of Stoke & Turn needed (qualified, certified)
+        # of ITs needed (qualified, certified)
+        # of Judges of Stroke needed (qualified, certified)
 
         ''' 
 
-        T1Opt1 = self._check_sanctions_detail(1,0,0,1,0,1,0,0,0,1,0,1,0,4,0, "TIER I - A")
-        T1Opt2 = self._check_sanctions_detail(0,1,0,1,0,0,1,0,0,1,0,1,0,3,1, "TIER I - B")
+        T1Opt1 = self._check_sanctions_detail(1,0,0,1,0,1,0,0,0,1,0,1,0,4,0,0,0, "TIER I - A")
+        T1Opt2 = self._check_sanctions_detail(0,1,0,1,0,0,1,0,0,1,0,1,0,3,1,0,0, "TIER I - B")
 
         if T1Opt1 or T1Opt2: 
             opts = "TIER I - Class II Time Trial + In-House Competition (Option(s):"+ (" A" if T1Opt1 else "") + (" B" if T1Opt2 else "") + ")"
             approved_sanctions.append(opts)
 
-        T2Opt1 = self._check_sanctions_detail(1,1,0,2,0,1,0,1,0,1,0,1,0,4,2, "TIER II - A")
-        T2Opt2 = self._check_sanctions_detail(1,0,1,1,1,1,0,1,0,1,0,1,0,4,2, "TIER II - B")
-        T2Opt3 = self._check_sanctions_detail(0,0,1,1,1,0,1,1,0,1,0,1,0,4,2, "TIER II - C")
+        T2Opt1 = self._check_sanctions_detail(1,1,0,2,0,1,0,1,0,1,0,1,0,4,2,0,0, "TIER II - A")
+        T2Opt2 = self._check_sanctions_detail(1,0,1,1,1,1,0,1,0,1,0,1,0,4,2,0,0, "TIER II - B")
+        T2Opt3 = self._check_sanctions_detail(0,0,1,1,1,0,1,1,0,1,0,1,0,4,2,0,0, "TIER II - C")
 
         if T2Opt1 or T2Opt2 or T2Opt3:
             opts = "TIER II - Closed Invitational (limited to 4 sessions) (Option(s): "+ (" A" if T2Opt1 else "") + (" B" if T2Opt2 else "") + (" C" if T2Opt3 else "") + ")"
             approved_sanctions.append(opts)
 
-        T3Opt1 = self._check_sanctions_detail(1,1,1,2,0,1,0,1,0,1,0,1,0,6,2, "TIER III - A")
-        T3Opt2 = self._check_sanctions_detail(1,0,1,1,1,0,1,1,0,1,1,1,0,6,2, "TIER III - B")
+        T3Opt1 = self._check_sanctions_detail(1,1,1,2,0,1,0,1,0,1,0,1,0,6,2,1,0, "TIER III - A")
+        T3Opt2 = self._check_sanctions_detail(1,0,1,1,1,0,1,1,0,1,1,1,0,6,2,1,0, "TIER III - B")
 
         if T3Opt1 or T3Opt2: 
             opts = "TIER III - Open Invitational (limited to 6 sessions, no standards) (Option(s):"+ (" A" if T3Opt1 else "") + (" B" if T3Opt2 else "") + ")"
             approved_sanctions.append(opts)
 
-        T4Opt1 = self._check_sanctions_detail(2,0,1,1,1,0,1,1,1,1,1,1,1,8,4, "TIER IV - A")
-        T4Opt2 = self._check_sanctions_detail(1,1,2,0,2,0,1,1,1,1,1,1,1,8,4, "TIER IV - B")
+        T4Opt1 = self._check_sanctions_detail(2,0,1,1,1,0,1,1,1,1,1,1,1,8,4,2,0, "TIER IV - A")
+        T4Opt2 = self._check_sanctions_detail(1,1,2,0,2,0,1,1,1,1,1,1,1,8,4,2,0, "TIER IV - B")
 
         if T4Opt1 or T4Opt2: 
             opts = "TIER IV - Open or Closed Invitational + Regionals & Provincials (no session limits, any double-ended meet) (Option(s):"+ (" A" if T4Opt1 else "") + (" B" if T4Opt2 else "") + ")"
@@ -353,27 +362,28 @@ class club_summary:
                                  Qual_Clerk: int, Cert_Clerk: int,
                                  Qual_Starter: int, Cert_Starter: int,
                                  Qual_CFJ: int, Cert_CFJ: int,
-                                 Qual_SandT: int, Cert_SandT: int,
+                                 Qual_IT: int, Cert_IT: int,
+                                 Qual_JoS: int, Cert_JoS: int,
                                  dbg_scenario_name) -> dict: 
         '''build and test sanction application - returns a dictionary of a valid staffing result if found'''
         my_scenario = self._build_staffing_scenario(Level4_5, Qual_Ref, Level3, Qual_CT, Cert_CT, Qual_MM, Cert_MM, Qual_Clerk, Cert_Clerk,
-                                                    Qual_Starter, Cert_Starter, Qual_CFJ, Cert_CFJ, Qual_SandT, Cert_SandT)
+                                                    Qual_Starter, Cert_Starter, Qual_CFJ, Cert_CFJ, Qual_IT, Cert_IT, Qual_JoS, Cert_JoS)
         
 
         if my_scenario:
             staff_list = self._find_staffing_scenario(my_scenario,[],len(my_scenario))
             if staff_list:   # Passed Sr. Checks - Check S&T then continue
-                qual_SandT_left = list(filter(lambda i: i not in staff_list, self.SandT[3]))
-                cert_SandT_left = list(filter(lambda i: i not in staff_list, self.SandT[4]))
-
-                if len(cert_SandT_left) < Cert_SandT or len(qual_SandT_left) < Qual_SandT + Cert_SandT:
+                SandT_scenario = self._build_staffing_scenario_SandT(Qual_IT, Cert_IT, Qual_JoS, Cert_JoS, staff_list)
+                SandT_list = self._find_staffing_scenario(SandT_scenario, [], len(SandT_scenario))
+                if SandT_list:   # Passed S&T Checks - We return the Sr. Grid
+                    staff_list.reverse()
+                    staff_jobs = list(my_scenario.keys())
+                    return dict(zip(staff_jobs, staff_list))
+                else:
                     msg = dbg_scenario_name +" : Unable to staff stroke & turn"
                     logging.debug(self.club_code + ": "+msg)
                     self.Failed_Sanctions.append(msg)
                     return {}
-                staff_list.reverse()
-                staff_jobs = list(my_scenario.keys())
-                return dict(zip(staff_jobs, staff_list))
             else:
                 msg = dbg_scenario_name + " : Unable to staff senior grid"
                 logging.debug(self.club_code + ": "+msg)
@@ -390,13 +400,14 @@ class club_summary:
                                  Qual_Clerk: int, Cert_Clerk: int,
                                  Qual_Starter: int, Cert_Starter: int,
                                  Qual_CFJ: int, Cert_CFJ: int,
-                                 Qual_SandT: int, Cert_SandT: int) -> dict:
-        ''' Build the dictionary for the staffing scenario'''
+                                 Qual_IT: int, Cert_IT: int,
+                                 Qual_JoS: int, Cert_JoS: int) -> dict:
+        ''' Build the dictionary for the senior grid scenario'''
 
         # Higher Level Positions can backfill lower level positions to achieve the desired outcome
 
         scenario = {}
-        
+
         # No need to performance optimize this, we also do some pre-checks to avoid analysis on scenarios 
         # we know would fail
 
@@ -411,21 +422,21 @@ class club_summary:
                 len(self.Starter[4]) < Cert_Starter or
                 len(self.CFJ[3]) < Qual_CFJ + Cert_CFJ or
                 len(self.CFJ[4]) < Cert_CFJ or
-                len(self.SandT[3]) < Qual_SandT or
-                len(self.SandT[4]) < Cert_SandT or
+                len(self.IT[3]) < Qual_IT or
+                len(self.IT[4]) < Cert_IT or
+                len(self.JoS[3]) < Qual_JoS or
+                len(self.JoS[4]) < Cert_JoS or
                 Level4_5 > (self.Level_4s + self.Level_5s) or
                 (Qual_Ref + Level4_5) >  (self.Level_4s + self.Level_5s + self.Qual_Refs) or
                 (Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s)) :
             return {}
 
+        # For efficiency, build the scenario from easiest to hardest positions to staff
+        # This aids in early termination of the search
         for x in range(Qual_CT): 
             if self.ChiefT[3]: scenario['CT_Q'+str(x)] = self.ChiefT[3]
         for x in range(Cert_CT): 
             if self.ChiefT[4]: scenario["CT_C"+str(x)] = self.ChiefT[4]
-        for x in range(Qual_MM): 
-            if self.MeetM[3]: scenario["MM_Q"+str(x)] = self.MeetM[3]
-        for x in range(Cert_MM): 
-            if self.MeetM[4]: scenario["MM_C"+str(x)] = self.MeetM[4]
         for x in range(Qual_Clerk): 
             if self.Clerk[3]: scenario["Clerk_Q"+str(x)] = self.Clerk[3]
         for x in range(Cert_Clerk): 
@@ -438,8 +449,10 @@ class club_summary:
             if self.CFJ[3]: scenario["CFJ_Q"+str(x)] = self.CFJ[3]
         for x in range(Cert_CFJ):
             if self.CFJ[4]: scenario["CFJ_C"+str(x)] = self.CFJ[4]
-        for x in range(Level4_5):
-            if self.Level_4_5s: scenario["L45_"+str(x)] = self.Level_4_5s
+        for x in range(Qual_MM): 
+            if self.MeetM[3]: scenario["MM_Q"+str(x)] = self.MeetM[3]
+        for x in range(Cert_MM): 
+            if self.MeetM[4]: scenario["MM_C"+str(x)] = self.MeetM[4]
         for x in range(Level3):
             scenario["L3_"+str(x)] = []            
             if self.Level_3_list: scenario["L3_"+str(x)].extend(self.Level_3_list)
@@ -448,7 +461,37 @@ class club_summary:
             scenario["L3Ref_"+str(x)] = []
             if self.Qualified_Refs: scenario["L3Ref_"+str(x)].extend([item[0] for item in self.Qualified_Refs])
             if self.Level_4_5s: scenario["L3Ref_"+str(x)].extend(self.Level_4_5s)
+        for x in range(Level4_5):
+            if self.Level_4_5s: scenario["L45_"+str(x)] = self.Level_4_5s
+
         return scenario
+
+    def _build_staffing_scenario_SandT(self, 
+                                 Qual_IT: int, Cert_IT: int,
+                                 Qual_JoS: int, Cert_JoS: int,
+                                 staff_list: List) -> dict:
+        ''' Build the dictionary for the stroke & turn scenario'''
+
+        scenario = {}
+
+        # Remove anyone already staffed on the senior grid
+
+        qual_IT_left = list(filter(lambda i: i not in staff_list, self.IT[3]))
+        cert_IT_left = list(filter(lambda i: i not in staff_list, self.IT[4]))
+        qual_JoS_left = list(filter(lambda i: i not in staff_list, self.JoS[3]))
+        cert_JoS_left = list(filter(lambda i: i not in staff_list, self.JoS[4]))
+
+        for x in range(Qual_IT): 
+            if qual_IT_left: scenario['IT_Q'+str(x)] = qual_IT_left
+        for x in range(Cert_IT):
+            if cert_IT_left: scenario["IT_C"+str(x)] = cert_IT_left
+        for x in range(Qual_JoS):
+            if qual_JoS_left: scenario["JoS_Q"+str(x)] = qual_JoS_left
+        for x in range(Cert_JoS):
+            if cert_JoS_left: scenario["JoS_C"+str(x)] = cert_JoS_left
+
+        return scenario
+
 
     def _find_staffing_scenario(self, scenario: dict, current_plan: List, required_staff: int) -> List:
         """Try to find a workable staffing scenario"""
