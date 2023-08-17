@@ -14,6 +14,7 @@ SWON-Analyzer
    :includehidden:
 
    self
+   installation
    process
    standard reporting
    co-hosting
