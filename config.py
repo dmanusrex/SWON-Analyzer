@@ -37,14 +37,26 @@ class AnalyzerConfig:
         "report_file": "club_analysis.txt",         # test output file 
         "report_file_docx": "club_analysis.docx",   # Word File name
         "report_file_cohost": "cohosting.docx",     # Co-hosting filename
+        "odp_report_directory": ".",                    # Report output directory
+        "odp_report_file_docx": "officials-reports.docx",   # Word File name
         "incl_errors": "True",                      # Include Errors
         "incl_inv_pending": "True",                 # Include Invoice Pending Status
         "incl_pso_pending": "True",                 # Include PSO Pending Status
         "incl_account_pending": "True",             # Include Account Pending Status
         "incl_affiliates": "True",                  # Include Affiliated Officials
         "incl_sanction_errors": "True",             # Include Sanctioning Errors in Reports
+        "contractor_results": "FalsE",               # Use a Contractor for Results
+        "contractor_mm": "False",                    # Use a Contractor for Meet Management
+        "video_finish": "False",                     # Using a Video Finish System
         "gen_1_per_club": "False",                  # Generate 1 Word Doc / Club
         "gen_word": "True",                         # Generate Master Word Doc
+        "email_list_csv": "docgen-email-list.csv",      # Email List File name
+        "email_smtp_server": "smtp.gmail.com",      # SMTP Server
+        "email_smtp_port": "465",                   # SMTP Port
+        "email_smtp_user": "username@gmail.com",              # SMTP User
+        "email_from": "My Name <user@gmail.com>",            # Email From Address
+        "email_subject": "Officials Development Report",        # Email Subject
+        "email_body": "Attached is your Officials Development Report", # Email Body
         "Theme": "System",                          # Theme- System, Dark or Light
         "Scaling": "100%",                          # Display Zoom Level
         "Colour" : "blue",                          # Colour Theme

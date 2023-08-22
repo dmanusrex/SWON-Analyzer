@@ -22,9 +22,9 @@ All other settings are optional.
 
 If you need to reset the RTR data, click Reset button and repeat steps 1 & 3.
 
-    .. figure:: media/7-Configuration.png 
-        :alt: Configuration Tab
-        :align: center
+.. figure:: media/7-Configuration.png 
+    :alt: Configuration Tab
+    :align: center
 
  
 Analyzer / Report Settings Tab

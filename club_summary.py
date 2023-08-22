@@ -56,14 +56,18 @@ import docx
 import logging
 
 class club_summary:
-    _Qual_Fields = {
+    # The first field is the yes/no field, the remainder are the date fields used to determine certification.
+    # Only the yes/no field is mandatory.  The IT/JoS positions will be new in the fall, using existing S&T Fields as proxies.
+    _RTR = {
         'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
         'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+        'IT': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+        'JoS': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
         'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
         'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
         'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
         'Starter': ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
-        'RS': ["Recorder-Scorer", "Recorder-Scorer-Deck Evaluation #1 Date", "Recorder-Scorer-Deck Evaluation #2 Date"],
+        'ChiefRec': ["Recorder-Scorer"],
         'CFJ': ["Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
         'Referee': ["Referee", "Referee-Deck Evaluation #1 Date", "Referee-Deck Evaluation #2 Date"]
     }
@@ -73,6 +77,9 @@ class club_summary:
         self._club_data_full = club_data_set
         self._club_data = self._club_data_full.query("Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']")
         self.club_code = club
+        self._config = config
+
+        # These just store the counts of officials at each level
         self.Level_None : int = 0
         self.Level_1s : int = 0
         self.Level_2s : int = 0
@@ -96,24 +103,30 @@ class club_summary:
         self.Qualified_Refs: List = []
         self.Level_4_5s : List = []
         self.Level_3_list : List = []
+
+        # These lists contain the names of officials with various RTR errors
         self.NoLevel_Missing_Cert : List = []
         self.NoLevel_Missing_SM : List = []
         self.NoLevel_Has_II : List = []
         self.Missing_Level_II : List = []
         self.Missing_Level_III : List = []
-        self.Sanction_Level : List = []
 
+        # List of approved and failed sanctions. Failed sanctions include the failure reason.
+        self.Sanction_Level : List = []
         self.Failed_Sanctions : List = []
 
+
+        # Build the summary data and check sanctioning abilities
         self._count_levels()
         self._count_certifications()
         self._find_qualfied_refs()
         self._find_all_level4_5s()
-        self._check_no_levels()
         self._check_sanctions()
+
+        # RTR Error Checks
+        self._check_no_levels()
         self._check_missing_Level_III()
         self._check_missing_Level_II()
-        self._config = config
 
 
     def _is_valid_date(self, date_string):
@@ -124,7 +137,10 @@ class club_summary:
             return True
         except ValueError:
             return False
-        
+
+    def _is_certified(self, qualfiication: List) -> bool:
+        '''Returns true if the official has required sign-offs'''
+        return qualfiication[2] > 0    
     def _count_levels(self):
         self.Level_None = self._club_data.query("Current_CertificationLevel.isnull()").shape[0]
         self.Level_1s = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'").shape[0]
@@ -366,6 +382,23 @@ class club_summary:
                                  Qual_JoS: int, Cert_JoS: int,
                                  dbg_scenario_name) -> dict: 
         '''build and test sanction application - returns a dictionary of a valid staffing result if found'''
+
+        if self._config.get_bool("contractor_results") and not self._config.get_bool("video_finish"):
+            logging.info("Contractor Results Enabled - Skipping Sanctioning Check for CFJ/CJE")
+            Qual_CFJ = 0
+            Cert_CFJ = 0
+        
+        if self._config.get_bool("contractor_mm"):
+            logging.info("Contractor Results Enabled - Downgrading Certified MM to Qualified MM")
+            Qual_MM = Qual_MM + Cert_MM
+            Cert_MM = 0
+
+        if self._config.get_bool("video_finish"):
+            logging.info("Video Finish Enabled - Removing CT Requirement and adding 1 CFJ/CJE")
+            Qual_CT = 0
+            Cert_CT = 0
+            Qual_CFJ += 1
+
         my_scenario = self._build_staffing_scenario(Level4_5, Qual_Ref, Level3, Qual_CT, Cert_CT, Qual_MM, Cert_MM, Qual_Clerk, Cert_Clerk,
                                                     Qual_Starter, Cert_Starter, Qual_CFJ, Cert_CFJ, Qual_IT, Cert_IT, Qual_JoS, Cert_JoS)
         
@@ -375,9 +408,11 @@ class club_summary:
             if staff_list:   # Passed Sr. Checks - Check S&T then continue
                 SandT_scenario = self._build_staffing_scenario_SandT(Qual_IT, Cert_IT, Qual_JoS, Cert_JoS, staff_list)
                 SandT_list = self._find_staffing_scenario(SandT_scenario, [], len(SandT_scenario))
-                if SandT_list:   # Passed S&T Checks - We return the Sr. Grid
+                if SandT_list:   
+                    staff_list.extend(SandT_list)
                     staff_list.reverse()
                     staff_jobs = list(my_scenario.keys())
+                    staff_jobs.extend(list(SandT_scenario.keys()))
                     return dict(zip(staff_jobs, staff_list))
                 else:
                     msg = dbg_scenario_name +" : Unable to staff stroke & turn"
@@ -495,16 +530,19 @@ class club_summary:
 
     def _find_staffing_scenario(self, scenario: dict, current_plan: List, required_staff: int) -> List:
         """Try to find a workable staffing scenario"""
-        working_plan : List
-        current_skill : dict
-        scenario_copy : dict
+        working_plan : List = []
+        current_skill : dict = {}
+        scenario_copy : dict = {}
 
-        if not scenario: 
+        if not scenario:    # No remaining jobs to staff
             return []
-        
+
+        # We need to make copies of the scenario and the current plan as we are going to check
+        # This is a recursive function so we need to make sure we don't modify the original data
+                
         scenario_copy = deepcopy(scenario)
         current_skill = scenario_copy.popitem()
-        working_plan = deepcopy(current_plan)
+#        working_plan = deepcopy(current_plan)
 
         for name in current_skill[1]:
             working_plan = deepcopy(current_plan)

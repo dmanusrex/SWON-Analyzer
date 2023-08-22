@@ -49,4 +49,3 @@ GitHub. <https://github.com/dmanusrex/SWON-Analyzer>`_:
 - `File bug reports <https://github.com/dmanusrex/SWON-Analyzer/issues>`_ 🐞
 - `Download the source code <https://github.com/dmanusrex/SWON-Analyzer>`_ 📦
 - `Contribute enhancements <https://github.com/dmanusrex/SWON-Analyzer/pulls>`_ 🍻`
-

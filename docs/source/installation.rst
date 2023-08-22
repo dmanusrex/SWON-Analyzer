@@ -9,25 +9,25 @@ You will need a windows 10 or above to run the application.  Alternatively you c
 
     a.	DO NOT open or rename it.  You can copy and paste it to desired folder on your computer.
 
-.. figure:: media/1-RTR-Export.png 
-    :alt: RTR Export
-    :align: center
+    .. figure:: media/1-RTR-Export.png 
+        :alt: RTR Export
+        :align: center
 
 
 2.	Go to link https://github.com/dmanusrex/SWON-Analyzer/releases/latest 
 
     a.	Click swon-analyzer.zip file
 
-.. figure:: media/2-Download-Zip.png 
-    :alt: Download
-    :align: center
+    .. figure:: media/2-Download-Zip.png 
+        :alt: Download
+        :align: center
 
 
 3.	Double click on the zip file you just downloaded 
 
-.. figure:: media/3-Open-zip.png 
-    :alt: Open Zip
-    :align: center
+    .. figure:: media/3-Open-zip.png 
+        :alt: Open Zip
+        :align: center          
 
 
 4.	Right-click and Copy the “.exe” file and paste to desired folder on your computer
