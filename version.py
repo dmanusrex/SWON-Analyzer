@@ -1,3 +1,3 @@
 """Version information"""
 
-ANALYZER_VERSION = "unreleased"
+ANALYZER_VERSION = "0.9.0-alpha1"

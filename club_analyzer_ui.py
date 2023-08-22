@@ -203,11 +203,11 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
         # create the subframes - ODP Application
 
-        self.odp_preferences_frame = Sanction_Preferences(self, self._config)
-        self.odp_preferences_frame.configure(corner_radius=0, fg_color="transparent")
-        self.odp_preferences_frame.grid_columnconfigure(0, weight=1)
+#        self.odp_preferences_frame = Sanction_Preferences(self, self._config)
+#        self.odp_preferences_frame.configure(corner_radius=0, fg_color="transparent")
+#        self.odp_preferences_frame.grid_columnconfigure(0, weight=1)
 
-        self.odp_doc_frame = Generate_Documents_Frame(self, self._config)
+        self.odp_doc_frame = Generate_Documents_Frame(self, self._config, self._rtr_data)
         self.odp_doc_frame.configure(corner_radius=0, fg_color="transparent")
         self.odp_doc_frame.grid_columnconfigure(0, weight=1)
 
@@ -228,7 +228,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             self.sanction_preferences_button.grid(row=2, column=0, sticky="ew")
             self.sanction_ror_button.grid(row=4, column=0, sticky="ew")
             self.sanction_coa_button.grid(row=5, column=0, sticky="ew")
-            self.odp_preferences_button.grid_forget()
+#            self.odp_preferences_button.grid_forget()
             self.odp_doc_button.grid_forget()
             self.odp_email_button.grid_forget()
             self.rtr_button_event()
@@ -236,7 +236,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             self.sanction_preferences_button.grid_forget()
             self.sanction_ror_button.grid_forget()
             self.sanction_coa_button.grid_forget()
-            self.odp_preferences_button.grid(row=2, column=0, sticky="ew")
+#            self.odp_preferences_button.grid(row=2, column=0, sticky="ew")
             self.odp_doc_button.grid(row=4, column=0, sticky="ew")
             self.odp_email_button.grid(row=5, column=0, sticky="ew")
             self.rtr_button_event() 
@@ -270,10 +270,10 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             self.sanction_coa_frame.grid(row=0, column=1, sticky="new")
         else:
             self.sanction_coa_frame.grid_forget()
-        if name == "odp-preferences":
-            self.odp_preferences_frame.grid(row=0, column=1, sticky="new")
-        else:
-            self.odp_preferences_frame.grid_forget()
+#        if name == "odp-preferences":
+#            self.odp_preferences_frame.grid(row=0, column=1, sticky="new")
+#        else:
+#            self.odp_preferences_frame.grid_forget()
         if name == "odp-doc":
             self.odp_doc_frame.grid(row=0, column=1, sticky="new")
         else:

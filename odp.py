@@ -28,6 +28,7 @@ import pandas as pd
 import numpy as np
 import logging
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 import keyring
 import webbrowser
 import tkinter as tk
@@ -51,20 +52,23 @@ from typing import List
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
+from rtr import RTR
 
 tkContainer = Any
 
 class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
     '''Generate Word Documents from a supplied RTR file'''
-    def __init__(self, container: tkContainer, config: AnalyzerConfig):
+    def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
         super().__init__(container)
         self._config = config
+        self._rtr = rtr
 
-        self.df = pd.DataFrame()
+        # Quick fixes
+        self.df = self._rtr.rtr_data
         self._officials_list = StringVar(value=self._config.get_str("officials_list"))
         self._officials_list_filename = StringVar(value=os.path.basename(self._officials_list.get()))
-        self._report_directory = StringVar(value=self._config.get_str("report_directory"))
-        self._report_file = StringVar(value=self._config.get_str("report_file_docx"))
+        self._odp_report_directory = StringVar(value=self._config.get_str("odp_report_directory"))
+        self._odp_report_file = StringVar(value=self._config.get_str("odp_report_file_docx"))
         self._ctk_theme = StringVar(value=self._config.get_str("Theme"))
         self._ctk_size = StringVar(value=self._config.get_str("Scaling"))
         self._ctk_colour = StringVar(value=self._config.get_str("Colour"))
@@ -91,20 +95,15 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         ctk.CTkLabel(filesframe,
             text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
 
-        btn1 = ctk.CTkButton(filesframe, text="RTR List", command=self._handle_officials_browse)
-        btn1.grid(column=0, row=1, padx=20, pady=10)
-        ToolTip(btn1, text="Select the RTR officials export file")   # pylint: disable=C0330
-        ctk.CTkLabel(filesframe, textvariable=self._officials_list_filename).grid(column=1, row=1, sticky="w")
-
-        btn2 = ctk.CTkButton(filesframe, text="Report Directory", command=self._handle_report_dir_browse)
-        btn2.grid(column=0, row=2, padx=20, pady=10)
+        btn2 = ctk.CTkButton(filesframe, text="ODP Report Directory", command=self._handle_report_dir_browse)
+        btn2.grid(column=0, row=1, padx=20, pady=10)
         ToolTip(btn2, text="Select where output files will be sent")   # pylint: disable=C0330
-        ctk.CTkLabel(filesframe, textvariable=self._report_directory).grid(column=1, row=2, sticky="w")
+        ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(column=1, row=1, sticky="w")
 
-        btn3 = ctk.CTkButton(filesframe, text="Master Report File Name", command=self._handle_report_file_browse)
-        btn3.grid(column=0, row=3, padx=20, pady=10)
+        btn3 = ctk.CTkButton(filesframe, text="ODP Report File Name", command=self._handle_report_file_browse)
+        btn3.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(btn3, text="Set report file name")   # pylint: disable=C0330
-        ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=3, sticky="w")
+        ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w")
 
         # Options Frame - Left and Right Panels
 
@@ -151,37 +150,27 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         ctk.CTkLabel(buttonsframe,
             text="Actions").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
 
-        self.load_btn = ctk.CTkButton(buttonsframe, text="Load Datafile", command=self._handle_load_btn)
-        self.load_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
-        self.reset_btn = ctk.CTkButton(buttonsframe, text="Reset", command=self._handle_reset_btn)
-        self.reset_btn.grid(column=1, row=1, sticky="news", padx=20, pady=10)
         self.reports_btn = ctk.CTkButton(buttonsframe, text="Generate Reports", command=self._handle_reports_btn)
-        self.reports_btn.grid(column=2, row=1, sticky="news", padx=20, pady=10)
+        self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
 
-    def _handle_officials_browse(self) -> None:
-        directory = filedialog.askopenfilename()
-        if len(directory) == 0:
-            return
-        self._config.set_str("officials_list", directory)
-        self._officials_list.set(directory)
-        self._officials_list_filename.set(os.path.basename(directory))
+        self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation='horizontal', mode='indeterminate')
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()
         if len(directory) == 0:
             return
         directory = os.path.normpath(directory)
-        self._config.set_str("report_directory", directory)
-        self._report_directory.set(directory)
+        self._config.set_str("odp_report_directory", directory)
+        self._odp_report_directory.set(directory)
 
     def _handle_report_file_browse(self) -> None:
         report_file = filedialog.asksaveasfilename( filetypes = [('Word Documents','*.docx')], defaultextension=".docx", title="Report File", 
-                                                initialfile=os.path.basename(self._report_file.get()), # pylint: disable=C0330
-                                                initialdir=self._config.get_str("report_directory")) # pylint: disable=C0330
+                                                initialfile=os.path.basename(self._odp_report_file.get()), # pylint: disable=C0330
+                                                initialdir=self._config.get_str("odp_report_directory")) # pylint: disable=C0330
         if len(report_file) == 0:
             return
-        self._config.set_str("report_file_docx", report_file)
-        self._report_file.set(report_file)
+        self._config.set_str("odp_report_file_docx", report_file)
+        self._odp_report_file.set(report_file)
 
     def _handle_incl_pso_pending(self, *_arg) -> None:
         self._config.set_bool("incl_pso_pending", self._incl_pso_pending.get())
@@ -208,47 +197,20 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
 
     def buttons(self, newstate) -> None:
         '''Enable/disable all buttons'''
-        self.load_btn.configure(state = newstate)
-        self.reset_btn.configure(state = newstate)
         self.reports_btn.configure(state = newstate)
 
     def _handle_reports_btn(self) -> None:
-        if self.df.empty:
+        if self._rtr.rtr_data.empty:
             logging.info ("Load data first...")
+            CTkMessagebox(title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         self.buttons("disabled")
-        reports_thread = Generate_Reports(self.df, self._config)
+        self.bar.grid(row=2, column=0, pady=10, padx=20, sticky="s")
+        self.bar.set(0)
+        self.bar.start()
+        reports_thread = Generate_Reports(self._rtr, self._config)
         reports_thread.start()
         self.monitor_reports_thread(reports_thread)
-
-
-    def _handle_load_btn(self) -> None:
-        self.buttons("disabled")
-#        load_thread = Data_Loader(self._config)
-#       load_thread.start()
-#        self.monitor_load_thread(load_thread)
-
-    def _handle_reset_btn(self) -> None:
-        self.buttons("disabled")
-        self.df = pd.DataFrame()
-        logging.info("Reset Complete")
-        self.buttons("enabled")
-
-
-    def monitor_load_thread(self, thread):
-        if thread.is_alive():
-            # check the thread every 100ms 
-            self.after(100, lambda: self.monitor_load_thread(thread))
-        else:
-            # Retrieve data from the loading process and merge it with already loaded data
-            if self.df.empty:
-                self.df = thread.df
-            else:
-                self.df = pd.concat([self.df,thread.df], axis=0).drop_duplicates()
-                logging.info("%d officials records merged" % self.df.shape[0])
- 
-            self.buttons("enabled")
-            thread.join()
 
     def monitor_reports_thread(self, thread):
         if thread.is_alive():
@@ -256,6 +218,8 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
             self.after(100, lambda: self.monitor_reports_thread(thread))
         else:
             self.buttons("enabled")
+            self.bar.stop()
+            self.bar.grid_forget()
             thread.join()
 
 class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
@@ -264,7 +228,7 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
         super().__init__(container)
         self._config = config
 
-        self._report_directory = StringVar(value=self._config.get_str("report_directory"))
+        self._odp_report_directory = StringVar(value=self._config.get_str("odp_report_directory"))
         self._email_list_csv = StringVar(value=self._config.get_str("email_list_csv"))
         self._email_smtp_server = StringVar(value=self._config.get_str("email_smtp_server"))
         self._email_smtp_port = StringVar(value=self._config.get_str("email_smtp_port"))
@@ -349,14 +313,16 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
         self.emailall_btn = ctk.CTkButton(buttonsframe, text="Send All Emails", command=self._handle_email_all_btn)
         self.emailall_btn.grid(column=1, row=1, sticky="news", padx=20, pady=10)
 
+        self.bar = ctk.CTkProgressBar(master=self, orientation='horizontal', mode='indeterminate')
+
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()
         if len(directory) == 0:
             return
         directory = os.path.normpath(directory)
-        self._config.set_str("report_directory", directory)
-        self._report_directory.set(directory)
+        self._config.set_str("odp_report_directory", directory)
+        self._odp_report_directory.set(directory)
 
     def _handle_email_smtp_server(self, event) -> bool:
         self._config.set_str("email_smtp_server", event.widget.get())
@@ -459,7 +425,7 @@ class docgenCore:
     def dump_data_docx(self, club_fullname: str, reportdate: str) -> List:
         '''Produce the Word Document for the club and return a list of files'''
  
-        _report_directory = self._config.get_str("report_directory")
+        _report_directory = self._config.get_str("odp_report_directory")
         _email_list_csv = self._config.get_str("email_list_csv")
         csv_list = []    # CSV entries for email list (Lastname, Firstname, E-Mail address and Filename)
  
@@ -558,24 +524,22 @@ class docgenCore:
 
 
 class Generate_Reports(Thread):
-    def __init__(self, df: pd.DataFrame, config: AnalyzerConfig):
+    def __init__(self, rtr: RTR, config: AnalyzerConfig):
         super().__init__()
-        self._df : pd.DataFrame = df
+        self._rtr = rtr
+        self._df : pd.DataFrame = self._rtr.rtr_data
         self._config : AnalyzerConfig = config
 
     def run(self):
         logging.info("Reporting in Progress...")
 
-        _report_directory = self._config.get_str("report_directory")
-        _report_file_docx = self._config.get_str("report_file_docx")
+        _report_directory = self._config.get_str("odp_report_directory")
+        _report_file_docx = self._config.get_str("odp_report_file_docx")
         _full_report_file = os.path.abspath(os.path.join(_report_directory, _report_file_docx))
         _email_list_csv = self._config.get_str("email_list_csv")
         _full_csv_file = os.path.abspath(os.path.join(_report_directory, _email_list_csv))
 
-
-        club_list_names_df = self._df.loc[self._df['AffiliatedClubs'].isnull(),['ClubCode','Club']].drop_duplicates()
-        club_list_names = club_list_names_df.values.tolist()
-        club_list_names.sort(key=lambda x:x[0])
+        club_list_names = self._rtr.club_list_names
 
         club_summaries = []
 
@@ -663,7 +627,6 @@ class Email_Reports(Thread):
             logging.info("Exception message: {}".format(e))
             return
         
-        print(self._email_password)
         if self._testmode:
             logging.info("Test Mode - Sending max (3) mails to {}".format(self._email_from))
 

@@ -155,7 +155,7 @@ class RTR:
             self.total_inv_pending.set(str(self.rtr_data.loc[self.rtr_data['Status'] == 'Invoice Pending'].shape[0]))
             self.total_account_pending.set(str(self.rtr_data.loc[self.rtr_data['Status'] == 'Account Pending'].shape[0]))
         self._update_fn()   # Update other UI elements
-        
+
     def register_update_callback(self, updatefn: NoneFn) -> None:
         '''Register a callback function to be called when the data is updated'''
         self._update_fn = updatefn
@@ -200,6 +200,8 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
         self.reset_btn.grid(column=0, row=6, sticky="news", padx=20, pady=10)
         ctk.CTkLabel(self, text="Restart data loading").grid(column=1, row=6, sticky="w")
 
+        self.bar = ctk.CTkProgressBar(master=self, orientation='horizontal', mode='indeterminate')
+   
         ctk.CTkLabel(self, text="Statistics", font=ctk.CTkFont(weight="bold")).grid(column=0, row=12, columnspan=2, sticky="news")
         
         ctk.CTkLabel(self, text="Officials:  ").grid(column=0, row=14, sticky="e")
@@ -240,6 +242,10 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
 
     def _handle_load_btn(self) -> None:
         self.buttons("disabled")
+        self.bar.grid(row=8, column=0, columnspan=2, pady=10, padx=20, sticky="n")
+        self.bar.set(0)
+        self.bar.start()
+
         load_thread = _Data_Loader(self._config)
         load_thread.start()
         self.monitor_load_thread(load_thread)
@@ -253,10 +259,13 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
     def monitor_load_thread(self, thread):
         '''Monitor the loading thread'''
         if thread.is_alive():
+            self.update_idletasks()
             # check the thread every 100ms 
             self.after(100, lambda: self.monitor_load_thread(thread))
         else:
             # Retrieve data from the loading process and merge it with already loaded data
             if not thread.rtr_data.empty:
                 self._rtr_data.load_rtr_data(thread.rtr_data)
+            self.bar.stop()
+            self.bar.grid_forget()
             thread.join()
