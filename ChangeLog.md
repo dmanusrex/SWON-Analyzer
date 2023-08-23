@@ -19,3 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :sparkles: Changes to stroke & turn staffing to better support upcoming Fall 2023 SNC Changes
 - :bug: Fixed a bug where the RTR filename would not update on UI when re-selected
 
+### [0.9.0] - 2023-08-12
+- :sparkles: First version of the integrated app
+
+### [1.0.0] - 2023-08-13
+- :sparkles: Added the ability to select a club for recommendations generation to allow ROR/POAs to use their master files
+

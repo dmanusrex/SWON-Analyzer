@@ -1,3 +1,3 @@
 """Version information"""
 
-ANALYZER_VERSION = "0.9.0-alpha1"
+ANALYZER_VERSION = "0.9.0"

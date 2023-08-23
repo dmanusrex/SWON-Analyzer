@@ -98,7 +98,7 @@ class RTR:
         self.affiliates = pd.DataFrame()
         self.club_list_names_df = pd.DataFrame
         self.club_list_names = []
-        self._update_fn : NoneFn = None
+        self._update_fn : list = []
         
         # Pre-calculate some statistics on the loaded data
 
@@ -154,12 +154,17 @@ class RTR:
             self.total_pso_pending.set(str(self.rtr_data.loc[self.rtr_data['Status'] == 'PSO Pending'].shape[0]))
             self.total_inv_pending.set(str(self.rtr_data.loc[self.rtr_data['Status'] == 'Invoice Pending'].shape[0]))
             self.total_account_pending.set(str(self.rtr_data.loc[self.rtr_data['Status'] == 'Account Pending'].shape[0]))
-        self._update_fn()   # Update other UI elements
+        self.run_update_callbacks()   # Update other UI elements
 
     def register_update_callback(self, updatefn: NoneFn) -> None:
         '''Register a callback function to be called when the data is updated'''
-        self._update_fn = updatefn
-   
+        self._update_fn.append(updatefn)
+
+    def run_update_callbacks(self) -> None:
+        '''Run all registered callbacks'''
+        for fn in self._update_fn:
+            fn()
+    
     def reset_data(self) -> None:
         self.rtr_data = pd.DataFrame()
         self.affiliates = pd.DataFrame()

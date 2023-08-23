@@ -63,8 +63,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self._config = config
         self._rtr = rtr
 
-        # Quick fixes
-        self.df = self._rtr.rtr_data
+        # Get the needed options
         self._officials_list = StringVar(value=self._config.get_str("officials_list"))
         self._officials_list_filename = StringVar(value=os.path.basename(self._officials_list.get()))
         self._odp_report_directory = StringVar(value=self._config.get_str("odp_report_directory"))
@@ -76,7 +75,11 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self._incl_pso_pending = BooleanVar(value=self._config.get_bool("incl_pso_pending"))
         self._incl_account_pending = BooleanVar(value=self._config.get_bool("incl_account_pending"))
 
-         # self is a vertical container that will contain 3 frames
+        # Add support for the club selection
+        self._club_list = ['None']
+        self._club_selected = ctk.StringVar(value='None')
+
+        # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
         filesframe = ctk.CTkFrame(self)
         filesframe.grid(column=0, row=0, sticky="news")
@@ -95,12 +98,12 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         ctk.CTkLabel(filesframe,
             text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
 
-        btn2 = ctk.CTkButton(filesframe, text="ODP Report Directory", command=self._handle_report_dir_browse)
+        btn2 = ctk.CTkButton(filesframe, text="Recommendations Folder", command=self._handle_report_dir_browse)
         btn2.grid(column=0, row=1, padx=20, pady=10)
         ToolTip(btn2, text="Select where output files will be sent")   # pylint: disable=C0330
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(column=1, row=1, sticky="w")
 
-        btn3 = ctk.CTkButton(filesframe, text="ODP Report File Name", command=self._handle_report_file_browse)
+        btn3 = ctk.CTkButton(filesframe, text="Consolidate Report File", command=self._handle_report_file_browse)
         btn3.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(btn3, text="Set report file name")   # pylint: disable=C0330
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w")
@@ -113,6 +116,8 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         right_optionsframe = ctk.CTkFrame(optionsframe)
         right_optionsframe.grid(column=1, row=0, sticky="news", padx=10, pady=10)
         right_optionsframe.rowconfigure(0, weight=1)
+        lower_optionsframe = ctk.CTkFrame(optionsframe)
+        lower_optionsframe.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
 
         # Program Options on the left frame
 
@@ -145,6 +150,13 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         ctk.CTkSwitch(right_optionsframe, text = "Invoice Pending", variable=self._incl_inv_pending, onvalue = True, offvalue=False,
                command=self._handle_incl_inv_pending).grid(column=0, row=3, sticky="w", padx=20, pady=10) # pylint: disable=C0330
 
+        # Lower options frame for club selection
+
+        self.club_dropdown = ctk.CTkOptionMenu(lower_optionsframe, dynamic_resizing=True,
+                                                        values=self._club_list, variable=self._club_selected)
+        self.club_dropdown.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
+        ctk.CTkLabel(lower_optionsframe, text="Club", anchor="w").grid(row=0, column=1, sticky="w", padx=20, pady=(20, 10))
+
         # Add Command Buttons
 
         ctk.CTkLabel(buttonsframe,
@@ -154,6 +166,21 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
 
         self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation='horizontal', mode='indeterminate')
+
+        # Register Callback
+        self._rtr.register_update_callback(self.refresh_club_list)
+
+
+    def refresh_club_list(self):
+        self._club_list = ['None']
+        self._club_list = self._club_list + [club[1] for club in self._rtr.club_list_names]
+
+        self.club_dropdown.configure(values=self._club_list)
+        if len(self._club_list) == 2:    # There is only one club loaded, change default
+            self.club_dropdown.set(self._club_list[1])
+        else:
+            self.club_dropdown.set(self._club_list[0])
+        logging.info("Club List Refreshed")
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()
@@ -204,11 +231,16 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
             logging.info ("Load data first...")
             CTkMessagebox(title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
+        club = self._club_selected.get()
+        if club == "None":
+            logging.info("Select a club first...")
+            CTkMessagebox(title="Error", message="Select a club first", icon="cancel", corner_radius=0)
+            return
         self.buttons("disabled")
         self.bar.grid(row=2, column=0, pady=10, padx=20, sticky="s")
         self.bar.set(0)
         self.bar.start()
-        reports_thread = Generate_Reports(self._rtr, self._config)
+        reports_thread = Generate_Reports(self._rtr, self._config, club)
         reports_thread.start()
         self.monitor_reports_thread(reports_thread)
 
@@ -524,13 +556,17 @@ class docgenCore:
 
 
 class Generate_Reports(Thread):
-    def __init__(self, rtr: RTR, config: AnalyzerConfig):
+    def __init__(self, rtr: RTR, config: AnalyzerConfig, selected_club: str):
         super().__init__()
         self._rtr = rtr
         self._df : pd.DataFrame = self._rtr.rtr_data
         self._config : AnalyzerConfig = config
+        self._selected_club = selected_club
 
     def run(self):
+        # This still has code elements to run multiple clubs. For single clubs a simple filter has been applied.
+        # Once the final specifications are set, this can be greatly simplified.
+
         logging.info("Reporting in Progress...")
 
         _report_directory = self._config.get_str("odp_report_directory")
@@ -555,7 +591,7 @@ class Generate_Reports(Thread):
 
         all_csv_entries = []
 
-        for club, club_full in club_list_names:
+        for club, club_full in filter(lambda x:x[1]==self._selected_club, club_list_names):
             logging.info("Processing %s" % club_full)
             club_data = self._df[(self._df["ClubCode"] == club)]
             club_data = club_data[club_data["Status"].isin(status_values)]

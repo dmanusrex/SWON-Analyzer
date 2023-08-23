@@ -70,8 +70,7 @@ class _Logging(ctk.CTkFrame): # pylint: disable=too-many-ancestors,too-many-inst
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-        lbl1 = ctk.CTkLabel(self, text="Messages")
-        lbl1.grid(column=0, row=0, sticky="ws", pady=10)
+        ctk.CTkLabel(self, text="Messages").grid(column=0, row=0, sticky="ws", pady=10)
 
         self.logwin = ctk.CTkTextbox(self, state='disabled')
         self.logwin.grid(column=0, row=1, sticky='nsew')
@@ -115,7 +114,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
         # The menu will allow the user to switch between sanctioning and personal ODP
 
-        self.mode_menu = ctk.CTkOptionMenu(self.navigation_frame, values=["Sanctioning", "Personal ODP"], corner_radius=0, command=self.change_buttons)
+        self.mode_menu = ctk.CTkOptionMenu(self.navigation_frame, values=["Sanctioning", "Officals Recomendations"], corner_radius=0, command=self.change_buttons)
         self.mode_menu.grid(row=1, column=0, padx=5, pady=(0,5), sticky="ew")
 
         
