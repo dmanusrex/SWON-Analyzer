@@ -8,12 +8,14 @@
 
 block_cipher = None
 
+added_files = [ ('media\\swon-analyzer.ico', 'media'), 
+   ('CTkMessagebox\\icons', 'CTKMessagebox\\icons')]
 
 a = Analysis(
     ['club_analyze.py'],
     pathex=[],
     binaries=[],
-    datas=[('media\\swon-analyzer.ico', 'media')],
+    datas=added_files,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

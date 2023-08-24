@@ -12,6 +12,7 @@ pandas
 python_docx
 ttkwidgets
 customtkinter
+CTkMessagebox
 requests
 semver
 

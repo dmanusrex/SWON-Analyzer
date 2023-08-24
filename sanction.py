@@ -341,7 +341,7 @@ class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
     def _handle_reports_btn(self) -> None:
         if self._rtr.rtr_data.empty:
             logging.info ("Load data first...")
-            CTkMessagebox(title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
+            CTkMessagebox(master=self, title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         self.buttons("disabled")
         self.bar.grid(row=2, column=0, pady=10, padx=20, sticky="s")
@@ -469,7 +469,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,t
     def _handle_cohost_btn(self) -> None:
         if self._rtr.rtr_data.empty:
             logging.info ("Load data first...")
-            CTkMessagebox(title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
+            CTkMessagebox(master=self, title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         self.buttons("disabled")
         club_list = self.get_clubs()
@@ -480,7 +480,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,t
             self.monitor_cohost_thread(cohost_thread)
         else:
             logging.info("Please select at least 1 club first")
-            CTkMessagebox(title="Error", message="Please select at least 1 club first", icon="cancel", corner_radius=0)
+            CTkMessagebox(master=self, title="Error", message="Please select at least 1 club first", icon="cancel", corner_radius=0)
             self.buttons("enabled")
         
     def monitor_cohost_thread(self, thread):
@@ -560,6 +560,8 @@ class _Generate_Reports(Thread):
                 logging.info("Exception message: {}".format(e))
                 CTkMessagebox(title="Error", message="Unable to save full report file", icon="cancel", corner_radius=0)
 
+        CTkMessagebox(title="Reports", message="Reports complete", icon="check", option_1="OK", corner_radius=0)
+        
         logging.info("Reports Complete")
 
 class _Cohost_Analyzer(Thread):

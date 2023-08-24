@@ -28,6 +28,7 @@ import pandas as pd
 import numpy as np
 import logging
 import customtkinter as ctk
+import CTkMessagebox
 from CTkMessagebox import CTkMessagebox
 import keyring
 import webbrowser
@@ -229,12 +230,12 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
     def _handle_reports_btn(self) -> None:
         if self._rtr.rtr_data.empty:
             logging.info ("Load data first...")
-            CTkMessagebox(title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
+            CTkMessagebox(master=self, title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         club = self._club_selected.get()
         if club == "None":
             logging.info("Select a club first...")
-            CTkMessagebox(title="Error", message="Select a club first", icon="cancel", corner_radius=0)
+            CTkMessagebox(master=self, title="Error", message="Select a club first", icon="cancel", corner_radius=0)
             return
         self.buttons("disabled")
         self.bar.grid(row=2, column=0, pady=10, padx=20, sticky="s")
