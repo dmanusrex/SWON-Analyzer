@@ -13,7 +13,7 @@ Loading the RTR data export(s) is common for both applications and the first ste
     a.   The Statistics below will indicate the officials that were loaded.
     b.   The messages log will indicate when completed or any errors during the data loading
 
-.. figure:: media/RTR-Data-options.jpg
+.. figure:: media/RTR-Data-Options.jpg
     :alt: RTR Options
     :align: center
 
