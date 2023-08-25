@@ -1,34 +1,13 @@
 .. include:: common.rst
-==================
-Standard Reporting
-==================
-
-
-Reports Tab
-===========
-
-For ROAs or POAs – you can generate separate individual files or a main report or both.
-
-1.	Click on the Master Report File Name to name the file for the report.
-
-2.	Click on Generate Reports button.
-
-3.	Wait for a message in the Message window that indicates Reports Complete.
-
-    .. figure:: media/9-Reports.png 
-        :alt: Reports Tab
-        :align: center
-
-
-
+    
 Report details
 ==============
 
 A lot of information is contained in this report.  Each club will be different.
 
 
-    .. figure:: media/11-Report-Details.png 
-        :alt: Report Details
+    .. figure:: media/Sanctioning-Example.jpg 
+        :alt: Sample Report
         :align: center
 
 
@@ -51,4 +30,5 @@ A lot of information is contained in this report.  Each club will be different.
     c.	Unable to staff senior grid
 
 5.	If the errors and warnings are selected (highly recommended), then a list of those follow.  The errors and warnings are ACTIONS the COA needs to fix.
+
 

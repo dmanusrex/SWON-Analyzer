@@ -6,7 +6,7 @@
 
    <br />
 
-.. |sa|  replace:: SWON Analyzer
+.. |sa|  replace:: Officials Utilities
 
 .. |SWON|  replace:: Swim Ontario
 
@@ -23,3 +23,7 @@
 .. |HMM|  replace:: HyTek Meet Manager
 
 .. _HMM: https://hytek.active.com/swim-meet-software.html
+
+.. |SM| replace:: Sanctioning Module
+
+.. |REC| replace:: Recommendations Module

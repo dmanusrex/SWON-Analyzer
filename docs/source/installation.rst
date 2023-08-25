@@ -3,7 +3,8 @@
 Installation
 ============
 
-You will need a windows 10 or above to run the application.  Alternatively you can build the application from source on Linux or Mac.
+You will need a windows 10 or above to run the application.  Alternatively you can build the application from source on Linux or Mac. 
+You will be prompted when a new release (or update) to the software is available.  If you were successful in loading the program on your computer skip to Process section
 
 1.	Do an export of your officials list.
 
@@ -63,4 +64,12 @@ You will need a windows 10 or above to run the application.  Alternatively you c
  
 
 
+ANY NEW RELEASES WILL BE SHOWN ON THE MAIN PAGE
+
+    .. figure:: media/new-release.png 
+        :alt: New Releases
+        :align: center
+
+
+HINT: You will need to exit the utility to install the newest version.
 
