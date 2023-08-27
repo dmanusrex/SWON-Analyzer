@@ -653,7 +653,7 @@ class Email_Reports(Thread):
     def run(self):
         logging.info("Sending E-Mails...")
 
-        _report_directory = self._config.get_str("report_directory")
+        _report_directory = self._config.get_str("odp_report_directory")
         _email_list_csv = self._config.get_str("email_list_csv")
         _full_csv_file = os.path.abspath(os.path.join(_report_directory, _email_list_csv))
 
@@ -675,15 +675,25 @@ class Email_Reports(Thread):
             return    
 
         context = ssl.create_default_context()
-   
-        try:
-            server = smtplib.SMTP_SSL(self._email_smtp_server, self._email_smtp_port, context=context)
-            server.login(self._email_smtp_user, self._email_password)
-        except Exception as e:
-            logging.info("Unable to connect to email server: {}".format(type(e).__name__))
-            logging.info("Exception message: {}".format(e))
-            return
 
+        if self._email_smtp_port == "465":
+            try:
+                server = smtplib.SMTP_SSL(self._email_smtp_server, self._email_smtp_port, context=context)
+                server.login(self._email_smtp_user, self._email_password)
+            except Exception as e:
+                logging.info("Unable to connect to email server: {}".format(type(e).__name__))
+                logging.info("Exception message: {}".format(e))
+                return
+        else:  # Port 587
+            try:
+                server = smtplib.SMTP(self._email_smtp_server, self._email_smtp_port)
+                server.starttls(context=context)
+                server.login(self._email_smtp_user, self._email_password)
+            except Exception as e:
+                logging.info("Unable to connect to email server: {}".format(type(e).__name__))
+                logging.info("Exception message: {}".format(e))
+                return
+    
         # For each entry in the list encode the Document and send it.  In test mode, use sender address for to and limit to 5 files
 
         for index, entry in email_list_df.iterrows():

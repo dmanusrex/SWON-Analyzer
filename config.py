@@ -52,7 +52,7 @@ class AnalyzerConfig:
         "gen_word": "True",                         # Generate Master Word Doc
         "email_list_csv": "docgen-email-list.csv",      # Email List File name
         "email_smtp_server": "smtp.gmail.com",      # SMTP Server
-        "email_smtp_port": "465",                   # SMTP Port
+        "email_smtp_port": "587",                   # SMTP Port
         "email_smtp_user": "username@gmail.com",              # SMTP User
         "email_from": "My Name <user@gmail.com>",            # Email From Address
         "email_subject": "Officials Development Report",        # Email Subject

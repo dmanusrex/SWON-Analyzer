@@ -52,13 +52,14 @@ from typing import List
 from config import AnalyzerConfig
 from copy import deepcopy, copy
 from docx import Document
+from typing import Any
 import docx
 import logging
 
 class club_summary:
     # The first field is the yes/no field, the remainder are the date fields used to determine certification.
     # Only the yes/no field is mandatory.  The IT/JoS positions will be new in the fall, using existing S&T Fields as proxies.
-    _RTR = {
+    _RTR_Fields = {
         'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
         'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
         'IT': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
@@ -129,7 +130,7 @@ class club_summary:
         self._check_missing_Level_II()
 
 
-    def _is_valid_date(self, date_string):
+    def _is_valid_date(self, date_string) -> bool:
         if pd.isnull(date_string): return False
         if date_string == "0001-01-01": return False 
         try:
@@ -138,9 +139,19 @@ class club_summary:
         except ValueError:
             return False
 
-    def _is_certified(self, qualfiication: List) -> bool:
+    def _is_certified(self, row: Any, skill: str) -> bool:
         '''Returns true if the official has required sign-offs'''
-        return qualfiication[2] > 0    
+
+        rtr_fields = self._RTR_Fields[skill]
+
+        if len(rtr_fields) == 2:
+            if row[rtr_fields[0]].lower() == "yes" and self._is_valid_date(row[rtr_fields[1]]):
+                return True
+        elif row[rtr_fields[0]].lower() == "yes" and self._is_valid_date(row[rtr_fields[1]]) and self._is_valid_date(row[rtr_fields[2]]):
+            return True
+        
+        return False
+        
     def _count_levels(self):
         self.Level_None = self._club_data.query("Current_CertificationLevel.isnull()").shape[0]
         self.Level_1s = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'").shape[0]
@@ -161,11 +172,10 @@ class club_summary:
             ref_name = row["Last Name"] + ", " + row["First Name"]
             self.Level_3_list.append(ref_name)
             if ((row["Referee"].lower() == "yes") and
-                self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #2 Date"]) and
-                self._is_valid_date(row["Starter-Deck Evaluation #2 Date"]) and
-                self._is_valid_date(row["Clerk of Course-Deck Evaluation #2 Date"]) and
-                ( self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"]) or
-                self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"]) ) ):
+                self._is_certified(row, "CT") and
+                self._is_certified(row, "Clerk") and
+                self._is_certified(row, "Starter") and
+                (self._is_certified(row, "CFJ") or self._is_certified(row, "MM")) ):
                     para_dom = row["Para Domestic"]
                     para_emodule = row["Para Swimming eModule"]
                     self.Qualified_Refs.append([ref_name, para_dom, para_emodule])
@@ -229,11 +239,13 @@ class club_summary:
     def _check_missing_Level_III(self):
         level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
         self.Missing_Level_III = []
+        clinics_to_check = ['CT','Clerk','Starter','CFJ','MeetM']
 
         if level_2_list.empty: return
 
         for index, row in level_2_list.iterrows():
             official_name = row["Last Name"] + ", " + row["First Name"]
+
             if (row["Recorder-Scorer"].lower() == "yes" and
                row["Chief Timekeeper"].lower() == "yes" and
                row["Clerk of Course"].lower() == "yes" and
@@ -241,52 +253,34 @@ class club_summary:
                row["Chief Finish Judge/Chief Judge"].lower() == "yes" and
                row["Meet Manager"].lower() == "yes"):
                 cert_count = 0
-                if self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #2 Date"]):
-                    cert_count += 1
-                if self._is_valid_date(row["Clerk of Course-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Clerk of Course-Deck Evaluation #2 Date"]):
-                    cert_count += 1
-                if self._is_valid_date(row["Starter-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Starter-Deck Evaluation #2 Date"]):
-                    cert_count += 1
-                if self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"]):
-                    cert_count += 1
-                if self._is_valid_date(row["Meet Manager-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"]):
-                    cert_count += 1
+                for clinic in clinics_to_check:
+                    if self._is_certified(row, clinic):
+                        cert_count += 1
                 if cert_count >= 4:
                     self.Missing_Level_III.append(official_name)        
 
     def _check_missing_Level_II(self):
-            level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
-            self.Missing_Level_II = []
+        level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
+        self.Missing_Level_II = []
+        clinics_to_check = ['CT','Clerk','Starter','CFJ','MeetM']
+        
+        if level_1_list.empty: return
 
-            if level_1_list.empty: return
+        for index, row in level_1_list.iterrows():
+            official_name = row["Last Name"] + ", " + row["First Name"]
 
-            for index, row in level_1_list.iterrows():
-                official_name = row["Last Name"] + ", " + row["First Name"]
+            if (self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #1 Date"]) and
+                self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #2 Date"]) and
+                self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"]) and
+                self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])):
 
-                if (self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #1 Date"]) and
-                    self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #2 Date"]) and
-                    self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"]) and
-                    self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])):
+                cert_count = 0
+                for clinic in clinics_to_check:
+                    if self._is_certified(row, clinic):
+                        cert_count += 1
 
-                    cert_count = 0
-                    if ( row["Chief Timekeeper"].lower() == "yes" and
-                        self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Chief Timekeeper-Deck Evaluation #2 Date"])):
-                        cert_count += 1
-                    if ( row["Clerk of Course"].lower() == "yes" and
-                        self._is_valid_date(row["Clerk of Course-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Clerk of Course-Deck Evaluation #2 Date"])):
-                        cert_count += 1
-                    if ( row["Starter"].lower() == "yes" and
-                        self._is_valid_date(row["Starter-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Starter-Deck Evaluation #2 Date"])):
-                        cert_count += 1
-                    if ( row["Chief Finish Judge/Chief Judge"].lower() == "yes" and
-                        self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"]) and 
-                        self._is_valid_date(row["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"])):
-                        cert_count += 1
-                    if ( row["Meet Manager"].lower() == "yes" and
-                        self._is_valid_date(row["Meet Manager-Deck Evaluation #1 Date"]) and self._is_valid_date(row["Meet Manager-Deck Evaluation #2 Date"])):
-                        cert_count += 1
-                    if cert_count >= 1:
-                        self.Missing_Level_II.append(official_name)        
+                if cert_count >= 1:
+                    self.Missing_Level_II.append(official_name)        
 
 
          
@@ -542,7 +536,6 @@ class club_summary:
                 
         scenario_copy = deepcopy(scenario)
         current_skill = scenario_copy.popitem()
-#        working_plan = deepcopy(current_plan)
 
         for name in current_skill[1]:
             working_plan = deepcopy(current_plan)
@@ -589,13 +582,15 @@ class club_summary:
 
         table_data = [
             ("Intro to Swimming", str(self.Intro[0]), str(self.Intro[1]), str(self.Intro[2])),
-            ("Stroke & Turn", str(self.SandT[0]), str(self.SandT[1]), str(self.SandT[2])),
+            ("Stroke & Turn (Combo)", str(self.SandT[0]), str(self.SandT[1]), str(self.SandT[2])),
+#            ("Inspector of Turns", str(self.IT[0]), str(self.IT[1]), str(self.IT[2])),
+#            ("Judge of Stroke", str(self.JoS[0]), str(self.JoS[1]), str(self.JoS[2])),
             ("Chief Timekeeper", str(self.ChiefT[0]), str(self.ChiefT[1]), str(self.ChiefT[2])),
             ("Admin Desk (Clerk)", str(self.Clerk[0]), str(self.Clerk[1]), str(self.Clerk[2])) ,
             ("Meet Manager", str(self.MeetM[0]), str(self.MeetM[1]), str(self.MeetM[2])) ,
             ("Starter", str(self.Starter[0]), str(self.Starter[1]), str(self.Starter[2])),
             ("CFJ/CJE",str(self.CFJ[0]), str(self.CFJ[1]), str(self.CFJ[2])),
-            ("Recorder/Scorer", str(self.RecSec[0]), "", ""),
+            ("Chief Recorder/Recorder", str(self.RecSec[0]), "", ""),
             ("Referee Clinics", str(self.Referee[0]), "", "") ]
         
 
