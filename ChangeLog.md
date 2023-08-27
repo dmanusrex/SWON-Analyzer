@@ -25,3 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### [1.0.0] - 2023-08-13
 - :sparkles: Added the ability to select a club for recommendations generation to allow ROR/POAs to use their master files
 
+### [1.0.1] - 2023-08-24
+- :bug: Fixed issue with pyinstaller not picking up icons for CTKMessageBox
+
+### [1.0.2] - 2023-08-27
+- :bug: Fixed issue with SMTP not working for port 587 (STARTTLS)
