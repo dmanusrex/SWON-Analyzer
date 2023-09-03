@@ -330,12 +330,10 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         else:
             self.log_frame.grid_forget()
         if name == "pathway-ror":
-            self.pathway_ror_frame.check_unlock_code()
             self.pathway_ror_frame.grid(row=0, column=1, sticky="new")
         else:
             self.pathway_ror_frame.grid_forget()
         if name == "pathway-doc":
-            self.pathway_doc_frame.check_unlock_code()
             self.pathway_doc_frame.grid(row=0, column=1, sticky="new")
         else:
             self.pathway_doc_frame.grid_forget()

@@ -99,12 +99,12 @@ class Pathway_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancest
         ctk.CTkLabel(filesframe,
             text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
 
-        btn2 = ctk.CTkButton(filesframe, text="Recommendations Folder", command=self._handle_report_dir_browse)
+        btn2 = ctk.CTkButton(filesframe, text="Pathway Docs Folder", command=self._handle_report_dir_browse)
         btn2.grid(column=0, row=1, padx=20, pady=10)
         ToolTip(btn2, text="Select where output files will be sent")   # pylint: disable=C0330
         ctk.CTkLabel(filesframe, textvariable=self._np_report_directory).grid(column=1, row=1, sticky="w")
 
-        btn3 = ctk.CTkButton(filesframe, text="Consolidate Report File", command=self._handle_report_file_browse)
+        btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
         btn3.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(btn3, text="Set report file name")   # pylint: disable=C0330
         ctk.CTkLabel(filesframe, textvariable=self._np_report_file).grid(column=1, row=2, sticky="w")
@@ -170,8 +170,6 @@ class Pathway_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancest
 
         # Register Callback
         self._rtr.register_update_callback(self.refresh_club_list)
-
-        self.check_unlock_code()
 
     def refresh_club_list(self):
         self._club_list = ['None']
