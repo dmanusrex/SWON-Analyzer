@@ -56,6 +56,13 @@ with open("version.py", "w") as f:
     f.write('"""Version information"""\n\n')
     f.write(f'ANALYZER_VERSION = "{ANALYZER_VERSION}"\n')
 
+    # Experimental Features Unlock Code (if any)
+    ulc = os.getenv("UNLOCK_CODE")
+    if ulc is not None:
+        f.write(f'UNLOCK_CODE = "{ulc}"\n')
+    else:
+        f.write("UNLOCK_CODE = None\n")
+
     f.flush()
     f.close()
 

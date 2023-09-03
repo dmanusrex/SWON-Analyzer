@@ -166,10 +166,12 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
         """Turn on the Unlock Code button to enable new features"""
 
+
         self.unlock_code_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Unlock Code",
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                        anchor="w", command=self.unlock_code_button_event)
-        self.unlock_code_button.grid(row=7, column=0, sticky="sew")
+        if UNLOCK_CODE is not None:
+            self.unlock_code_button.grid(row=7, column=0, sticky="sew")
 
     
         """Turn on the New Version button if there's a newer released version"""
