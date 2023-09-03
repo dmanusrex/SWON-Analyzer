@@ -34,11 +34,14 @@ class AnalyzerConfig:
     _CONFIG_DEFAULTS = {_INI_HEADING: {
         "officials_list": "./officials_list.xls",   # Location of RTR export file
         "report_directory": ".",                    # Report output directory
-        "report_file": "club_analysis.txt",         # test output file 
         "report_file_docx": "club_analysis.docx",   # Word File name
         "report_file_cohost": "cohosting.docx",     # Co-hosting filename
         "odp_report_directory": ".",                    # Report output directory
         "odp_report_file_docx": "officials-reports.docx",   # Word File name
+        "np_report_directory": ".",                    # New Pathway Folder
+        "np_report_file_docx": "pathway-reports.docx",   # New Pathway Word File name
+        "np_report_file_csv": "pathway-reports.csv",   # New Pathway CSV File name
+        "np_ror_file_docx": "pathway-warnings.docx",   # New Pathway ROR/POA File name
         "incl_errors": "True",                      # Include Errors
         "incl_inv_pending": "True",                 # Include Invoice Pending Status
         "incl_pso_pending": "True",                 # Include PSO Pending Status
@@ -50,6 +53,8 @@ class AnalyzerConfig:
         "video_finish": "False",                     # Using a Video Finish System
         "gen_1_per_club": "False",                  # Generate 1 Word Doc / Club
         "gen_word": "True",                         # Generate Master Word Doc
+        "gen_np_csv": "False",                  # Generate CSV File
+        "gen_np_warnings": "False",                  # Generate Pathway Warnings
         "email_list_csv": "docgen-email-list.csv",      # Email List File name
         "email_smtp_server": "smtp.gmail.com",      # SMTP Server
         "email_smtp_port": "587",                   # SMTP Port

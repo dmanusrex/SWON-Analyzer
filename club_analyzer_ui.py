@@ -33,10 +33,12 @@ from requests.exceptions import RequestException
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
-from version import ANALYZER_VERSION
+from version import ANALYZER_VERSION, UNLOCK_CODE
 from rtr import RTR, RTR_Frame
 from odp import Generate_Documents_Frame, Email_Documents_Frame
 from sanction import Sanction_Preferences, Sanction_ROR, Sanction_COA_CoHost
+from pathway import Pathway_Documents_Frame, Pathway_ROR_Frame
+
 import swon_version
 
 tkContainer = Any
@@ -152,6 +154,24 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
                                                         fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                         anchor="w", command=self.odp_email_button_event)
 
+        # Create the Pathway Buttons
+
+        self.pathway_ror_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="ROR/POA Reports",
+                                                        fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                         anchor="w", command=self.pathway_ror_button_event)
+        
+        self.pathway_doc_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Pathway Docs",
+                                                        fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                        anchor="w", command=self.pathway_doc_button_event)
+
+        """Turn on the Unlock Code button to enable new features"""
+
+        self.unlock_code_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Unlock Code",
+                                                      fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                       anchor="w", command=self.unlock_code_button_event)
+        self.unlock_code_button.grid(row=7, column=0, sticky="sew")
+
+    
         """Turn on the New Version button if there's a newer released version"""
 
         try:
@@ -177,7 +197,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         self.help_button.grid(row=10, column=0, sticky="sew")
 
 
-        # The RTR frame is common to both applications
+        # The RTR frame is common to all applications
 
         self.rtr_frame = RTR_Frame(self, self._config, self._rtr_data)
         self.rtr_frame.configure(corner_radius=0, fg_color="transparent")
@@ -214,6 +234,16 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         self.odp_email_frame.configure(corner_radius=0, fg_color="transparent")
         self.odp_email_frame.grid_columnconfigure(0, weight=1)
 
+        # create the subframes - New Pathway Application
+
+        self.pathway_ror_frame = Pathway_ROR_Frame(self, self._config, self._rtr_data)
+        self.pathway_ror_frame.configure(corner_radius=0, fg_color="transparent")
+        self.pathway_ror_frame.grid_columnconfigure(0, weight=1)
+
+        self.pathway_doc_frame = Pathway_Documents_Frame(self, self._config, self._rtr_data)
+        self.pathway_doc_frame.configure(corner_radius=0, fg_color="transparent")
+        self.pathway_doc_frame.grid_columnconfigure(0, weight=1)
+
         # Logging Window
         self.log_frame = _Logging(self, self._config)
         self.log_frame.configure(corner_radius=0, fg_color="transparent")
@@ -230,14 +260,27 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 #            self.odp_preferences_button.grid_forget()
             self.odp_doc_button.grid_forget()
             self.odp_email_button.grid_forget()
+            self.pathway_ror_button.grid_forget()
+            self.pathway_doc_button.grid_forget()
             self.rtr_button_event()
-        else: 
+        elif value == "Officals Recomendations": 
             self.sanction_preferences_button.grid_forget()
             self.sanction_ror_button.grid_forget()
             self.sanction_coa_button.grid_forget()
 #            self.odp_preferences_button.grid(row=2, column=0, sticky="ew")
             self.odp_doc_button.grid(row=4, column=0, sticky="ew")
             self.odp_email_button.grid(row=5, column=0, sticky="ew")
+            self.pathway_ror_button.grid_forget()
+            self.pathway_doc_button.grid_forget()
+            self.rtr_button_event() 
+        else:
+            self.sanction_preferences_button.grid_forget()
+            self.sanction_ror_button.grid_forget()
+            self.sanction_coa_button.grid_forget()
+            self.odp_doc_button.grid_forget()
+            self.odp_email_button.grid_forget()
+            self.pathway_ror_button.grid(row=4, column=0, sticky="ew")
+            self.pathway_doc_button.grid(row=5, column=0, sticky="ew")
             self.rtr_button_event() 
         return
     
@@ -251,6 +294,7 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
         self.odp_doc_button.configure(fg_color=("gray75", "gray25") if name == "odp-doc" else "transparent")
         self.odp_email_button.configure(fg_color=("gray75", "gray25") if name == "odp-email" else "transparent")
         self.log_button.configure(fg_color=("gray75", "gray25") if name == "log" else "transparent")
+        self.pathway_doc_button.configure(fg_color=("gray75", "gray25") if name == "pathway-doc" else "transparent")
 
         # show selected frame
         if name == "sanction-preferences":
@@ -285,7 +329,16 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
             self.log_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.log_frame.grid_forget()
-    
+        if name == "pathway-ror":
+            self.pathway_ror_frame.check_unlock_code()
+            self.pathway_ror_frame.grid(row=0, column=1, sticky="new")
+        else:
+            self.pathway_ror_frame.grid_forget()
+        if name == "pathway-doc":
+            self.pathway_doc_frame.check_unlock_code()
+            self.pathway_doc_frame.grid(row=0, column=1, sticky="new")
+        else:
+            self.pathway_doc_frame.grid_forget()
 
     def sanction_preferences_button_event(self) -> None:
         self.select_frame_by_name("sanction-preferences")
@@ -308,8 +361,27 @@ class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
     def odp_email_button_event(self) -> None:
         self.select_frame_by_name("odp-email")
 
+    def pathway_ror_button_event(self) -> None:
+        self.select_frame_by_name("pathway-ror")
+
+    def pathway_doc_button_event(self) -> None:
+        self.select_frame_by_name("pathway-doc")
+
     def new_ver_button_event(self) -> None:
         webbrowser.open(self.new_ver_url)
+
+    def unlock_code_button_event(self) -> None:
+        unlockcode = ctk.CTkInputDialog(title="Unlock Experimental Features", text="Enter the Unlock Code")
+        # Workaround not being able to pass the show="*" method to the dialog constructor
+        unlockcode.after(20, lambda: unlockcode._entry.configure(show="*"))
+
+        if unlockcode.get_input() == UNLOCK_CODE:
+            self.rtr_frame.enable_features()
+            self.mode_menu.configure(values=["Sanctioning", "Officals Recomendations", "Pathway Check"])
+            self.unlock_code_button.grid_forget()
+            logging.info("Experimental Features Unlocked")
+        else:
+            logging.info("Invalid Unlock Code")
 
     def log_button_event(self) -> None:
         self.select_frame_by_name("log")

@@ -62,8 +62,8 @@ class club_summary:
     _RTR_Fields = {
         'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
         'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-        'IT': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-        'JoS': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+        'IT': ["Inspector of Turns", "Inspector of Turns-Deck Evaluation #1 Date", "Inspector of Turns-Deck Evaluation #2 Date"],
+        'JoS': ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
         'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
         'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
         'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],

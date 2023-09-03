@@ -27,6 +27,7 @@ import club_analyzer_ui as ui
 from config import AnalyzerConfig
 import os
 import sys
+import keyring
 
 from rtr import RTR
 
@@ -38,11 +39,12 @@ def main():
     root = ctk.CTk()
     config = AnalyzerConfig()
     rtr_data = RTR(config)
-
+    
     ctk.set_appearance_mode(config.get_str("Theme"))  # Modes: "System" (standard), "Dark", "Light"
     ctk.set_default_color_theme(config.get_str("Colour"))  # Themes: "blue" (standard), "green", "dark-blue"
     new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
 #    ctk.set_widget_scaling(new_scaling_float)     # Scaling is causing issues with window sizing
+
     root.title("Swim Ontario - OFficials Utilities")
     icon_file = os.path.abspath(os.path.join(bundle_dir, 'media','swon-analyzer.ico'))
 

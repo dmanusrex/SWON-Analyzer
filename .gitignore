@@ -9,6 +9,7 @@ SWON-Analyzer.fileinfo
 swon-analyzer.log
 version.py
 CTkMessagebox/*.py
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
