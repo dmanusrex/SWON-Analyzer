@@ -106,6 +106,9 @@ class club_summary:
         self.Sanction_Level : List = []
         self.Failed_Sanctions : List = []
 
+        # Enable Debug
+
+        self.debug = False
 
         # Build the summary data and check sanctioning abilities
         self._count_levels()
@@ -291,6 +294,8 @@ class club_summary:
                 elif self._is_valid_date(row[cert_date_1]) or self._is_valid_date(row[cert_date_2]):
                     cert_1so += 1
 
+        if self.debug:
+            logging.debug(self.club_code + ": "+cert_name+" - Total: "+str(cert_total)+" 1SO: "+str(cert_1so)+" 2SO: "+str(cert_2so))
         return [cert_total, cert_1so, cert_2so, qual_list, cert_list]
     
     def _count_certifications(self):
@@ -386,13 +391,21 @@ class club_summary:
         my_scenario = self._build_staffing_scenario(Level4_5, Qual_Ref, Level3, Qual_CT, Cert_CT, Qual_MM, Cert_MM, Qual_Clerk, Cert_Clerk,
                                                     Qual_Starter, Cert_Starter, Qual_CFJ, Cert_CFJ, Qual_IT, Cert_IT, Qual_JoS, Cert_JoS)
         
+        if self.debug:
+            logging.debug(self.club_code + ": "+dbg_scenario_name+" - "+str(my_scenario))
 
         if my_scenario:
             staff_list = self._find_staffing_scenario(my_scenario,[],len(my_scenario))
             if staff_list:   # Passed Sr. Checks - Check S&T then continue
+                if self.debug:
+                    logging.debug(self.club_code + ": "+dbg_scenario_name+" - "+str(staff_list))
                 SandT_scenario = self._build_staffing_scenario_SandT(Qual_IT, Cert_IT, Qual_JoS, Cert_JoS, staff_list)
+                if self.debug:
+                    logging.debug(self.club_code + ": "+dbg_scenario_name+" - "+str(SandT_scenario))
                 SandT_list = self._find_staffing_scenario(SandT_scenario, [], len(SandT_scenario))
-                if SandT_list:   
+                if SandT_list:
+                    if self.debug:
+                        logging.debug(self.club_code + ": "+dbg_scenario_name+" - "+str(SandT_list))   
                     staff_list.extend(SandT_list)
                     staff_list.reverse()
                     staff_jobs = list(my_scenario.keys())
@@ -400,16 +413,19 @@ class club_summary:
                     return dict(zip(staff_jobs, staff_list))
                 else:
                     msg = dbg_scenario_name +" : Unable to staff stroke & turn"
-                    logging.debug(self.club_code + ": "+msg)
+                    if self.debug:
+                        logging.debug(self.club_code + ": "+msg)
                     self.Failed_Sanctions.append(msg)
                     return {}
             else:
                 msg = dbg_scenario_name + " : Unable to staff senior grid"
-                logging.debug(self.club_code + ": "+msg)
+                if self.debug:
+                    logging.debug(self.club_code + ": "+msg)
                 self.Failed_Sanctions.append(msg)
                 return {}
         msg = dbg_scenario_name +" : Minimum available skills not met"
-        logging.debug(self.club_code + ": "+msg)
+        if self.debug:
+            logging.debug(self.club_code + ": "+msg)
         self.Failed_Sanctions.append(msg)
         return {}
     
@@ -500,6 +516,13 @@ class club_summary:
         qual_JoS_left = list(filter(lambda i: i not in staff_list, self.JoS[3]))
         cert_JoS_left = list(filter(lambda i: i not in staff_list, self.JoS[4]))
 
+        # Check Quick Failure Conditions
+        if (len(qual_IT_left) < Qual_IT + Cert_IT + Qual_JoS + Cert_JoS or
+                len(cert_IT_left) < Cert_IT or
+                len(qual_JoS_left) < Qual_JoS + Cert_JoS or
+                len(cert_JoS_left) < Cert_JoS) :
+            return {}
+
         for x in range(Qual_IT): 
             if qual_IT_left: scenario['IT_Q'+str(x)] = qual_IT_left
         for x in range(Cert_IT):
@@ -527,6 +550,10 @@ class club_summary:
         scenario_copy = deepcopy(scenario)
         current_skill = scenario_copy.popitem()
 
+        # if debugging log the current plan and the current skill we are trying to staff
+
+        if self.debug:
+            logging.debug(self.club_code + ": "+str(current_plan)+" - "+str(current_skill)+" - Req'd Staff: "+str(required_staff))
         for name in current_skill[1]:
             working_plan = deepcopy(current_plan)
             if name not in current_plan and scenario_copy:
@@ -534,8 +561,12 @@ class club_summary:
                 working_plan.append(name)
                 sub = self._find_staffing_scenario (scenario_copy, working_plan, required_staff)
                 if sub and len(sub) == required_staff: 
+                    if self.debug:
+                        logging.debug(self.club_code + "Sub/Req: "+str(sub))
                     return sub
             elif name not in current_plan:
+                if self.debug:
+                    logging.debug(self.club_code + "Found: "+str(name))
                 working_plan.append(name)
                 return working_plan
         return []    

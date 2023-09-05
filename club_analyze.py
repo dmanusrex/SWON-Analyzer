@@ -45,7 +45,7 @@ def main():
     new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
 #    ctk.set_widget_scaling(new_scaling_float)     # Scaling is causing issues with window sizing
 
-    root.title("Swim Ontario - OFficials Utilities")
+    root.title("Swim Ontario - Officials Utilities")
     icon_file = os.path.abspath(os.path.join(bundle_dir, 'media','swon-analyzer.ico'))
 
     root.iconbitmap(icon_file)   
