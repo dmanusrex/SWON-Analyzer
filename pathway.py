@@ -40,6 +40,7 @@ import keyring
 from slugify import slugify
 from docx import Document
 import docx
+from docx.shared import Inches
 from docxcompose.composer import Composer
 from threading import Thread
 
@@ -411,7 +412,9 @@ class _Generate_NP_ROR_Reports(Thread):
             logging.info("Generating Warnings Report")
 
 #           Place holder for warnings report
-        
+            doc.add_heading("Warnings Report", 0)
+            doc.add_paragraph("Report Generated: " + report_time)
+
         try:
             doc.save(self._report_file)
         except Exception as e:
@@ -676,6 +679,10 @@ class NewPathway:
             row[1].text = "Clinic Date"
             row[2].text = "Sign Off #1"
             row[3].text = "Sign Off #2" 
+            row[0].width = Inches(2.0)
+            row[1].width = Inches(1.5)
+            row[2].width = Inches(1.5)
+            row[3].width = Inches(1.5)
             row[0].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
             row[1].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
             row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
@@ -684,8 +691,8 @@ class NewPathway:
 
             self.add_clinic(table, "Intro to Swimming", entry["Introduction to Swimming Officiating-ClinicDate"], entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"], entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Safety Marshal", entry["Safety Marshal-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(table, "Stroke & Turn", entry["Judge of Stroke/Inspector of Turns-ClinicDate"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Inspector of Turns", entry("Inspector of Turns-ClinicDate"), entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"])
+            self.add_clinic(table, "Stroke & Turn (Pre Sept/23)", entry["Judge of Stroke/Inspector of Turns-ClinicDate"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
+            self.add_clinic(table, "Inspector of Turns", entry["Inspector of Turns-ClinicDate"], entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Judge of Stroke", entry["Judge of Stroke-ClinicDate"], entry["Judge of Stroke-Deck Evaluation #1 Date"], entry["Judge of Stroke-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Chief Timekeeper", entry["Chief Timekeeper-ClinicDate"], entry["Chief Timekeeper-Deck Evaluation #1 Date"], entry["Chief Timekeeper-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Admin Desk (Clerk)", entry["Clerk of Course-ClinicDate"], entry["Clerk of Course-Deck Evaluation #1 Date"], entry["Clerk of Course-Deck Evaluation #2 Date"])

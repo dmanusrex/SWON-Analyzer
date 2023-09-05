@@ -54,6 +54,8 @@ from copy import deepcopy, copy
 from docx import Document
 from typing import Any
 import docx
+from docx.shared import Inches
+
 import logging
 from rtr_fields import RTR_POSITION_FIELDS
 
@@ -84,7 +86,7 @@ class club_summary:
         self.JoS : List = []    # Starting sept/23 IT & Judge of Stroke will be separated
         self.ChiefT : List = []
         self.Clerk : List = []
-        self.MeetM : List = []
+        self.MM : List = []
         self.Starter : List = []
         self.CFJ : List = []
         self.RecSec : List = []
@@ -184,8 +186,8 @@ class club_summary:
         if self.Level_4_5s:
             self.ChiefT[3].extend(self.Level_4_5s)
             self.ChiefT[4].extend(self.Level_4_5s)
-            self.MeetM[3].extend(self.Level_4_5s)
-            self.MeetM[4].extend(self.Level_4_5s)
+            self.MM[3].extend(self.Level_4_5s)
+            self.MM[4].extend(self.Level_4_5s)
             self.Clerk[3].extend(self.Level_4_5s)
             self.Clerk[4].extend(self.Level_4_5s)
             self.Starter[3].extend(self.Level_4_5s)
@@ -227,7 +229,7 @@ class club_summary:
     def _check_missing_Level_III(self):
         level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
         self.Missing_Level_III = []
-        clinics_to_check = ['CT','Clerk','Starter','CFJ','MeetM']
+        clinics_to_check = ['CT','Clerk','Starter','CFJ','MM']
 
         if level_2_list.empty: return
 
@@ -250,7 +252,7 @@ class club_summary:
     def _check_missing_Level_II(self):
         level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
         self.Missing_Level_II = []
-        clinics_to_check = ['CT','Clerk','Starter','CFJ','MeetM']
+        clinics_to_check = ['CT','Clerk','Starter','CFJ','MM']
         
         if level_1_list.empty: return
 
@@ -298,7 +300,7 @@ class club_summary:
         self.JoS = self._count_certifications_detail("Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date")
         self.ChiefT = self._count_certifications_detail("Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date")
         self.Clerk = self._count_certifications_detail("Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date")
-        self.MeetM = self._count_certifications_detail("Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date")
+        self.MM = self._count_certifications_detail("Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date")
         self.Starter = self._count_certifications_detail("Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date")
         self.RecSec = self._count_certifications_detail("Recorder-Scorer", "Recorder-Scorer-Deck Evaluation #1 Date", "Recorder-Scorer-Deck Evaluation #2 Date")
         self.CFJ = self._count_certifications_detail("Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date")
@@ -431,8 +433,8 @@ class club_summary:
         # Check Quick Failure Conditions
         if (len(self.ChiefT[3]) < Qual_CT + Cert_CT or
                 len(self.ChiefT[4]) < Cert_CT or
-                len(self.MeetM[3]) < Qual_MM + Cert_MM or
-                len(self.MeetM[4]) < Cert_MM or
+                len(self.MM[3]) < Qual_MM + Cert_MM or
+                len(self.MM[4]) < Cert_MM or
                 len(self.Clerk[3]) < Qual_Clerk + Cert_Clerk or
                 len(self.Clerk[4]) < Cert_Clerk or 
                 len(self.Starter[3]) < Qual_Starter + Cert_Starter or
@@ -467,9 +469,9 @@ class club_summary:
         for x in range(Cert_CFJ):
             if self.CFJ[4]: scenario["CFJ_C"+str(x)] = self.CFJ[4]
         for x in range(Qual_MM): 
-            if self.MeetM[3]: scenario["MM_Q"+str(x)] = self.MeetM[3]
+            if self.MM[3]: scenario["MM_Q"+str(x)] = self.MM[3]
         for x in range(Cert_MM): 
-            if self.MeetM[4]: scenario["MM_C"+str(x)] = self.MeetM[4]
+            if self.MM[4]: scenario["MM_C"+str(x)] = self.MM[4]
         for x in range(Level3):
             scenario["L3_"+str(x)] = []            
             if self.Level_3_list: scenario["L3_"+str(x)].extend(self.Level_3_list)
@@ -559,7 +561,7 @@ class club_summary:
 
         table = doc.add_table(rows=1, cols=4)
         row = table.rows[0].cells
-        row[0].text = "Qualficiation"
+        row[0].text = "Qualfication"
         row[1].text = "Total Clinics"
         row[2].text = "1 Sign-Off"
         row[3].text = "2 Sign-Offs" 
@@ -570,12 +572,12 @@ class club_summary:
 
         table_data = [
             ("Intro to Swimming", str(self.Intro[0]), str(self.Intro[1]), str(self.Intro[2])),
-            ("Stroke & Turn (Combo)", str(self.SandT[0]), str(self.SandT[1]), str(self.SandT[2])),
+            ("Stroke & Turn (Pre Sept/23)", str(self.SandT[0]), str(self.SandT[1]), str(self.SandT[2])),
             ("Inspector of Turns", str(self.IT[0]), str(self.IT[1]), str(self.IT[2])),
             ("Judge of Stroke", str(self.JoS[0]), str(self.JoS[1]), str(self.JoS[2])),
             ("Chief Timekeeper", str(self.ChiefT[0]), str(self.ChiefT[1]), str(self.ChiefT[2])),
             ("Admin Desk (Clerk)", str(self.Clerk[0]), str(self.Clerk[1]), str(self.Clerk[2])) ,
-            ("Meet Manager", str(self.MeetM[0]), str(self.MeetM[1]), str(self.MeetM[2])) ,
+            ("Meet Manager", str(self.MM[0]), str(self.MM[1]), str(self.MM[2])) ,
             ("Starter", str(self.Starter[0]), str(self.Starter[1]), str(self.Starter[2])),
             ("CFJ/CJE",str(self.CFJ[0]), str(self.CFJ[1]), str(self.CFJ[2])),
             ("Chief Recorder/Recorder", str(self.RecSec[0]), "", ""),
@@ -586,13 +588,18 @@ class club_summary:
             row = table.add_row().cells
             for k in range(len(entry)):
                 row[k].text = entry[k]
+                if k == 0:
+                    row[k].width = Inches(2.5)
+                else:
+                    row[k].width = Inches(1.5)
+
                 if k > 0:
                     row[k].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
                 else:
                     row[k].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
 
         table.style = "Light Grid Accent 5"
-        table.autofit = True
+#        table.autofit = True
 
 
         if len(self.Qualified_Refs) > 0:

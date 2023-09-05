@@ -450,6 +450,10 @@ class docgenCore:
         row[1].text = self._get_date(clinic_date)
         row[2].text = self._get_date(signoff_1)
         row[3].text = self._get_date(signoff_2)
+        row[0].width = docx.shared.Inches(2.5)
+        row[1].width = docx.shared.Inches(1.5)
+        row[2].width = docx.shared.Inches(1.5)
+        row[3].width = docx.shared.Inches(1.5)
         row[0].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
         row[1].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
         row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
@@ -496,8 +500,8 @@ class docgenCore:
 
             self.add_clinic(table, "Intro to Swimming", entry["Introduction to Swimming Officiating-ClinicDate"], entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"], entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Safety Marshal", entry["Safety Marshal-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(table, "Stroke & Turn (Combo)", entry["Judge of Stroke/Inspector of Turns-ClinicDate"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Inspector of Turns", entry("Inspector of Turns-ClinicDate"), entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"])
+            self.add_clinic(table, "Stroke & Turn (Pre Sept/23)", entry["Judge of Stroke/Inspector of Turns-ClinicDate"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
+            self.add_clinic(table, "Inspector of Turns", entry["Inspector of Turns-ClinicDate"], entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Judge of Stroke", entry["Judge of Stroke-ClinicDate"], entry["Judge of Stroke-Deck Evaluation #1 Date"], entry["Judge of Stroke-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Chief Timekeeper", entry["Chief Timekeeper-ClinicDate"], entry["Chief Timekeeper-Deck Evaluation #1 Date"], entry["Chief Timekeeper-Deck Evaluation #2 Date"])
             self.add_clinic(table, "Admin Desk (Clerk)", entry["Clerk of Course-ClinicDate"], entry["Clerk of Course-Deck Evaluation #1 Date"], entry["Clerk of Course-Deck Evaluation #2 Date"])

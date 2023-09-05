@@ -89,7 +89,7 @@ REQUIRED_RTR_FIELDS = [
     "Judge of Stroke-Deck Evaluation #2 Date", 
     "Inspector of Turns", 
     "Inspector of Turns-ClinicDate", 
-    "Inspector of Turns-Deck Evaluation #1 Meet", 
+    "Inspector of Turns-Deck Evaluation #1 Date", 
     "Inspector of Turns-Deck Evaluation #2 Date", 
     "Para Domestic", 
     "Para Domestic Course Date", 
