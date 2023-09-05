@@ -4,12 +4,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
 
-
-- :sparkles: Basic [docs](http://SWON-Analyzer.readthedocs.io/)  [WIP]
-- :sparkles: Experimental Support for the New Pathway
-- :sparkles: Support for RTR file format changes as of September 1, 2023
-- :sparkles: Support for CSV format in addition to the standard RTR HTML format
-
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing
 - :bug: Fixed a bunch of bugs
@@ -33,3 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.0.2] - 2023-08-27
 - :bug: Fixed issue with SMTP not working for port 587 (STARTTLS)
+
+### [1.1.0] - 2023-09-05
+- :sparkles: Basic [docs](http://SWON-Analyzer.readthedocs.io/)
+- :sparkles: Experimental Support for the New Pathway
+- :sparkles: Support for RTR file format changes as of September 1, 2023
+- :sparkles: Support for CSV format in addition to the standard RTR HTML format
+
+### [1.1.1] - 2023-09-05
+- :bug: Fix race condition on Stroke & Turn staffing scenarios
