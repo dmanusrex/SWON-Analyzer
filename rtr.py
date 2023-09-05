@@ -26,6 +26,7 @@ import numpy as np
 import logging
 import tkinter as tk
 import customtkinter as ctk
+import chardet
 from CTkMessagebox import CTkMessagebox
 from tkinter import filedialog, ttk, BooleanVar, StringVar
 from typing import Any, Callable
@@ -37,7 +38,7 @@ from time import sleep
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
-from rtr_fields import REQUIRED_RTR_FIELDS
+from rtr_fields import REQUIRED_RTR_FIELDS, RTR_POSITION_FIELDS
 
 NoneFn = Callable[[], None]
 
@@ -46,19 +47,7 @@ tkContainer = Any
 class _Data_Loader(Thread):
     '''Load RTR Data files'''
 
-    _RTR_Fields = {
-    'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
-    'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-    'IT': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-    'JoS': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-    'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
-    'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
-    'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
-    'Starter': ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
-    'ChiefRec': ["Recorder-Scorer"],
-    'CFJ': ["Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
-    'Referee': ["Referee"]
-    }
+    _RTR_Fields = RTR_POSITION_FIELDS
 
     def __init__(self, config: AnalyzerConfig):
         super().__init__()
@@ -72,15 +61,45 @@ class _Data_Loader(Thread):
         self.club_list_names_df = pd.DataFrame
         self.club_list_names = []
         logging.info("Loading RTR Data")
+
+
+        # Check if the RTR file is a CSV or HTML file by reading the first line and looking for "Registration Id"
+
         try:
-            self._rtr_data = pd.read_html(html_file)[0]
+            with open(html_file, 'r') as f:
+                first_line = f.readline()
         except:
-            logging.info("Unable to load data file")
-            self.failure_reason = "Unable to load data file"
+            logging.info("Unable to open data file")
+            self.failure_reason = "Unable to open data file"
             self.rtr_data = pd.DataFrame
             return
-        self._rtr_data.columns = self._rtr_data.iloc[0]   # The first row is the column names
-        self._rtr_data = self._rtr_data[1:]
+         
+    
+        if "Registration Id" in first_line:
+            logging.info("CSV Formatted File Detected")
+            # Re-read the first megabyte of data to try to determine the character encoding
+            with open(html_file, 'rb') as f:
+                result = chardet.detect(f.read(1000000))
+            logging.info("Detected encoding: {}".format(result['encoding']))
+            try:
+                self._rtr_data = pd.read_csv(html_file, usecols=REQUIRED_RTR_FIELDS, na_values=["0001-01-01"], encoding=result['encoding'])
+            except Exception as e:
+                logging.info("Unable to load CSV file: {}".format(type(e).__name__))
+                logging.info("Exception message: {}".format(e))
+                self.failure_reason = "Unable to load CSV data file - See log for details"
+                self.rtr_data = pd.DataFrame
+                return
+        else:
+            logging.info("HTML Formatted File Detected")
+            try:
+                self._rtr_data = pd.read_html(html_file, na_values=["0001-01-01"])[0]
+            except:
+                logging.info("Unable to load data file")
+                self.failure_reason = "Unable to load data file"
+                self.rtr_data = pd.DataFrame
+                return
+            self._rtr_data.columns = self._rtr_data.iloc[0]   # The first row is the column names
+            self._rtr_data = self._rtr_data[1:]
 
         # Check if required rtr fields are present
 
@@ -274,21 +293,7 @@ class _Data_Loader(Thread):
 
 class RTR:
     '''RTR Application Data'''
-    _RTR = {
-        'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
-        'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-        'IT': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-        'JoS': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-#        'IT': ["Inspector of Turns", "Inspector of Turns-Deck Evaluation #1 Date", "Inspector of Turns-Deck Evaluation #2 Date"],
-#        'JoS': ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
-        'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
-        'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
-        'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
-        'Starter': ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
-        'ChiefRec': ["Recorder-Scorer"],
-        'CFJ': ["Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
-        'Referee': ["Referee", "Referee-Deck Evaluation #1 Date", "Referee-Deck Evaluation #2 Date"]
-    }
+
     def __init__(self, config: AnalyzerConfig, **kwargs):
         self._config = config
         self.rtr_data = pd.DataFrame()
@@ -460,17 +465,19 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
         self.rtrbtn = ctk.CTkButton(filesframe, text="RTR List", command=self._handle_officials_browse)
         self.rtrbtn.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(self.rtrbtn, text="Select the RTR officials export file")   # pylint: disable=C0330
-        ctk.CTkLabel(filesframe, textvariable=self._officials_list).grid(column=1, row=2, sticky="ew")
+        self.rtrfileentry = ctk.CTkLabel(filesframe, textvariable=self._officials_list)
+        self.rtrfileentry.grid(column=1, row=2, sticky="w")
 
         self.load_btn = ctk.CTkButton(filesframe, text="Load Datafile", command=self._handle_load_btn)
         self.load_btn.grid(column=0, row=4, padx=20, pady=10)
-        ctk.CTkLabel(filesframe, text="Load the RTR Officials Datafile").grid(column=1, row=4, sticky="w")
+        self.load_txt = ctk.CTkLabel(filesframe, text="Load the RTR Officials Datafile")
+        self.load_txt.grid(column=1, row=4, sticky="w")
 
         self.reset_btn = ctk.CTkButton(filesframe, text="Reset", command=self._handle_reset_btn)
         self.reset_btn.grid(column=0, row=6, padx=20, pady=10)
         ctk.CTkLabel(filesframe, text="Restart data loading").grid(column=1, row=6, sticky="w")
 
-        self.bar = ctk.CTkProgressBar(master=self, orientation='horizontal', mode='indeterminate')
+        self.bar = ctk.CTkProgressBar(master=filesframe, orientation='horizontal', mode='indeterminate')
    
 
         ctk.CTkLabel(self.stats1left, text="Overall Summary", font=ctk.CTkFont(weight="bold")).grid(column=0, row=0, columnspan=2, sticky="news")
@@ -555,12 +562,11 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
         '''Enable/disable all buttons on the UI'''
         self.load_btn.configure(state = newstate)
         self.reset_btn.configure(state = newstate)
-#        self.reports_btn.configure(state = newstate)
-#        self.cohost_btn.configure(state = newstate)
 
     def _handle_load_btn(self) -> None:
         self.buttons("disabled")
-        self.bar.grid(row=8, column=0, columnspan=2, pady=10, padx=20, sticky="n")
+        self.load_txt.grid_forget()
+        self.bar.grid(column=1, row=4, sticky="w", pady=10, padx=10)
         self.bar.set(0)
         self.bar.start()
 
@@ -588,4 +594,6 @@ class RTR_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
                 CTkMessagebox(self, title="Error", message=thread.failure_reason, icon="cancel", corner_radius=0)
             self.bar.stop()
             self.bar.grid_forget()
+            self.load_txt.grid(column=1, row=4, sticky="w")
+
             thread.join()

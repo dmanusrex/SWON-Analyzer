@@ -4,10 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
 
-- TBD
+
 - :sparkles: Basic [docs](http://SWON-Analyzer.readthedocs.io/)  [WIP]
 - :sparkles: Experimental Support for the New Pathway
 - :sparkles: Support for RTR file format changes as of September 1, 2023
+- :sparkles: Support for CSV format in addition to the standard RTR HTML format
 
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing

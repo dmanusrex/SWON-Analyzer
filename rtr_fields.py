@@ -91,14 +91,22 @@ REQUIRED_RTR_FIELDS = [
     "Inspector of Turns-ClinicDate", 
     "Inspector of Turns-Deck Evaluation #1 Meet", 
     "Inspector of Turns-Deck Evaluation #2 Date", 
-    "Is Para Official", 
-    "Para Official Status", 
-    "Para IPC Technical Official", 
-    "Para IPC Technical Official Course Date", 
-    "Para National", 
-    "Para National Course Date", 
     "Para Domestic", 
     "Para Domestic Course Date", 
     "ClubCode", 
     "Current_CertificationLevel", 
     "AffiliatedClubs"]
+
+RTR_POSITION_FIELDS = {
+    'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
+    'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+    'IT': ["Inspector of Turns", "Inspector of Turns-Deck Evaluation #1 Date", "Inspector of Turns-Deck Evaluation #2 Date"],
+    'JoS': ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
+    'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
+    'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
+    'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
+    'Starter': ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
+    'ChiefRec': ["Recorder-Scorer"],
+    'CFJ': ["Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
+    'Referee': ["Referee"]
+    }

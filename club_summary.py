@@ -55,25 +55,13 @@ from docx import Document
 from typing import Any
 import docx
 import logging
+from rtr_fields import RTR_POSITION_FIELDS
 
 class club_summary:
     # The first field is the yes/no field, the remainder are the date fields used to determine certification.
     # Only the yes/no field is mandatory.  The IT/JoS positions will be new in the fall, using existing S&T Fields as proxies.
-    _RTR_Fields = {
-        'Intro': ["Introduction to Swimming Officiating", "Introduction to Swimming Officiating-Deck Evaluation #1 Date", "Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
-        'ST': ["Judge of Stroke/Inspector of Turns", "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date", "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-        'IT': ["Inspector of Turns", "Inspector of Turns-Deck Evaluation #1 Date", "Inspector of Turns-Deck Evaluation #2 Date"],
-        'JoS': ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
-        'CT': ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
-        'Clerk': ["Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"],
-        'MM': ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
-        'Starter': ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
-        'ChiefRec': ["Recorder-Scorer"],
-        'CFJ': ["Chief Finish Judge/Chief Judge", "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date", "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
-        'Referee': ["Referee", "Referee-Deck Evaluation #1 Date", "Referee-Deck Evaluation #2 Date"]
-    }
-
-
+    _RTR_Fields = RTR_POSITION_FIELDS
+    
     def __init__(self, club: str, club_data_set : pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set
         self._club_data = self._club_data_full.query("Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']")
@@ -583,8 +571,8 @@ class club_summary:
         table_data = [
             ("Intro to Swimming", str(self.Intro[0]), str(self.Intro[1]), str(self.Intro[2])),
             ("Stroke & Turn (Combo)", str(self.SandT[0]), str(self.SandT[1]), str(self.SandT[2])),
-#            ("Inspector of Turns", str(self.IT[0]), str(self.IT[1]), str(self.IT[2])),
-#            ("Judge of Stroke", str(self.JoS[0]), str(self.JoS[1]), str(self.JoS[2])),
+            ("Inspector of Turns", str(self.IT[0]), str(self.IT[1]), str(self.IT[2])),
+            ("Judge of Stroke", str(self.JoS[0]), str(self.JoS[1]), str(self.JoS[2])),
             ("Chief Timekeeper", str(self.ChiefT[0]), str(self.ChiefT[1]), str(self.ChiefT[2])),
             ("Admin Desk (Clerk)", str(self.Clerk[0]), str(self.Clerk[1]), str(self.Clerk[2])) ,
             ("Meet Manager", str(self.MeetM[0]), str(self.MeetM[1]), str(self.MeetM[2])) ,
