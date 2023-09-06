@@ -19,7 +19,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-'''Analyze SWON data and generate a club compliance report'''
+"""Analyze SWON data and generate a club compliance report"""
 
 
 import customtkinter as ctk
@@ -27,28 +27,28 @@ import club_analyzer_ui as ui
 from config import AnalyzerConfig
 import os
 import sys
-import keyring
 
 from rtr import RTR
 
-def main():
-    '''Runs the Offiicals Utilities'''
 
-    bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+def main():
+    """Runs the Offiicals Utilities"""
+
+    bundle_dir = getattr(sys, "_MEIPASS", os.path.abspath(os.path.dirname(__file__)))
 
     root = ctk.CTk()
     config = AnalyzerConfig()
     rtr_data = RTR(config)
-    
+
     ctk.set_appearance_mode(config.get_str("Theme"))  # Modes: "System" (standard), "Dark", "Light"
     ctk.set_default_color_theme(config.get_str("Colour"))  # Themes: "blue" (standard), "green", "dark-blue"
     new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
-#    ctk.set_widget_scaling(new_scaling_float)     # Scaling is causing issues with window sizing
+    #    ctk.set_widget_scaling(new_scaling_float)     # Scaling is causing issues with window sizing
 
     root.title("Swim Ontario - Officials Utilities")
-    icon_file = os.path.abspath(os.path.join(bundle_dir, 'media','swon-analyzer.ico'))
+    icon_file = os.path.abspath(os.path.join(bundle_dir, "media", "swon-analyzer.ico"))
 
-    root.iconbitmap(icon_file)   
+    root.iconbitmap(icon_file)
     root.columnconfigure(0, weight=1, minsize=400)
     root.rowconfigure(0, weight=1, minsize=600)
     root.resizable(True, True)
@@ -72,6 +72,6 @@ def main():
 
     config.save()
 
+
 if __name__ == "__main__":
     main()
-

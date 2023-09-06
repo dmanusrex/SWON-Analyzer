@@ -19,53 +19,56 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #
 
-'''Config parsing and options'''
+"""Config parsing and options"""
 
 import configparser
 
+
 class AnalyzerConfig:
-    '''Get/Set program options'''
+    """Get/Set program options"""
 
     # Name of the configuration file
     _CONFIG_FILE = "swon-analyzer.ini"
     # Name of the section we use in the ini file
     _INI_HEADING = "swon-analyzer"
     # Configuration defaults if not present in the config file
-    _CONFIG_DEFAULTS = {_INI_HEADING: {
-        "officials_list": "./officials_list.xls",   # Location of RTR export file
-        "report_directory": ".",                    # Report output directory
-        "report_file_docx": "club_analysis.docx",   # Word File name
-        "report_file_cohost": "cohosting.docx",     # Co-hosting filename
-        "odp_report_directory": ".",                    # Report output directory
-        "odp_report_file_docx": "officials-reports.docx",   # Word File name
-        "np_report_directory": ".",                    # New Pathway Folder
-        "np_report_file_docx": "pathway-reports.docx",   # New Pathway Word File name
-        "np_report_file_csv": "pathway-reports.csv",   # New Pathway CSV File name
-        "np_ror_file_docx": "pathway-warnings.docx",   # New Pathway ROR/POA File name
-        "incl_errors": "True",                      # Include Errors
-        "incl_inv_pending": "True",                 # Include Invoice Pending Status
-        "incl_pso_pending": "True",                 # Include PSO Pending Status
-        "incl_account_pending": "True",             # Include Account Pending Status
-        "incl_affiliates": "True",                  # Include Affiliated Officials
-        "incl_sanction_errors": "True",             # Include Sanctioning Errors in Reports
-        "contractor_results": "FalsE",               # Use a Contractor for Results
-        "contractor_mm": "False",                    # Use a Contractor for Meet Management
-        "video_finish": "False",                     # Using a Video Finish System
-        "gen_1_per_club": "False",                  # Generate 1 Word Doc / Club
-        "gen_word": "True",                         # Generate Master Word Doc
-        "gen_np_csv": "False",                  # Generate CSV File
-        "gen_np_warnings": "False",                  # Generate Pathway Warnings
-        "email_list_csv": "docgen-email-list.csv",      # Email List File name
-        "email_smtp_server": "smtp.gmail.com",      # SMTP Server
-        "email_smtp_port": "587",                   # SMTP Port
-        "email_smtp_user": "username@gmail.com",              # SMTP User
-        "email_from": "My Name <user@gmail.com>",            # Email From Address
-        "email_subject": "Officials Development Report",        # Email Subject
-        "email_body": "Attached is your Officials Development Report", # Email Body
-        "Theme": "System",                          # Theme- System, Dark or Light
-        "Scaling": "100%",                          # Display Zoom Level
-        "Colour" : "blue",                          # Colour Theme
-    }}
+    _CONFIG_DEFAULTS = {
+        _INI_HEADING: {
+            "officials_list": "./officials_list.xls",  # Location of RTR export file
+            "report_directory": ".",  # Report output directory
+            "report_file_docx": "club_analysis.docx",  # Word File name
+            "report_file_cohost": "cohosting.docx",  # Co-hosting filename
+            "odp_report_directory": ".",  # Report output directory
+            "odp_report_file_docx": "officials-reports.docx",  # Word File name
+            "np_report_directory": ".",  # New Pathway Folder
+            "np_report_file_docx": "pathway-reports.docx",  # New Pathway Word File name
+            "np_report_file_csv": "pathway-reports.csv",  # New Pathway CSV File name
+            "np_ror_file_docx": "pathway-warnings.docx",  # New Pathway ROR/POA File name
+            "incl_errors": "True",  # Include Errors
+            "incl_inv_pending": "True",  # Include Invoice Pending Status
+            "incl_pso_pending": "True",  # Include PSO Pending Status
+            "incl_account_pending": "True",  # Include Account Pending Status
+            "incl_affiliates": "True",  # Include Affiliated Officials
+            "incl_sanction_errors": "True",  # Include Sanctioning Errors in Reports
+            "contractor_results": "FalsE",  # Use a Contractor for Results
+            "contractor_mm": "False",  # Use a Contractor for Meet Management
+            "video_finish": "False",  # Using a Video Finish System
+            "gen_1_per_club": "False",  # Generate 1 Word Doc / Club
+            "gen_word": "True",  # Generate Master Word Doc
+            "gen_np_csv": "False",  # Generate CSV File
+            "gen_np_warnings": "False",  # Generate Pathway Warnings
+            "email_list_csv": "docgen-email-list.csv",  # Email List File name
+            "email_smtp_server": "smtp.gmail.com",  # SMTP Server
+            "email_smtp_port": "587",  # SMTP Port
+            "email_smtp_user": "username@gmail.com",  # SMTP User
+            "email_from": "My Name <user@gmail.com>",  # Email From Address
+            "email_subject": "Officials Development Report",  # Email Subject
+            "email_body": "Attached is your Officials Development Report",
+            "Theme": "System",  # Theme- System, Dark or Light
+            "Scaling": "100%",  # Display Zoom Level
+            "Colour": "blue",  # Colour Theme
+        }
+    }
 
     def __init__(self):
         self._config = configparser.ConfigParser(interpolation=None)
@@ -73,42 +76,42 @@ class AnalyzerConfig:
         self._config.read(self._CONFIG_FILE)
 
     def save(self) -> None:
-        '''Save the (updated) configuration to the ini file'''
-        with open(self._CONFIG_FILE, 'w') as configfile:
+        """Save the (updated) configuration to the ini file"""
+        with open(self._CONFIG_FILE, "w") as configfile:
             self._config.write(configfile)
 
     def get_str(self, name: str) -> str:
-        '''Get a string option'''
+        """Get a string option"""
         return self._config.get(self._INI_HEADING, name)
 
     def set_str(self, name: str, value: str) -> str:
-        '''Set a string option'''
+        """Set a string option"""
         self._config.set(self._INI_HEADING, name, value)
         return self.get_str(name)
 
     def get_float(self, name: str) -> float:
-        '''Get a float option'''
+        """Get a float option"""
         return self._config.getfloat(self._INI_HEADING, name)
 
     def set_float(self, name: str, value: float) -> float:
-        '''Set a float option'''
+        """Set a float option"""
         self._config.set(self._INI_HEADING, name, str(value))
         return self.get_float(name)
 
     def get_int(self, name: str) -> int:
-        '''Get an integer option'''
+        """Get an integer option"""
         return self._config.getint(self._INI_HEADING, name)
 
     def set_int(self, name: str, value: int) -> int:
-        '''Set an integer option'''
+        """Set an integer option"""
         self._config.set(self._INI_HEADING, name, str(value))
         return self.get_int(name)
 
     def get_bool(self, name: str) -> bool:
-        '''Get a boolean option'''
+        """Get a boolean option"""
         return self._config.getboolean(self._INI_HEADING, name)
 
     def set_bool(self, name: str, value: bool) -> bool:
-        '''Set a boolean option'''
+        """Set a boolean option"""
         self._config.set(self._INI_HEADING, name, str(value))
         return self.get_bool(name)

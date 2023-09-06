@@ -63,9 +63,7 @@ def releases(user_repo: str) -> List[ReleaseInfo]:
     url = f"https://api.github.com/repos/{user_repo}/releases"
     # The timeout may be too fast, but it's going to hold up displaying the
     # settings screen. Better to miss an update than hang for too long.
-    resp = requests.get(
-        url, headers={"Accept": "application/vnd.github.v3+json"}, timeout=2
-    )
+    resp = requests.get(url, headers={"Accept": "application/vnd.github.v3+json"}, timeout=2)
     if not resp.ok:
         return []
 
@@ -163,4 +161,3 @@ def is_latest_version(latest_version: Optional[ReleaseInfo], swonv: str) -> bool
     if swonv == "unreleased":
         return False
     return semver.version.Version.parse(latest_version.semver).compare(swonv) <= 0
-

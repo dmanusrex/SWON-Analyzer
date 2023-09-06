@@ -30,8 +30,6 @@ import PyInstaller.utils.win32.versioninfo as vinfo
 import semver  # type: ignore
 import swon_version
 
-#from version import ANALYZER_VERSION
-
 print("Starting build process...\n")
 
 # Remove any previous build artifacts
@@ -42,11 +40,8 @@ except FileNotFoundError:
 
 
 # Determine current git tag
-git_ref = (
-    subprocess.check_output('git describe --tags --match "v*" --long', shell=True)
-    .decode("utf-8")
-    .rstrip()
-)
+git_ref = subprocess.check_output('git describe --tags --match "v*" --long', shell=True).decode("utf-8").rstrip()
+
 ANALYZER_VERSION = swon_version.git_semver(git_ref)
 
 print(f"Building SWON Analyzer, version: {ANALYZER_VERSION}")
@@ -93,9 +88,7 @@ v = vinfo.VSVersionInfo(
                         vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),
                         vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),
                         # Optional fields
-                        vinfo.StringStruct(
-                            "LegalCopyright", "(c) Swim Ontario"
-                        ),
+                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),
                     ],
                 )
             ]

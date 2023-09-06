@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-''' DocGen Main Screen '''
+""" DocGen Main Screen """
 
 import os
 import pandas as pd
@@ -33,7 +33,7 @@ from CTkMessagebox import CTkMessagebox
 import keyring
 import webbrowser
 import tkinter as tk
-from tkinter import filedialog, ttk, BooleanVar, StringVar,  HORIZONTAL
+from tkinter import filedialog, ttk, BooleanVar, StringVar, HORIZONTAL
 from typing import Any
 from tooltip import ToolTip
 import keyring
@@ -43,7 +43,8 @@ import docx
 from docxcompose.composer import Composer
 from threading import Thread
 
-import smtplib, ssl
+import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -57,8 +58,10 @@ from rtr import RTR
 
 tkContainer = Any
 
-class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
-    '''Generate Word Documents from a supplied RTR file'''
+
+class Generate_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+    """Generate Word Documents from a supplied RTR file"""
+
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
         super().__init__(container)
         self._config = config
@@ -77,8 +80,8 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self._incl_account_pending = BooleanVar(value=self._config.get_bool("incl_account_pending"))
 
         # Add support for the club selection
-        self._club_list = ['None']
-        self._club_selected = ctk.StringVar(value='None')
+        self._club_list = ["None"]
+        self._club_selected = ctk.StringVar(value="None")
 
         # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
@@ -96,17 +99,16 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         buttonsframe.rowconfigure(0, weight=0)
 
         # Files Section
-        ctk.CTkLabel(filesframe,
-            text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
+        ctk.CTkLabel(filesframe, text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)
 
         btn2 = ctk.CTkButton(filesframe, text="Recommendations Folder", command=self._handle_report_dir_browse)
         btn2.grid(column=0, row=1, padx=20, pady=10)
-        ToolTip(btn2, text="Select where output files will be sent")   # pylint: disable=C0330
+        ToolTip(btn2, text="Select where output files will be sent")
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(column=1, row=1, sticky="w")
 
         btn3 = ctk.CTkButton(filesframe, text="Consolidate Report File", command=self._handle_report_file_browse)
         btn3.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(btn3, text="Set report file name")   # pylint: disable=C0330
+        ToolTip(btn3, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w")
 
         # Options Frame - Left and Right Panels
@@ -122,62 +124,93 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
 
         # Program Options on the left frame
 
-        ctk.CTkLabel(left_optionsframe,
-            text="UI Appearance").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
+        ctk.CTkLabel(left_optionsframe, text="UI Appearance").grid(column=0, row=0, sticky="w", padx=10)
 
         ctk.CTkLabel(left_optionsframe, text="Appearance Mode", anchor="w").grid(row=1, column=1, sticky="w")
-        ctk.CTkOptionMenu(left_optionsframe, values=["Light", "Dark", "System"],
-           command=self.change_appearance_mode_event, variable=self._ctk_theme).grid(row=1, column=0, padx=20, pady=10) # pylint: disable=C0330
+        ctk.CTkOptionMenu(
+            left_optionsframe,
+            values=["Light", "Dark", "System"],
+            command=self.change_appearance_mode_event,
+            variable=self._ctk_theme,
+        ).grid(row=1, column=0, padx=20, pady=10)
 
         ctk.CTkLabel(left_optionsframe, text="UI Scaling", anchor="w").grid(row=2, column=1, sticky="w")
-        ctk.CTkOptionMenu(left_optionsframe, values=["80%", "90%", "100%", "110%", "120%"],
-           command=self.change_scaling_event, variable=self._ctk_size).grid(row=2, column=0, padx=20, pady=10) # pylint: disable=C0330
+        ctk.CTkOptionMenu(
+            left_optionsframe,
+            values=["80%", "90%", "100%", "110%", "120%"],
+            command=self.change_scaling_event,
+            variable=self._ctk_size,
+        ).grid(row=2, column=0, padx=20, pady=10)
 
-        ctk.CTkLabel(left_optionsframe, text="Colour (Application Restart Required)", anchor="w").grid(row=3, column=1, sticky="w")
-        ctk.CTkOptionMenu(left_optionsframe, values=["blue", "green", "dark-blue"],
-           command=self.change_colour_event, variable=self._ctk_colour).grid(row=3, column=0, padx=20, pady=10) # pylint: disable=C0330
-
+        ctk.CTkLabel(left_optionsframe, text="Colour (Application Restart Required)", anchor="w").grid(
+            row=3, column=1, sticky="w"
+        )
+        ctk.CTkOptionMenu(
+            left_optionsframe,
+            values=["blue", "green", "dark-blue"],
+            command=self.change_colour_event,
+            variable=self._ctk_colour,
+        ).grid(row=3, column=0, padx=20, pady=10)
 
         # Right options frame for status options
-        ctk.CTkLabel(right_optionsframe,
-            text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
 
-        ctk.CTkSwitch(right_optionsframe, text = "PSO Pending", variable=self._incl_pso_pending, onvalue = True, offvalue=False,
-            command=self._handle_incl_pso_pending).grid(column=0, row=1, sticky="w", padx=20, pady=10) # pylint: disable=C0330
+        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)
 
-        ctk.CTkSwitch(right_optionsframe, text = "Account Pending", variable=self._incl_account_pending, onvalue = True, offvalue=False,
-            command=self._handle_incl_account_pending).grid(column=0, row=2, sticky="w", padx=20, pady=10) # pylint: disable=C0330
+        ctk.CTkSwitch(
+            right_optionsframe,
+            text="PSO Pending",
+            variable=self._incl_pso_pending,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_incl_pso_pending,
+        ).grid(column=0, row=1, sticky="w", padx=20, pady=10)
 
-        ctk.CTkSwitch(right_optionsframe, text = "Invoice Pending", variable=self._incl_inv_pending, onvalue = True, offvalue=False,
-               command=self._handle_incl_inv_pending).grid(column=0, row=3, sticky="w", padx=20, pady=10) # pylint: disable=C0330
+        ctk.CTkSwitch(
+            right_optionsframe,
+            text="Account Pending",
+            variable=self._incl_account_pending,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_incl_account_pending,
+        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
+
+        ctk.CTkSwitch(
+            right_optionsframe,
+            text="Invoice Pending",
+            variable=self._incl_inv_pending,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_incl_inv_pending,
+        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
 
         # Lower options frame for club selection
 
-        self.club_dropdown = ctk.CTkOptionMenu(lower_optionsframe, dynamic_resizing=True,
-                                                        values=self._club_list, variable=self._club_selected)
+        self.club_dropdown = ctk.CTkOptionMenu(
+            lower_optionsframe, dynamic_resizing=True, values=self._club_list, variable=self._club_selected
+        )
         self.club_dropdown.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
-        ctk.CTkLabel(lower_optionsframe, text="Club", anchor="w").grid(row=0, column=1, sticky="w", padx=20, pady=(20, 10))
+        ctk.CTkLabel(lower_optionsframe, text="Club", anchor="w").grid(
+            row=0, column=1, sticky="w", padx=20, pady=(20, 10)
+        )
 
         # Add Command Buttons
 
-        ctk.CTkLabel(buttonsframe,
-            text="Actions").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
+        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.reports_btn = ctk.CTkButton(buttonsframe, text="Generate Reports", command=self._handle_reports_btn)
         self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
 
-        self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation='horizontal', mode='indeterminate')
+        self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation="horizontal", mode="indeterminate")
 
         # Register Callback
         self._rtr.register_update_callback(self.refresh_club_list)
 
-
     def refresh_club_list(self):
-        self._club_list = ['None']
+        self._club_list = ["None"]
         self._club_list = self._club_list + [club[1] for club in self._rtr.club_list_names]
 
         self.club_dropdown.configure(values=self._club_list)
-        if len(self._club_list) == 2:    # There is only one club loaded, change default
+        if len(self._club_list) == 2:  # There is only one club loaded, change default
             self.club_dropdown.set(self._club_list[1])
         else:
             self.club_dropdown.set(self._club_list[0])
@@ -192,9 +225,13 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self._odp_report_directory.set(directory)
 
     def _handle_report_file_browse(self) -> None:
-        report_file = filedialog.asksaveasfilename( filetypes = [('Word Documents','*.docx')], defaultextension=".docx", title="Report File", 
-                                                initialfile=os.path.basename(self._odp_report_file.get()), # pylint: disable=C0330
-                                                initialdir=self._config.get_str("odp_report_directory")) # pylint: disable=C0330
+        report_file = filedialog.asksaveasfilename(
+            filetypes=[("Word Documents", "*.docx")],
+            defaultextension=".docx",
+            title="Report File",
+            initialfile=os.path.basename(self._odp_report_file.get()),
+            initialdir=self._config.get_str("odp_report_directory"),
+        )
         if len(report_file) == 0:
             return
         self._config.set_str("odp_report_file_docx", report_file)
@@ -224,12 +261,12 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
         self._config.set_str("Colour", new_colour)
 
     def buttons(self, newstate) -> None:
-        '''Enable/disable all buttons'''
-        self.reports_btn.configure(state = newstate)
+        """Enable/disable all buttons"""
+        self.reports_btn.configure(state=newstate)
 
     def _handle_reports_btn(self) -> None:
         if self._rtr.rtr_data.empty:
-            logging.info ("Load data first...")
+            logging.info("Load data first...")
             CTkMessagebox(master=self, title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         club = self._club_selected.get()
@@ -247,7 +284,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
 
     def monitor_reports_thread(self, thread):
         if thread.is_alive():
-            # check the thread every 100ms 
+            # check the thread every 100ms
             self.after(100, lambda: self.monitor_reports_thread(thread))
         else:
             self.buttons("enabled")
@@ -255,8 +292,10 @@ class Generate_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ances
             self.bar.grid_forget()
             thread.join()
 
-class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestors
-    '''E-Mail Completed list of Word Documents'''
+
+class Email_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+    """E-Mail Completed list of Word Documents"""
+
     def __init__(self, container: tkContainer, config: AnalyzerConfig):
         super().__init__(container)
         self._config = config
@@ -270,7 +309,6 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
         self._email_subject = StringVar(value=self._config.get_str("email_subject"))
         self._email_body = self._config.get_str("email_body")
 
-         # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
 
         filesframe = ctk.CTkFrame(self)
@@ -286,68 +324,64 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
         buttonsframe.rowconfigure(0, weight=0)
 
         # Files Section
-        ctk.CTkLabel(filesframe,
-            text="E-mail Configuration").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
+        ctk.CTkLabel(filesframe, text="E-mail Configuration").grid(column=0, row=0, sticky="w", padx=10)
 
         # options Section
 
-
         entry_width = 500
 
-#        reg_email_smtp_server = self.register(self._handle_email_smtp_server)
-#       A registered validation function seems to disable the interactive logging window. Need to investigate
+        # reg_email_smtp_server = self.register(self._handle_email_smtp_server)
+        # A registered validation function seems to disable the interactive logging window. Need to investigate
 
         ctk.CTkLabel(optionsframe, text="SMTP Server", anchor="w").grid(row=1, column=0, sticky="w")
 
         smtp_server_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_server, width=entry_width)
         smtp_server_entry.grid(column=1, row=1, sticky="w", padx=10, pady=10)
-        smtp_server_entry.bind('<FocusOut>', self._handle_email_smtp_server)
+        smtp_server_entry.bind("<FocusOut>", self._handle_email_smtp_server)
 
         ctk.CTkLabel(optionsframe, text="SMTP Port", anchor="w").grid(row=2, column=0, sticky="w")
         smtp_port_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_port, width=entry_width)
         smtp_port_entry.grid(column=1, row=2, sticky="w", padx=10, pady=10)
-        smtp_port_entry.bind('<FocusOut>', self._handle_email_smtp_port)
-        
+        smtp_port_entry.bind("<FocusOut>", self._handle_email_smtp_port)
+
         ctk.CTkLabel(optionsframe, text="SMTP Username", anchor="w").grid(row=3, column=0, sticky="w")
         smtp_user_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_user, width=entry_width)
         smtp_user_entry.grid(column=1, row=3, sticky="w", padx=10, pady=10)
-        smtp_user_entry.bind('<FocusOut>', self._handle_email_smtp_user)
+        smtp_user_entry.bind("<FocusOut>", self._handle_email_smtp_user)
 
         ctk.CTkLabel(optionsframe, text="SMTP Password", anchor="w").grid(row=4, column=0, sticky="w")
         self.password_entry = ctk.CTkEntry(optionsframe, placeholder_text="Password", show="*", width=entry_width)
         self.password_entry.grid(column=1, row=4, sticky="w", padx=10, pady=10)
-        self.password_entry.bind('<FocusOut>', self._handle_email_smtp_password)
+        self.password_entry.bind("<FocusOut>", self._handle_email_smtp_password)
 
         ctk.CTkLabel(optionsframe, text="E-mail From", anchor="w").grid(row=5, column=0, sticky="w")
         email_from_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_from, width=entry_width)
         email_from_entry.grid(column=1, row=5, sticky="w", padx=10, pady=10)
-        email_from_entry.bind('<FocusOut>', self._handle_email_from)
+        email_from_entry.bind("<FocusOut>", self._handle_email_from)
 
         ctk.CTkLabel(optionsframe, text="E-mail Subject", anchor="w").grid(row=6, column=0, sticky="w")
         email_subject_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_subject, width=entry_width)
         email_subject_entry.grid(column=1, row=6, sticky="w", padx=10, pady=10)
-        email_subject_entry.bind('<FocusOut>', self._handle_email_subject)
+        email_subject_entry.bind("<FocusOut>", self._handle_email_subject)
 
         # Body Text
         ctk.CTkLabel(optionsframe, text="E-mail Body", anchor="w").grid(row=7, column=0, sticky="w")
 
-        self.txtbodybox = ctk.CTkTextbox(master=optionsframe, state='normal', width=entry_width)
+        self.txtbodybox = ctk.CTkTextbox(master=optionsframe, state="normal", width=entry_width)
         self.txtbodybox.grid(column=1, row=7, sticky="w", padx=10, pady=10)
         self.txtbodybox.insert(tk.END, self._email_body)
-        self.txtbodybox.bind('<FocusOut>', self._handle_email_body)
+        self.txtbodybox.bind("<FocusOut>", self._handle_email_body)
 
         # Add Command Buttons
 
-        ctk.CTkLabel(buttonsframe,
-            text="Actions").grid(column=0, row=0, sticky="w", padx=10)   # pylint: disable=C0330
+        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.emailtest_btn = ctk.CTkButton(buttonsframe, text="Send Test EMails", command=self._handle_email_test_btn)
         self.emailtest_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
         self.emailall_btn = ctk.CTkButton(buttonsframe, text="Send All Emails", command=self._handle_email_all_btn)
         self.emailall_btn.grid(column=1, row=1, sticky="news", padx=20, pady=10)
 
-        self.bar = ctk.CTkProgressBar(master=self, orientation='horizontal', mode='indeterminate')
-
+        self.bar = ctk.CTkProgressBar(master=self, orientation="horizontal", mode="indeterminate")
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()
@@ -364,7 +398,7 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
     def _handle_email_smtp_port(self, event) -> bool:
         self._config.set_str("email_smtp_port", event.widget.get())
         return True
-    
+
     def _handle_email_smtp_user(self, event) -> bool:
         self._config.set_str("email_smtp_user", event.widget.get())
         self.password_entry.delete(0, tk.END)
@@ -375,23 +409,23 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
             keyring.set_password("SWON-DOCGEN", self._email_smtp_user.get(), event.widget.get())
             logging.info("Password Changed for %s" % self._email_smtp_user.get())
         return True
-    
+
     def _handle_email_from(self, event) -> bool:
         self._config.set_str("email_from", event.widget.get())
         return True
-    
+
     def _handle_email_subject(self, event) -> bool:
         self._config.set_str("email_subject", event.widget.get())
         return True
-    
+
     def _handle_email_body(self, event) -> bool:
         self._config.set_str("email_body", event.widget.get("0.0", "end"))
         return True
 
     def buttons(self, newstate) -> None:
-        '''Enable/disable all buttons'''
-        self.emailtest_btn.configure(state = newstate)
-        self.emailall_btn.configure(state = newstate)
+        """Enable/disable all buttons"""
+        self.emailtest_btn.configure(state=newstate)
+        self.emailall_btn.configure(state=newstate)
 
     def _handle_email_test_btn(self) -> None:
         self.buttons("disabled")
@@ -407,7 +441,7 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
 
     def monitor_email_thread(self, thread):
         if thread.is_alive():
-            # check the thread every 100ms 
+            # check the thread every 100ms
             self.after(100, lambda: self.monitor_email_thread(thread))
         else:
             self.buttons("enabled")
@@ -415,35 +449,42 @@ class Email_Documents_Frame(ctk.CTkFrame):   # pylint: disable=too-many-ancestor
 
 
 class docgenCore:
-
-    def __init__(self, club: str, club_data_set : pd.DataFrame, config: AnalyzerConfig, **kwargs):
+    def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set
-        self._club_data = self._club_data_full.query("Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']")
+        self._club_data = self._club_data_full.query(
+            "Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
+        )
         self.club_code = club
-      
+
         self._config = config
 
-
     def _is_valid_date(self, date_string) -> bool:
-        if pd.isnull(date_string): return False
-        if date_string == "0001-01-01": return False 
+        if pd.isnull(date_string):
+            return False
+        if date_string == "0001-01-01":
+            return False
+
         try:
-            datetime.strptime(date_string, '%Y-%m-%d')
+            datetime.strptime(date_string, "%Y-%m-%d")
             return True
         except ValueError:
             return False
-    
-    def _get_date(self, date_string) -> str: 
-        if pd.isnull(date_string): return ""
-        if date_string == "0001-01-01": return "" 
+
+    def _get_date(self, date_string) -> str:
+        if pd.isnull(date_string):
+            return ""
+        if date_string == "0001-01-01":
+            return ""
         return date_string
-  
+
     def _count_signoffs(self, clinic_date_1, clinic_date_2) -> int:
         count = 0
-        if self._is_valid_date(clinic_date_1): count += 1
-        if self._is_valid_date(clinic_date_2): count += 1
+        if self._is_valid_date(clinic_date_1):
+            count += 1
+        if self._is_valid_date(clinic_date_2):
+            count += 1
         return count
-    
+
     def add_clinic(self, table, clinic_name, clinic_date, signoff_1, signoff_2) -> None:
         row = table.add_row().cells
         row[0].text = clinic_name
@@ -458,60 +499,120 @@ class docgenCore:
         row[1].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
         row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
         row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-  
+
     def dump_data_docx(self, club_fullname: str, reportdate: str) -> List:
-        '''Produce the Word Document for the club and return a list of files'''
- 
+        """Produce the Word Document for the club and return a list of files"""
+
         _report_directory = self._config.get_str("odp_report_directory")
         _email_list_csv = self._config.get_str("email_list_csv")
-        csv_list = []    # CSV entries for email list (Lastname, Firstname, E-Mail address and Filename)
- 
-        for index, entry in self._club_data.iterrows():
+        csv_list = []  # CSV entries for email list (Lastname, Firstname, E-Mail address and Filename)
 
+        for index, entry in self._club_data.iterrows():
             # create a filename from the last and firstnames using slugify and the report directory
 
-            filename = os.path.abspath(os.path.join(_report_directory, slugify(entry["Last Name"] + "_" + entry["First Name"]) + ".docx"))
+            filename = os.path.abspath(
+                os.path.join(_report_directory, slugify(entry["Last Name"] + "_" + entry["First Name"]) + ".docx")
+            )
             csv_list.append([entry["Last Name"], entry["First Name"], entry["Email"], filename])
 
             doc = Document()
 
             doc.add_heading("2023/24 Officials Development", 0)
- 
+
             p = doc.add_paragraph()
-            p.add_run("Report Date: "+reportdate)
-            p.add_run("\n\nName: "+ entry["Last Name"] + ", " + entry["First Name"] + " (SNC ID # " + entry["Registration Id"] + ")")
-            p.add_run("\n\nClub: "+ club_fullname + " (" + self.club_code + ")")
+            p.add_run("Report Date: " + reportdate)
+            p.add_run(
+                "\n\nName: "
+                + entry["Last Name"]
+                + ", "
+                + entry["First Name"]
+                + " (SNC ID # "
+                + entry["Registration Id"]
+                + ")"
+            )
+            p.add_run("\n\nClub: " + club_fullname + " (" + self.club_code + ")")
             p.add_run("\n\nCurrent Certification Level: ")
             p.add_run("NONE" if pd.isnull(entry["Current_CertificationLevel"]) else entry["Current_CertificationLevel"])
-
-
 
             table = doc.add_table(rows=1, cols=4)
             row = table.rows[0].cells
             row[0].text = "Clinic"
             row[1].text = "Clinic Date"
             row[2].text = "Sign Off #1"
-            row[3].text = "Sign Off #2" 
+            row[3].text = "Sign Off #2"
             row[0].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
             row[1].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
             row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
             row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
 
-
-            self.add_clinic(table, "Intro to Swimming", entry["Introduction to Swimming Officiating-ClinicDate"], entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"], entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
+            self.add_clinic(
+                table,
+                "Intro to Swimming",
+                entry["Introduction to Swimming Officiating-ClinicDate"],
+                entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],
+                entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
+            )
             self.add_clinic(table, "Safety Marshal", entry["Safety Marshal-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(table, "Stroke & Turn (Pre Sept/23)", entry["Judge of Stroke/Inspector of Turns-ClinicDate"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"], entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Inspector of Turns", entry["Inspector of Turns-ClinicDate"], entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Judge of Stroke", entry["Judge of Stroke-ClinicDate"], entry["Judge of Stroke-Deck Evaluation #1 Date"], entry["Judge of Stroke-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Chief Timekeeper", entry["Chief Timekeeper-ClinicDate"], entry["Chief Timekeeper-Deck Evaluation #1 Date"], entry["Chief Timekeeper-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Admin Desk (Clerk)", entry["Clerk of Course-ClinicDate"], entry["Clerk of Course-Deck Evaluation #1 Date"], entry["Clerk of Course-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Meet Manager", entry["Meet Manager-ClinicDate"], entry["Meet Manager-Deck Evaluation #1 Date"], entry["Meet Manager-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "Starter", entry["Starter-ClinicDate"], entry["Starter-Deck Evaluation #1 Date"], entry["Starter-Deck Evaluation #2 Date"])
-            self.add_clinic(table, "CFJ/CJE", entry["Chief Finish Judge/Chief Judge-ClinicDate"], entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"], entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"])
+            self.add_clinic(
+                table,
+                "Stroke & Turn (Pre Sept/23)",
+                entry["Judge of Stroke/Inspector of Turns-ClinicDate"],
+                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"],
+                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Inspector of Turns",
+                entry["Inspector of Turns-ClinicDate"],
+                entry["Inspector of Turns-Deck Evaluation #1 Date"],
+                entry["Inspector of Turns-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Judge of Stroke",
+                entry["Judge of Stroke-ClinicDate"],
+                entry["Judge of Stroke-Deck Evaluation #1 Date"],
+                entry["Judge of Stroke-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Chief Timekeeper",
+                entry["Chief Timekeeper-ClinicDate"],
+                entry["Chief Timekeeper-Deck Evaluation #1 Date"],
+                entry["Chief Timekeeper-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Admin Desk (Clerk)",
+                entry["Clerk of Course-ClinicDate"],
+                entry["Clerk of Course-Deck Evaluation #1 Date"],
+                entry["Clerk of Course-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Meet Manager",
+                entry["Meet Manager-ClinicDate"],
+                entry["Meet Manager-Deck Evaluation #1 Date"],
+                entry["Meet Manager-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "Starter",
+                entry["Starter-ClinicDate"],
+                entry["Starter-Deck Evaluation #1 Date"],
+                entry["Starter-Deck Evaluation #2 Date"],
+            )
+            self.add_clinic(
+                table,
+                "CFJ/CJE",
+                entry["Chief Finish Judge/Chief Judge-ClinicDate"],
+                entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"],
+                entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
+            )
             self.add_clinic(table, "Chief Recorder/Recorder", entry["Recorder-Scorer-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Referee", entry["Referee-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Para eModule", entry["Para Swimming eModule-ClinicDate"], "N/A", "N/A")
-            
+
             table.style = "Light Grid Accent 5"
             table.autofit = True
 
@@ -519,56 +620,110 @@ class docgenCore:
 
             doc.add_heading("Recommended Actions", 2)
 
+            Intro_Signoffs = self._count_signoffs(
+                entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],
+                entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
+            )
+
+            IT_Signoffs = self._count_signoffs(
+                entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"]
+            )
+
+            JoS_Signoffs = self._count_signoffs(
+                entry["Judge of Stroke-Deck Evaluation #1 Date"], entry["Judge of Stroke-Deck Evaluation #2 Date"]
+            )
+
+            Combo_Signoffs = self._count_signoffs(
+                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"],
+                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
+            )
+
             # For NoLevel officials, add a section to identify what they need to do to get to Level I
 
             if pd.isnull(entry["Current_CertificationLevel"]):
                 if entry["Introduction to Swimming Officiating"].lower() == "no":
-                    doc.add_paragraph("Take Introduction to Swimming Officiating Clinic and obtain sign-offs", style="List Bullet")
+                    doc.add_paragraph(
+                        "Take Introduction to Swimming Officiating Clinic and obtain sign-offs", style="List Bullet"
+                    )
                 else:
                     # if < 2 clinics tell user to get remaining sign-offs (2 - # of clinics)
-                    num_signoffs = self._count_signoffs(entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
-                    if num_signoffs < 2:
-                        doc.add_paragraph(f"Obtain {2-num_signoffs} sign-off(s) for Introduction to Swimming Officiating", style="List Bullet")
-                   
+                    if Intro_Signoffs < 2:
+                        doc.add_paragraph(
+                            f"Obtain {2-Intro_Signoffs} sign-off(s) for Introduction to Swimming Officiating",
+                            style="List Bullet",
+                        )
+
                 if entry["Safety Marshal"].lower() == "no":
-                        doc.add_paragraph("Take Safety Marshal Clinc", style="List Bullet")
+                    doc.add_paragraph("Take Safety Marshal Clinc", style="List Bullet")
 
             # For Level I officials - check if they have stroke & turn and have completed 2 sign-offs
 
             if entry["Current_CertificationLevel"] == "LEVEL I - RED PIN":
-                intro_signoffs = self._count_signoffs(entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
-                if intro_signoffs < 2:
-                    doc.add_paragraph(f"Obtain {2-intro_signoffs} sign-off(s) for Introduction to Swimming Officiating", style="List Bullet")
+                if Intro_Signoffs < 2:
+                    doc.add_paragraph(
+                        f"Obtain {2-Intro_Signoffs} sign-off(s) for Introduction to Swimming Officiating",
+                        style="List Bullet",
+                    )
 
-                if entry["Judge of Stroke/Inspector of Turns"].lower() == "no":      # They don't have the combo clinic
-                    if entry["Inspector of Turns"].lower() == "no":                 # They don't have the new IT clinic either
+                if entry["Judge of Stroke/Inspector of Turns"].lower() == "no":  # They don't have the combo clinic
+                    if entry["Inspector of Turns"].lower() == "no":  # They don't have the new IT clinic either
                         doc.add_paragraph("Take Inspector of Turns Clinic", style="List Bullet")
-                    elif entry["Judge of Stroke"].lower() == "no":                  # They have the new IT clinic but not the JoS clinic
+                    elif entry["Judge of Stroke"].lower() == "no":  # They have the new IT clinic but not the JoS clinic
                         doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
-                    num_signoffs = self._count_signoffs(entry["Inspector of Turns-Deck Evaluation #1 Date"],entry["Inspector of Turns-Deck Evaluation #2 Date"])
-                    num_signoffs += self._count_signoffs(entry["Judge of Stroke-Deck Evaluation #1 Date"],entry["Judge of Stroke-Deck Evaluation #2 Date"])
-                    if intro_signoffs + num_signoffs >= 4:   # They have completed or nearly completed "core" requirements
+                    if (
+                        Intro_Signoffs + IT_Signoffs + JoS_Signoffs >= 4
+                    ):  # They have completed or nearly completed "core" requirements
                         # Check if they have any other clinics
-                        if entry["Chief Timekeeper"].lower() == "no" and entry["Clerk of Course"].lower() == "no" and entry["Meet Manager"].lower() == "no" and entry["Starter"].lower() == "no" and entry["Chief Finish Judge/Chief Judge"].lower() == "no": 
-                            doc.add_paragraph("Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs", style="List Bullet")
+                        if (
+                            entry["Chief Timekeeper"].lower() == "no"
+                            and entry["Clerk of Course"].lower() == "no"
+                            and entry["Meet Manager"].lower() == "no"
+                            and entry["Starter"].lower() == "no"
+                            and entry["Chief Finish Judge/Chief Judge"].lower() == "no"
+                        ):
+                            doc.add_paragraph(
+                                "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
+                                style="List Bullet",
+                            )
                         else:
-                            doc.add_paragraph("Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)", style="List Bullet")
+                            doc.add_paragraph(
+                                "Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)",
+                                style="List Bullet",
+                            )
                 else:  # Has the Legacy Combo Clinic
-                    num_signoffs = self._count_signoffs(entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"],entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
-                    if num_signoffs < 2:
-                        doc.add_paragraph(f"Obtain {2-num_signoffs} sign-off(s) for Judge of Stroke/Inspector of Turns", style="List Bullet")
+                    if Combo_Signoffs < 2:
+                        doc.add_paragraph(
+                            f"Obtain {2-Combo_Signoffs} sign-off(s) for Judge of Stroke/Inspector of Turns",
+                            style="List Bullet",
+                        )
                     # At this point we know they have stroke & turn and intro.  Determine Level II recommendations.
-                    if intro_signoffs + num_signoffs >= 3:   # They have completed or nearly completed "core" requirements
+                    if (
+                        Intro_Signoffs + Combo_Signoffs >= 3
+                    ):  # They have completed or nearly completed "core" requirements
                         # Check if they have any other clinics
-                        if entry["Chief Timekeeper"].lower() == "no" and entry["Clerk of Course"].lower() == "no" and entry["Meet Manager"].lower() == "no" and entry["Starter"].lower() == "no" and entry["Chief Finish Judge/Chief Judge"].lower() == "no": 
-                            doc.add_paragraph("Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs", style="List Bullet")
+                        if (
+                            entry["Chief Timekeeper"].lower() == "no"
+                            and entry["Clerk of Course"].lower() == "no"
+                            and entry["Meet Manager"].lower() == "no"
+                            and entry["Starter"].lower() == "no"
+                            and entry["Chief Finish Judge/Chief Judge"].lower() == "no"
+                        ):
+                            doc.add_paragraph(
+                                "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
+                                style="List Bullet",
+                            )
                         else:
-                            doc.add_paragraph("Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)", style="List Bullet")
+                            doc.add_paragraph(
+                                "Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)",
+                                style="List Bullet",
+                            )
             try:
                 doc.save(filename)
 
             except Exception as e:
-                logging.info(f'Error processing offiical {entry["Last Name"]}, {entry["First Name"]}: {type(e).__name__} - {e}')
+                logging.info(
+                    f'Error processing offiical {entry["Last Name"]}, {entry["First Name"]}: {type(e).__name__} - {e}'
+                )
 
         return csv_list
 
@@ -577,8 +732,8 @@ class Generate_Reports(Thread):
     def __init__(self, rtr: RTR, config: AnalyzerConfig, selected_club: str):
         super().__init__()
         self._rtr = rtr
-        self._df : pd.DataFrame = self._rtr.rtr_data
-        self._config : AnalyzerConfig = config
+        self._df: pd.DataFrame = self._rtr.rtr_data
+        self._config: AnalyzerConfig = config
         self._selected_club = selected_club
 
     def run(self):
@@ -609,17 +764,17 @@ class Generate_Reports(Thread):
 
         all_csv_entries = []
 
-        for club, club_full in filter(lambda x:x[1]==self._selected_club, club_list_names):
+        for club, club_full in filter(lambda x: x[1] == self._selected_club, club_list_names):
             logging.info("Processing %s" % club_full)
             club_data = self._df[(self._df["ClubCode"] == club)]
             club_data = club_data[club_data["Status"].isin(status_values)]
             club_stat = docgenCore(club, club_data, self._config)
             club_csv = club_stat.dump_data_docx(club_full, report_time)
             all_csv_entries.extend(club_csv)
-            club_summaries.append ([club, club_full, club_stat])
+            club_summaries.append([club, club_full, club_stat])
 
-        # Create the email list CSV file    
-        # 
+        # Create the email list CSV file
+        #
         # The email list is a CSV file with the following columns:
         #  Last Name, First Name, E-Mail address, Filename
 
@@ -631,12 +786,12 @@ class Generate_Reports(Thread):
         except Exception as e:
             logging.info("Unable to save email list: {}".format(type(e).__name__))
             logging.info("Exception message: {}".format(e))
-        
+
         # Create the master document
 
         logging.info("Creating master document")
 
-        number_of_sections=len(all_csv_entries)
+        number_of_sections = len(all_csv_entries)
         master = Document()
         composer = Composer(master)
         for i in range(0, number_of_sections):
@@ -654,11 +809,11 @@ class Generate_Reports(Thread):
 
 
 class Email_Reports(Thread):
-    def __init__(self, testmode:bool, config: AnalyzerConfig):
+    def __init__(self, testmode: bool, config: AnalyzerConfig):
         super().__init__()
-        self._testmode : bool = testmode
-        self._config : AnalyzerConfig = config
-        self._email_password : str = "EMPTY"
+        self._testmode: bool = testmode
+        self._config: AnalyzerConfig = config
+        self._email_password: str = "EMPTY"
 
         self._email_smtp_server = self._config.get_str("email_smtp_server")
         self._email_smtp_port = self._config.get_str("email_smtp_port")
@@ -680,16 +835,16 @@ class Email_Reports(Thread):
             logging.info("Unable to retrieve email password: {}".format(type(e).__name__))
             logging.info("Exception message: {}".format(e))
             return
-        
+
         if self._testmode:
             logging.info("Test Mode - Sending max (3) mails to {}".format(self._email_from))
 
         try:
             email_list_df = pd.read_csv(_full_csv_file)
-        except Exception as e:    
+        except Exception as e:
             logging.info("Unable to load email list: {}".format(type(e).__name__))
             logging.info("Exception message: {}".format(e))
-            return    
+            return
 
         context = ssl.create_default_context()
 
@@ -710,8 +865,9 @@ class Email_Reports(Thread):
                 logging.info("Unable to connect to email server: {}".format(type(e).__name__))
                 logging.info("Exception message: {}".format(e))
                 return
-    
-        # For each entry in the list encode the Document and send it.  In test mode, use sender address for to and limit to 5 files
+
+        # For each entry in the list encode the Document and send it.
+        # In test mode, use sender address for to and limit to 5 files
 
         for index, entry in email_list_df.iterrows():
             if self._testmode and index > 2:
@@ -722,10 +878,9 @@ class Email_Reports(Thread):
                 self._send_email(self._email_from, entry["Filename"], server)
             else:
                 self._send_email(entry["EMail"], entry["Filename"], server)
-                
 
         logging.info("Email Complete")
-    
+
     def _send_email(self, email_address: str, filename: str, server) -> None:
         # Create a multipart message and set headers
         message = MIMEMultipart()
@@ -748,7 +903,10 @@ class Email_Reports(Thread):
 
         # Add header as key/value pair to attachment part
         basename = os.path.basename(filename)
-        part.add_header("Content-Disposition",f"attachment; filename= {basename}",)
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {basename}",
+        )
 
         # Add attachment to message and convert message to string
         message.attach(part)
@@ -760,5 +918,3 @@ class Email_Reports(Thread):
         except Exception as e:
             logging.info("Unable to send email: {}".format(type(e).__name__))
             logging.info("Exception message: {}".format(e))
-
-  
