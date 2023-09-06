@@ -1,3 +1,4 @@
+# type: ignore
 # Club Analyzer - https://github.com/dmanusrex/SWON-Analyzer
 # Copyright (C) 2023 - Darren Richer
 #
@@ -27,6 +28,7 @@ import subprocess
 
 import PyInstaller.__main__
 import PyInstaller.utils.win32.versioninfo as vinfo
+
 import semver  # type: ignore
 import swon_version
 
@@ -73,22 +75,22 @@ v = vinfo.VSVersionInfo(
         subtype=0x0,
     ),
     kids=[
-        vinfo.StringFileInfo(
+        vinfo.StringFileInfo(    # tyoe: ignore
             [
-                vinfo.StringTable(
+                vinfo.StringTable(   # tyoe: ignore
                     "040904e4",
                     [
                         # https://docs.microsoft.com/en-us/windows/win32/menurc/versioninfo-resource
                         # Required fields:
-                        vinfo.StringStruct("CompanyName", "Swim Ontario"),
-                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),
-                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),
-                        vinfo.StringStruct("InternalName", "club_analyze"),
-                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),
-                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),
-                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),
+                        vinfo.StringStruct("CompanyName", "Swim Ontario"),  # tyoe: ignore
+                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),  # tyoe: ignore
+                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),  # tyoe: ignore
+                        vinfo.StringStruct("InternalName", "club_analyze"),   # tyoe: ignore
+                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),   # tyoe: ignore
+                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),  # tyoe: ignore
+                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),  # tyoe: ignore
                         # Optional fields
-                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),
+                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),   # tyoe: ignore
                     ],
                 )
             ]
@@ -96,7 +98,7 @@ v = vinfo.VSVersionInfo(
         vinfo.VarFileInfo(
             [
                 # 1033 -> Engligh; 1252 -> charsetID
-                vinfo.VarStruct("Translation", [1033, 1252])
+                vinfo.VarStruct("Translation", [1033, 1252])   # tyoe: ignore
             ]
         ),
     ],

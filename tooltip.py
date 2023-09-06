@@ -8,7 +8,7 @@ Modified to include a delay time by Victor Zaccardo, 25mar16
 """
 
 import tkinter as tk
-import customtkinter as ctk
+import customtkinter as ctk   # type: ignore
 
 
 class ToolTip:  # pylint: disable=too-few-public-methods

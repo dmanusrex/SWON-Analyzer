@@ -25,7 +25,7 @@ import pandas as pd
 import numpy as np
 import logging
 import tkinter as tk
-import customtkinter as ctk
+import customtkinter as ctk   # type: ignore
 import chardet
 from CTkMessagebox import CTkMessagebox
 from tkinter import filedialog, ttk, BooleanVar, StringVar
@@ -343,8 +343,8 @@ class RTR:
         self._config = config
         self.rtr_data = pd.DataFrame()
         self.affiliates = pd.DataFrame()
-        self.club_list_names_df = pd.DataFrame
-        self.club_list_names = []
+        self.club_list_names_df = pd.DataFrame()
+        self.club_list_names: list = []
         self._update_fn: list = []
 
         # Pre-calculate some statistics on the loaded data

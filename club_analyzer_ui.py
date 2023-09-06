@@ -27,7 +27,7 @@ import pandas as pd
 import logging
 import webbrowser
 import tkinter as tk
-import customtkinter as ctk
+import customtkinter as ctk  # type: ignore
 from typing import Any
 from requests.exceptions import RequestException
 

@@ -5,7 +5,7 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-import sphinx_rtd_theme
+import sphinx_rtd_theme    # type: ignore
 
 project = 'SWON Analyzer'
 copyright = '2023, Darren Richer'

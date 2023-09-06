@@ -51,10 +51,10 @@ from datetime import datetime
 from typing import List
 from config import AnalyzerConfig
 from copy import deepcopy, copy
-from docx import Document
+from docx import Document  # type: ignore
 from typing import Any
 import docx
-from docx.shared import Inches
+from docx.shared import Inches  # type: ignore
 
 import logging
 from rtr_fields import RTR_POSITION_FIELDS
@@ -668,8 +668,6 @@ class club_summary:
     def _find_staffing_scenario(self, scenario: dict, current_plan: List, required_staff: int) -> List:
         """Try to find a workable staffing scenario"""
         working_plan: List = []
-        current_skill: dict = {}
-        scenario_copy: dict = {}
 
         if not scenario:  # No remaining jobs to staff
             return []

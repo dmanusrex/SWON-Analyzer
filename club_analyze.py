@@ -22,7 +22,7 @@
 """Analyze SWON data and generate a club compliance report"""
 
 
-import customtkinter as ctk
+import customtkinter as ctk   # type: ignore
 import club_analyzer_ui as ui
 from config import AnalyzerConfig
 import os

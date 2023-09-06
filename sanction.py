@@ -27,14 +27,14 @@ import pandas as pd
 import numpy as np
 import logging
 import tkinter as tk
-import customtkinter as ctk
+import customtkinter as ctk   # type: ignore
 from tkinter import filedialog, ttk, BooleanVar, StringVar
 from typing import Any, Callable
 from threading import Thread
 from datetime import datetime
 from copy import deepcopy, copy
 from tooltip import ToolTip
-from docx import Document
+from docx import Document   # type: ignore
 from CTkMessagebox import CTkMessagebox
 
 

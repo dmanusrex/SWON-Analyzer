@@ -27,9 +27,8 @@ import os
 import pandas as pd
 import numpy as np
 import logging
-import customtkinter as ctk
-import CTkMessagebox
-from CTkMessagebox import CTkMessagebox
+import customtkinter as ctk    # type: ignore
+from CTkMessagebox import CTkMessagebox   # type: ignore
 import keyring
 import webbrowser
 import tkinter as tk
@@ -37,11 +36,11 @@ from tkinter import filedialog, ttk, BooleanVar, StringVar, HORIZONTAL
 from typing import Any
 from tooltip import ToolTip
 import keyring
-from slugify import slugify
-from docx import Document
+from slugify import slugify    # type: ignore
+from docx import Document  # type: ignore
 import docx
-from docx.shared import Inches
-from docxcompose.composer import Composer
+from docx.shared import Inches   # type: ignore
+from docxcompose.composer import Composer  # type: ignore
 from threading import Thread
 
 import smtplib, ssl
