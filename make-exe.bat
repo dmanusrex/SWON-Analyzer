@@ -13,10 +13,10 @@ signtool sign /a /s MY /n "Open Source Developer, Darren Richer" /fd SHA256 /t h
 ::: Clean up build artifacts
 rmdir /q/s build
 
-::: Create zip file
-del swon-analyzer.zip
-powershell Compress-Archive swon-analyzer.exe swon-analyzer.zip
+::: Build the installer
 
-::: Sign release artifact
-::: del swon-analyzer.zip.asc
-::: gpg --detach-sign --armor --local-user EB0F2232 swon-analyzer.zip
+makensis swon-analyzer.nsi
+
+::: Sign the installer
+
+signtool sign /a /s MY /n "Open Source Developer, Darren Richer" /fd SHA256 /t http://time.certum.pl /v swon-install.exe

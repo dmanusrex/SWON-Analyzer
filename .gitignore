@@ -1,7 +1,7 @@
 
 # Application Specific
 .vscode/
-SWON-Analyzer.exe
+*.exe
 SWON-Analyzer.ini
 SWON-Analyzer.zip
 build/
