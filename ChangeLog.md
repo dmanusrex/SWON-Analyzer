@@ -36,3 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.1.1] - 2023-09-05
 - :bug: Fix race condition on Stroke & Turn staffing scenarios
+
+### [1.2.0] - 2023-09-07
+- :sparkles: Generate a setup exe for windows (uses NSIS installer)

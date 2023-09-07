@@ -9,14 +9,14 @@ SWON-Analyzer
 
 
 
-|sa| is a utility for POAs, RORs and COCs/COAs to determine for clubs their meet sanctioning ability both independently and through co-hosting based on the new skills criteria.  It also analyzes the supplied export from the |RTR|_ for errors and warnings that may affect the club's abilty to sanction meets.
+|sa| is for POAs, RORs and COCs/COAs to allow clubs to determine their meet sanctioning ability both independently and through co-hosting based on the new skills criteria.  It also analyzes the supplied export from the |RTR|_ for errors and warnings that may affect the club's abilty to sanction meets. It has additional capabilties to provide a set of personalized recommendations for each official for pathway progression.
 
 
 
 Requirements
 ============
 
-The system will run on any Windows 10 or 11 system.  The system should also run on Linux but this has not been tested.
+The system will run on any Windows 10 or 11 system.  The system should also run on Linux and MacOS with a Python interpreter but this has not been tested.
 
 
 License
