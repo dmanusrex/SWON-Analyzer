@@ -3,6 +3,8 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
+- :bug: Fix UI scaling
+- :sparkles: Add option to create desktop icon during installation
 
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing
