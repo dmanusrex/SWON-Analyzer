@@ -20,7 +20,7 @@ InstallDirRegKey HKLM "Software\SwimOntario" "Install_Dir"
 ; Pages
 
 Page components
-Page directory
+;Page directory
 Page instfiles
 
 UninstPage uninstConfirm
@@ -59,6 +59,11 @@ Section "Start Menu Shortcuts"
 
 SectionEnd
 
+Section "Desktop Shortcut"
+
+  CreateShortcut "$DESKTOP\Officials Utilities.lnk" "$INSTDIR\swon-analyzer.exe"
+
+SectionEnd
 ;--------------------------------
 
 ; Uninstaller

@@ -30,7 +30,6 @@ import requests
 import semver.version  # type: ignore
 
 
-# pylint: disable=too-few-public-methods
 class ReleaseInfo:
     """
     ReleaseInfo describes a single release from a GitHub repository.
@@ -58,7 +57,7 @@ class ReleaseInfo:
 def releases(user_repo: str) -> List[ReleaseInfo]:
     """
     Retrieves the list of releases for the provided repo. user_repo should be
-    of the form "user/repo" (i.e., "JohnStrunk/wahoo-results")
+    of the form "user/repo"
     """
     url = f"https://api.github.com/repos/{user_repo}/releases"
     # The timeout may be too fast, but it's going to hold up displaying the

@@ -310,6 +310,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
     def change_scaling_event(self, new_scaling: str):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100
         ctk.set_widget_scaling(new_scaling_float)
+        ctk.set_window_scaling(new_scaling_float)
         self._config.set_str("Scaling", new_scaling)
 
     def change_colour_event(self, new_colour: str):

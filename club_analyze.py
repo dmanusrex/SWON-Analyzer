@@ -42,8 +42,6 @@ def main():
 
     ctk.set_appearance_mode(config.get_str("Theme"))  # Modes: "System" (standard), "Dark", "Light"
     ctk.set_default_color_theme(config.get_str("Colour"))  # Themes: "blue" (standard), "green", "dark-blue"
-    new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
-    #    ctk.set_widget_scaling(new_scaling_float)     # Scaling is causing issues with window sizing
 
     root.title("Swim Ontario - Officials Utilities")
     icon_file = os.path.abspath(os.path.join(bundle_dir, "media", "swon-analyzer.ico"))
@@ -67,6 +65,11 @@ def main():
         pass
     except RuntimeError:
         pass
+
+    # Scaling seems to work better after the root.update() call
+    new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
+    ctk.set_widget_scaling(new_scaling_float)
+    ctk.set_window_scaling(new_scaling_float)
 
     root.mainloop()
 
