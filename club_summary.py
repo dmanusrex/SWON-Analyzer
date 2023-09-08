@@ -580,35 +580,25 @@ class club_summary:
         # For efficiency, build the scenario from easiest to hardest positions to staff
         # This aids in early termination of the search
         for x in range(Qual_CT):
-            if self.ChiefT[3]:
-                scenario["CT_Q" + str(x)] = self.ChiefT[3]
+            scenario["CT_Q" + str(x)] = self.ChiefT[3]
         for x in range(Cert_CT):
-            if self.ChiefT[4]:
-                scenario["CT_C" + str(x)] = self.ChiefT[4]
+            scenario["CT_C" + str(x)] = self.ChiefT[4]
         for x in range(Qual_Clerk):
-            if self.Clerk[3]:
-                scenario["Clerk_Q" + str(x)] = self.Clerk[3]
+            scenario["Clerk_Q" + str(x)] = self.Clerk[3]
         for x in range(Cert_Clerk):
-            if self.Clerk[4]:
-                scenario["Clerk_C" + str(x)] = self.Clerk[4]
+            scenario["Clerk_C" + str(x)] = self.Clerk[4]
         for x in range(Qual_Starter):
-            if self.Starter[3]:
-                scenario["Starter_Q" + str(x)] = self.Starter[3]
+            scenario["Starter_Q" + str(x)] = self.Starter[3]
         for x in range(Cert_Starter):
-            if self.Starter[4]:
-                scenario["Starter_C" + str(x)] = self.Starter[4]
+            scenario["Starter_C" + str(x)] = self.Starter[4]
         for x in range(Qual_CFJ):
-            if self.CFJ[3]:
-                scenario["CFJ_Q" + str(x)] = self.CFJ[3]
+            scenario["CFJ_Q" + str(x)] = self.CFJ[3]
         for x in range(Cert_CFJ):
-            if self.CFJ[4]:
-                scenario["CFJ_C" + str(x)] = self.CFJ[4]
+            scenario["CFJ_C" + str(x)] = self.CFJ[4]
         for x in range(Qual_MM):
-            if self.MM[3]:
-                scenario["MM_Q" + str(x)] = self.MM[3]
+            scenario["MM_Q" + str(x)] = self.MM[3]
         for x in range(Cert_MM):
-            if self.MM[4]:
-                scenario["MM_C" + str(x)] = self.MM[4]
+            scenario["MM_C" + str(x)] = self.MM[4]
         for x in range(Level3):
             scenario["L3_" + str(x)] = []
             if self.Level_3_list:
@@ -622,13 +612,17 @@ class club_summary:
             if self.Level_4_5s:
                 scenario["L3Ref_" + str(x)].extend(self.Level_4_5s)
         for x in range(Level4_5):
-            if self.Level_4_5s:
-                scenario["L45_" + str(x)] = self.Level_4_5s
+            scenario["L45_" + str(x)] = self.Level_4_5s
 
         return scenario
 
     def _build_staffing_scenario_SandT(
-        self, Qual_IT: int, Cert_IT: int, Qual_JoS: int, Cert_JoS: int, staff_list: List
+        self,
+        Qual_IT: int,
+        Cert_IT: int,
+        Qual_JoS: int,
+        Cert_JoS: int,
+        staff_list: List
     ) -> dict:
         """Build the dictionary for the stroke & turn scenario"""
 
@@ -651,17 +645,13 @@ class club_summary:
             return {}
 
         for x in range(Qual_IT):
-            if qual_IT_left:
-                scenario["IT_Q" + str(x)] = qual_IT_left
+            scenario["IT_Q" + str(x)] = qual_IT_left
         for x in range(Cert_IT):
-            if cert_IT_left:
-                scenario["IT_C" + str(x)] = cert_IT_left
+            scenario["IT_C" + str(x)] = cert_IT_left
         for x in range(Qual_JoS):
-            if qual_JoS_left:
-                scenario["JoS_Q" + str(x)] = qual_JoS_left
+            scenario["JoS_Q" + str(x)] = qual_JoS_left
         for x in range(Cert_JoS):
-            if cert_JoS_left:
-                scenario["JoS_C" + str(x)] = cert_JoS_left
+            scenario["JoS_C" + str(x)] = cert_JoS_left
 
         return scenario
 
@@ -700,10 +690,10 @@ class club_summary:
         doc.add_heading(club_fullname + " (" + self.club_code + ")", 0)
         doc.add_heading("Provisionally Approved Sanction Types (as of " + reportdate + ")", level=2)
         sanction_p = doc.add_paragraph()
-        for sanction in self.Sanction_Level:
-            sanction_p.add_run("\n%s" % sanction)
+        sanction_p.add_run("\n".join(self.Sanction_Level))
         if len(self.Sanction_Level) == 0:
             sanction_p.add_run("NO APPROVED SANCTION TYPES")
+
         doc.add_heading("Officials Summary", level=2)
         ps = doc.add_paragraph("No Level: %d\n" % self.Level_None)
         ps.add_run("Level 1 : %d\n" % self.Level_1s)
@@ -712,6 +702,7 @@ class club_summary:
         ps.add_run("Level 4 : %d\n" % self.Level_4s)
         ps.add_run("Level 5 : %d" % self.Level_5s)
 
+        doc.add_heading("Skills Summary (Excludes Level 4/5)", level=3)
         table = doc.add_table(rows=1, cols=4)
         row = table.rows[0].cells
         row[0].text = "Qualfication"
@@ -734,36 +725,31 @@ class club_summary:
             ("Starter", str(self.Starter[0]), str(self.Starter[1]), str(self.Starter[2])),
             ("CFJ/CJE", str(self.CFJ[0]), str(self.CFJ[1]), str(self.CFJ[2])),
             ("Chief Recorder/Recorder", str(self.RecSec[0]), "", ""),
-            ("Referee Clinics", str(self.Referee[0]), "", ""),
+            ("Referee", str(self.Referee[0]), "", ""),
         ]
 
         for entry in table_data:
             row = table.add_row().cells
             for k in range(len(entry)):
                 row[k].text = entry[k]
-                if k == 0:
-                    row[k].width = Inches(2.5)
-                else:
-                    row[k].width = Inches(1.5)
-
-                if k > 0:
-                    row[k].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-                else:
-                    row[k].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
+                row[k].width = Inches(2.5) if k == 0 else Inches(1.5)
+                row[k].paragraphs[0].alignment = (
+                    docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER if k > 0 else docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
+                )
 
         table.style = "Light Grid Accent 5"
-        #        table.autofit = True
 
         if len(self.Qualified_Refs) > 0:
             doc.add_heading("Qualified Level III Referees", level=3)
             refp = doc.add_paragraph()
-            for ref in self.Qualified_Refs:
-                refname = ref[0]
-                if ref[2] == "yes":
-                    refname += " (Para eModule)"
-                if not pd.isnull(ref[1]):
-                    refname += " (Para National: " + ref[1] + ")"
-                refp.add_run("\n" + refname)
+            refp.add_run(
+                "\n".join(
+                    ref[0]
+                    + (" (Para eModule)" if ref[2] == "yes" else "")
+                    + (" (Para Domestic: " + ref[1] + ")" if not pd.isnull(ref[1]) else "")
+                    for ref in self.Qualified_Refs
+                )
+            )
 
         if self._config.get_bool("incl_affiliates") and affiliates:
             affiliated_officials = self._club_data_full[self._club_data_full["Registration Id"].isin(affiliates)]
@@ -796,36 +782,29 @@ class club_summary:
                     row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
 
                 atable.style = "Light Grid Accent 5"
-                #                atable.autofit = True
                 atable.allow_autofit = True
 
         if self._config.get_bool("incl_sanction_errors") and self.Failed_Sanctions:
             doc.add_heading("Sanctioning Issues", level=3)
             error_p = doc.add_paragraph()
-            newline = False
-            for errmsg in self.Failed_Sanctions:
-                if newline:
-                    error_p.add_run("\n" + errmsg)
-                else:
-                    error_p.add_run(errmsg)
-                    newline = True
+            error_p.add_run("\n".join(self.Failed_Sanctions))
 
         if self._config.get_bool("incl_errors"):
             if self.NoLevel_Missing_Cert:
-                doc.add_heading("RTR Error Detected - Official(s) missing Level I Certification Record", level=2)
-                error_p = doc.add_paragraph()
-                error_p.add_run("\n".join(self.NoLevel_Missing_Cert))
+                doc.add_heading("RTR Error - Official(s) missing Level I Certification Record", level=2)
+                error_p1 = doc.add_paragraph()
+                error_p1.add_run("\n".join(self.NoLevel_Missing_Cert))
+
+            if self.Missing_Level_II:
+                doc.add_heading("RTR Error - Official(s) missing Level II Certification Record", level=2)
+                error_p3 = doc.add_paragraph()
+                error_p3.add_run("\n".join(self.Missing_Level_II))
 
             if self.Missing_Level_III:
                 doc.add_heading("RTR Possible Error - Official(s) missing Level III Certification Record", level=2)
                 error_p2 = doc.add_paragraph()
                 error_p2.add_run("* COA to check last certification date and para certification status\n")
                 error_p2.add_run("\n".join(self.Missing_Level_III))
-
-            if self.Missing_Level_II:
-                doc.add_heading("RTR Error - Official(s) missing Level II Certification Record", level=2)
-                error_p3 = doc.add_paragraph()
-                error_p3.add_run("\n".join(self.Missing_Level_II))
 
             if self.NoLevel_Missing_SM:
                 doc.add_heading("RTR Warning - Level I Partially Complete - Need Safety Marshal", level=2)
