@@ -64,7 +64,7 @@ class club_summary:
     _RTR_Fields = RTR_POSITION_FIELDS
 
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
-        self._club_data_full = club_data_set
+        self._club_data_full = club_data_set.copy()
         self._club_data = self._club_data_full.query(
             "Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
         )
@@ -171,11 +171,11 @@ class club_summary:
             ref_name = row["Last Name"] + ", " + row["First Name"]
             self.Level_3_list.append(ref_name)
             if (
-                (row["Referee"].lower() == "yes")
-                and self._is_certified(row, "CT")
-                and self._is_certified(row, "Clerk")
-                and self._is_certified(row, "Starter")
-                and (self._is_certified(row, "CFJ") or self._is_certified(row, "MM"))
+                row["Referee"].lower() == "yes"
+                and row["CT_Status"] == "C"
+                and row["Clerk_Status"] == "C"
+                and row["Starter_Status"] == "C"
+                and (row["CFJ_Status"] == "C" or row["MM_Status"] == "C")
             ):
                 para_dom = row["Para Domestic"]
                 para_emodule = row["Para Swimming eModule"]
@@ -246,8 +246,7 @@ class club_summary:
     def _check_missing_Level_III(self):
         level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
         self.Missing_Level_III = []
-        clinics_to_check = ["CT", "Clerk", "Starter", "CFJ", "MM"]
-
+        clinics_to_check = ["CT_Status", "Clerk_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
         if level_2_list.empty:
             return
 
@@ -264,7 +263,7 @@ class club_summary:
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
-                    if self._is_certified(row, clinic):
+                    if row[clinic] == "C":
                         cert_count += 1
                 if cert_count >= 4:
                     self.Missing_Level_III.append(official_name)
@@ -272,7 +271,7 @@ class club_summary:
     def _check_missing_Level_II(self):
         level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
         self.Missing_Level_II = []
-        clinics_to_check = ["CT", "Clerk", "Starter", "CFJ", "MM"]
+        clinics_to_check = ["CT_Status", "Clerk_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
 
         if level_1_list.empty:
             return
@@ -288,7 +287,7 @@ class club_summary:
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
-                    if self._is_certified(row, clinic):
+                    if row[clinic] == "C":
                         cert_count += 1
 
                 if cert_count >= 1:
