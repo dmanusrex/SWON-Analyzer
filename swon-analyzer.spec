@@ -1,14 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
-# Generated with:
-# 
-# pipenv run pyi-makespec --onefile --noconsole --add-data media\swon-analyzer.ico;media --icon media\swon-analyzer.ico --name swon-analyzer --splash media\swon-splash.png --version-file swon-analyzer.fileinfo club_analyze.py
+# pyi-makespec --noconsole --add-data media\swon-analyzer.ico;media --icon media\swon-analyzer.ico --name swon-analyzer
+#    --splash media\swon-splash.png --version-file swon-analyzer.fileinfo club_analyze.py
 
 
 block_cipher = None
 
-added_files = [ ('media\\swon-analyzer.ico', 'media'), 
+added_files = [ ('media\\swon-analyzer.ico', 'media'),
    ('CTkMessagebox\\icons', 'CTKMessagebox\\icons')]
 
 a = Analysis(
@@ -31,7 +29,7 @@ splash = Splash(
     'media\\swon-splash.png',
     binaries=a.binaries,
     datas=a.datas,
-    text_pos=(10,20),
+    text_pos=None,
     text_size=12,
     minify_script=True,
     always_on_top=True,
@@ -40,25 +38,31 @@ splash = Splash(
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     splash,
-    splash.binaries,
     [],
+    exclude_binaries=True,
     name='swon-analyzer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['media\\swon-analyzer.ico'],
     version='swon-analyzer.fileinfo',
+    icon=['media\\swon-analyzer.ico'],
+)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    splash.binaries,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='swon-analyzer',
 )

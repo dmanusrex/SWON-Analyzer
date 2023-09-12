@@ -20,7 +20,6 @@ InstallDirRegKey HKLM "Software\SwimOntario" "Install_Dir"
 ; Pages
 
 Page components
-;Page directory
 Page instfiles
 
 UninstPage uninstConfirm
@@ -37,7 +36,7 @@ Section "Officials Utilities (required)"
   SetOutPath $INSTDIR
 
   ; Put file there
-  File "swon-analyzer.exe"
+  File /r "dist\swon-analyzer\*.*"
 
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\SwimOntario "Install_Dir" "$INSTDIR"
@@ -75,14 +74,11 @@ Section "Uninstall"
   DeleteRegKey HKLM SOFTWARE\SwimOntario
 
   ; Remove files and uninstaller
-  Delete $INSTDIR\swon-analyzer.exe
-  Delete $INSTDIR\uninstall.exe
+
+  RMdir /r "$INSTDIR\"
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\Swim Ontario\*.lnk"
-
-  ; Remove .ini files, if any
-  Delete "$INSTDIR\*.ini"
 
   ; Remove directories
   RMDir "$SMPROGRAMS\Swim Ontario"

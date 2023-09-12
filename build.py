@@ -111,4 +111,4 @@ with open("swon-analyzer.fileinfo", "w") as f:
 print("Invoking PyInstaller to generate executable...\n")
 
 # Build it
-PyInstaller.__main__.run(["--distpath=.", "--workpath=build", "swon-analyzer.spec"])
+PyInstaller.__main__.run(["--distpath=dist", "--workpath=build", "swon-analyzer.spec"])
