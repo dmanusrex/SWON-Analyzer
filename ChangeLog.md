@@ -4,7 +4,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
 - :bug: Fix UI scaling
-- :sparkles: Add option to create desktop icon during installation
 
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing
@@ -41,3 +40,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.2.0] - 2023-09-07
 - :sparkles: Generate a setup exe for windows (uses NSIS installer)
+
+
+### [1.2.1]
+- :bug: Stop using ONEFILE option with pyinstaller
+- :bug: Fixed some scaling issues
+- :sparkles: Add option to create desktop icon during installation
