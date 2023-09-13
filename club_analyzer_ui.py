@@ -22,24 +22,23 @@
 
 """ SWON Officials Utilities Main Screen """
 
-import os
-import pandas as pd
 import logging
-import webbrowser
+import os
 import tkinter as tk
-import customtkinter as ctk  # type: ignore
+import webbrowser
 from typing import Any
+
+import customtkinter as ctk  # type: ignore
+import pandas as pd
 from requests.exceptions import RequestException
 
-# Appliction Specific Imports
-from config import AnalyzerConfig
-from version import ANALYZER_VERSION, UNLOCK_CODE
-from rtr import RTR, RTR_Frame
-from odp import Generate_Documents_Frame, Email_Documents_Frame
-from sanction import Sanction_Preferences, Sanction_ROR, Sanction_COA_CoHost
-from pathway import Pathway_Documents_Frame, Pathway_ROR_Frame
-
 import swon_version
+from config import AnalyzerConfig
+from odp import Email_Documents_Frame, Generate_Documents_Frame
+from pathway import Pathway_Documents_Frame, Pathway_ROR_Frame
+from rtr import RTR, RTR_Frame
+from sanction import Sanction_COA_CoHost, Sanction_Preferences, Sanction_ROR
+from version import ANALYZER_VERSION, UNLOCK_CODE
 
 tkContainer = Any
 
@@ -68,7 +67,7 @@ class TextHandler(logging.Handler):
         self.text.after(0, append)
 
 
-class _Logging(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class _Logging(ctk.CTkFrame):  
     """Logging Window"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
@@ -93,10 +92,9 @@ class _Logging(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-ins
         logger.addHandler(text_handler)
 
 
-class SwonApp(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class SwonApp(ctk.CTkFrame):  
     """Main Appliction"""
 
-    # pylint: disable=too-many-arguments,too-many-locals
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr_data: RTR):
         super().__init__(container)
         self._config = config

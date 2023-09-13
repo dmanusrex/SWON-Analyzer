@@ -9,6 +9,7 @@ pytest-mypy
 pandas-stubs
 types-requests
 types-python-dateutil
+types-python-slugify
 black
 
 # Application dependencies

@@ -26,8 +26,8 @@ import os
 import shutil
 import subprocess
 
-import PyInstaller.__main__
-import PyInstaller.utils.win32.versioninfo as vinfo
+import PyInstaller.__main__ 
+import PyInstaller.utils.win32.versioninfo as vinfo 
 
 import semver  # type: ignore
 import swon_version
@@ -37,6 +37,12 @@ print("Starting build process...\n")
 # Remove any previous build artifacts
 try:
     shutil.rmtree("build")
+except FileNotFoundError:
+    pass
+
+# Remove any previous build artifacts
+try:
+    shutil.rmtree("dist")
 except FileNotFoundError:
     pass
 
@@ -75,22 +81,22 @@ v = vinfo.VSVersionInfo(
         subtype=0x0,
     ),
     kids=[
-        vinfo.StringFileInfo(    # tyoe: ignore
+        vinfo.StringFileInfo(    
             [
-                vinfo.StringTable(   # tyoe: ignore
+                vinfo.StringTable(   
                     "040904e4",
                     [
                         # https://docs.microsoft.com/en-us/windows/win32/menurc/versioninfo-resource
                         # Required fields:
-                        vinfo.StringStruct("CompanyName", "Swim Ontario"),  # tyoe: ignore
-                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),  # tyoe: ignore
-                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),  # tyoe: ignore
-                        vinfo.StringStruct("InternalName", "club_analyze"),   # tyoe: ignore
-                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),   # tyoe: ignore
-                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),  # tyoe: ignore
-                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),  # tyoe: ignore
+                        vinfo.StringStruct("CompanyName", "Swim Ontario"),  
+                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),  
+                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),  
+                        vinfo.StringStruct("InternalName", "club_analyze"),   
+                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),   
+                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),  
+                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),  
                         # Optional fields
-                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),   # tyoe: ignore
+                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),   
                     ],
                 )
             ]
@@ -98,7 +104,7 @@ v = vinfo.VSVersionInfo(
         vinfo.VarFileInfo(
             [
                 # 1033 -> Engligh; 1252 -> charsetID
-                vinfo.VarStruct("Translation", [1033, 1252])   # tyoe: ignore
+                vinfo.VarStruct("Translation", [1033, 1252])   
             ]
         ),
     ],
@@ -112,3 +118,15 @@ print("Invoking PyInstaller to generate executable...\n")
 
 # Build it
 PyInstaller.__main__.run(["--distpath=dist", "--workpath=build", "swon-analyzer.spec"])
+
+# Put back the original version.py
+
+os.remove("version.py")
+
+with open("version.py", "w") as f:
+    f.write('"""Version information"""\n\n')
+    f.write(f'ANALYZER_VERSION = "unreleased"\n')
+    f.write("UNLOCK_CODE = None\n")
+
+    f.flush()
+    f.close()

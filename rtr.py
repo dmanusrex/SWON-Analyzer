@@ -24,17 +24,14 @@
 import pandas as pd
 import numpy as np
 import logging
-import tkinter as tk
 import customtkinter as ctk   # type: ignore
 import chardet
 from CTkMessagebox import CTkMessagebox # type: ignore
-from tkinter import filedialog, ttk, BooleanVar, StringVar
+from tkinter import filedialog, StringVar
 from typing import Any, Callable
 from threading import Thread
 from datetime import datetime
-from copy import deepcopy, copy
 from tooltip import ToolTip
-from time import sleep
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
@@ -478,7 +475,7 @@ class RTR:
         logging.info("Reset Complete")
 
 
-class RTR_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class RTR_Frame(ctk.CTkFrame): 
     """Load and manage RTR data files"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr_data: RTR):
@@ -526,7 +523,7 @@ class RTR_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
 
         self.rtrbtn = ctk.CTkButton(filesframe, text="RTR List", command=self._handle_officials_browse)
         self.rtrbtn.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(self.rtrbtn, text="Select the RTR officials export file")  # pylint: disable=C0330
+        ToolTip(self.rtrbtn, text="Select the RTR officials export file") 
         self.rtrfileentry = ctk.CTkLabel(filesframe, textvariable=self._officials_list)
         self.rtrfileentry.grid(column=1, row=2, sticky="w")
 

@@ -45,18 +45,17 @@ TO DO: Re-factor code to be cleaner. The current version is the result of a numb
 
 """
 
-import pandas as pd
-import itertools as it
+import logging
+from copy import copy, deepcopy
 from datetime import datetime
-from typing import List
-from config import AnalyzerConfig
-from copy import deepcopy, copy
-from docx import Document  # type: ignore
 from typing import Any
-import docx
+
+import docx  # type: ignore
+import pandas as pd
+from docx import Document  # type: ignore
 from docx.shared import Inches  # type: ignore
 
-import logging
+from config import AnalyzerConfig
 from rtr_fields import RTR_POSITION_FIELDS
 
 
@@ -81,31 +80,31 @@ class club_summary:
         self.Qual_Refs: int = 0
 
         # Each list contains a summary count of the number of offiicals with 0, 1, or 2 certification dates
-        self.Intro: List = []
-        self.SandT: List = []
-        self.IT: List = []  # Starting sept/23 IT & Judge of Stroke will be separated
-        self.JoS: List = []  # Starting sept/23 IT & Judge of Stroke will be separated
-        self.ChiefT: List = []
-        self.Clerk: List = []
-        self.MM: List = []
-        self.Starter: List = []
-        self.CFJ: List = []
-        self.RecSec: List = []
-        self.Referee: List = []
-        self.Qualified_Refs: List = []
-        self.Level_4_5s: List = []
-        self.Level_3_list: List = []
+        self.Intro: list = []
+        self.SandT: list = []
+        self.IT: list = []  # Starting sept/23 IT & Judge of Stroke will be separated
+        self.JoS: list = []  # Starting sept/23 IT & Judge of Stroke will be separated
+        self.ChiefT: list = []
+        self.Clerk: list = []
+        self.MM: list = []
+        self.Starter: list = []
+        self.CFJ: list = []
+        self.RecSec: list = []
+        self.Referee: list = []
+        self.Qualified_Refs: list = []
+        self.Level_4_5s: list = []
+        self.Level_3_list: list = []
 
         # These lists contain the names of officials with various RTR errors
-        self.NoLevel_Missing_Cert: List = []
-        self.NoLevel_Missing_SM: List = []
-        self.NoLevel_Has_II: List = []
-        self.Missing_Level_II: List = []
-        self.Missing_Level_III: List = []
+        self.NoLevel_Missing_Cert: list = []
+        self.NoLevel_Missing_SM: list = []
+        self.NoLevel_Has_II: list = []
+        self.Missing_Level_II: list = []
+        self.Missing_Level_III: list = []
 
         # List of approved and failed sanctions. Failed sanctions include the failure reason.
-        self.Sanction_Level: List = []
-        self.Failed_Sanctions: List = []
+        self.Sanction_Level: list = []
+        self.Failed_Sanctions: list = []
 
         # Enable Debug
 
@@ -616,12 +615,7 @@ class club_summary:
         return scenario
 
     def _build_staffing_scenario_SandT(
-        self,
-        Qual_IT: int,
-        Cert_IT: int,
-        Qual_JoS: int,
-        Cert_JoS: int,
-        staff_list: List
+        self, Qual_IT: int, Cert_IT: int, Qual_JoS: int, Cert_JoS: int, staff_list: list
     ) -> dict:
         """Build the dictionary for the stroke & turn scenario"""
 
@@ -654,9 +648,9 @@ class club_summary:
 
         return scenario
 
-    def _find_staffing_scenario(self, scenario: dict, current_plan: List, required_staff: int) -> List:
+    def _find_staffing_scenario(self, scenario: dict, current_plan: list, required_staff: int) -> list:
         """Try to find a workable staffing scenario"""
-        working_plan: List = []
+        working_plan: list = []
 
         if not scenario:  # No remaining jobs to staff
             return []

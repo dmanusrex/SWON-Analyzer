@@ -2,8 +2,6 @@
 
 setlocal EnableDelayedExpansion
 
-rmdir /q/s dist
-
 ::: Build and Sign the exe
 python build.py
 

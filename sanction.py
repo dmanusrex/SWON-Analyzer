@@ -24,15 +24,11 @@
 
 import os
 import pandas as pd
-import numpy as np
 import logging
-import tkinter as tk
 import customtkinter as ctk   # type: ignore
-from tkinter import filedialog, ttk, BooleanVar, StringVar
-from typing import Any, Callable
+from tkinter import filedialog, BooleanVar, StringVar
 from threading import Thread
 from datetime import datetime
-from copy import deepcopy, copy
 from tooltip import ToolTip
 from docx import Document   # type: ignore
 from CTkMessagebox import CTkMessagebox  # type: ignore
@@ -43,10 +39,8 @@ from config import AnalyzerConfig
 from club_summary import club_summary
 from rtr import RTR
 
-NoneFn = Callable[[], None]
 
-
-class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class Sanction_Preferences(ctk.CTkFrame):  
     """Miscellaneous settings"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
@@ -132,7 +126,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             command=self._handle_contractor_results,
         ).grid(
             column=1, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to use a contractor for results")
         return frame
 
@@ -191,7 +185,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             offvalue=False,
         ).grid(
             column=0, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include errors and anomalies detected")
         return frame
 
@@ -212,7 +206,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             command=self._handle_incl_inv_pending,
         ).grid(
             column=1, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include Invoice Pending status")
         return frame
 
@@ -233,7 +227,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             command=self._handle_incl_pso_pending,
         ).grid(
             column=1, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include PSO Pending status")
         return frame
 
@@ -254,7 +248,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             command=self._handle_incl_account_pending,
         ).grid(
             column=1, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include Account Pending status")
         return frame
 
@@ -275,7 +269,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             command=self._handle_incl_affiliates,
         ).grid(
             column=1, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include affiliated officials in the analysis")
         return frame
 
@@ -296,7 +290,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
             offvalue=False,
         ).grid(
             column=0, row=0, sticky="n", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
         ToolTip(frame, "Select to include why the sanctioning tier could not be permitted")
         return frame
 
@@ -319,7 +313,7 @@ class Sanction_Preferences(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,
         self._config.set_str("Colour", new_colour)
 
 
-class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class Sanction_ROR(ctk.CTkFrame):  
     """Reports Setting and Generation for RORs and POAs"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
@@ -363,7 +357,7 @@ class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
             command=self._handle_gen_1_per_club,
         ).grid(
             column=1, row=0, sticky="news", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
 
         self._gen_word_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_word"))
         ctk.CTkSwitch(
@@ -375,18 +369,18 @@ class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
             command=self._handle_gen_word,
         ).grid(
             column=1, row=2, sticky="news", padx=20, pady=10
-        )  # pylint: disable=C0330
+        )  
 
         # Report File
 
         rptbtn = ctk.CTkButton(filesframe, text="Main Report File Name", command=self._handle_report_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=10)
-        ToolTip(rptbtn, text="Set report file name")  # pylint: disable=C0330
+        ToolTip(rptbtn, text="Set report file name")  
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w")
 
         rptdirbtn = ctk.CTkButton(filesframe, text="Report Folder", command=self._handle_report_dir_browse)
         rptdirbtn.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(rptdirbtn, text="Select where output files will be sent")  # pylint: disable=C0330
+        ToolTip(rptdirbtn, text="Select where output files will be sent")  
         ctk.CTkLabel(filesframe, textvariable=self._report_directory).grid(column=1, row=2, sticky="w")
 
         # Action Button
@@ -398,11 +392,7 @@ class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
 
     def buttons(self, newstate) -> None:
         """Enable/disable all buttons on the UI"""
-        #        self.load_btn.configure(state = newstate)
-        #        self.reset_btn.configure(state = newstate)
         self.reports_btn.configure(state=newstate)
-
-    #        self.cohost_btn.configure(state = newstate)
 
     def _handle_gen_1_per_club(self, *_arg):
         self._config.set_bool("gen_1_per_club", self._gen_1_per_club_var.get())
@@ -455,7 +445,7 @@ class Sanction_ROR(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many
             thread.join()
 
 
-class Sanction_COA_CoHost(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class Sanction_COA_CoHost(ctk.CTkFrame): 
     """Co-Hosting"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
@@ -510,7 +500,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,t
 
         rptbtn = ctk.CTkButton(filesframe, text="COA/Co-Host Report Filename", command=self._handle_cohost_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=(20, 10))
-        ToolTip(rptbtn, text="Set report file name")  # pylint: disable=C0330
+        ToolTip(rptbtn, text="Set report file name")  
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w", pady=5)
 
         # Action Button
@@ -548,9 +538,6 @@ class Sanction_COA_CoHost(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,t
 
     def buttons(self, newstate) -> None:
         """Enable/disable all buttons on the UI"""
-        #        self.load_btn.configure(state = newstate)
-        #        self.reset_btn.configure(state = newstate)
-        #        self.reports_btn.configure(state = newstate)
         self.cohost_btn.configure(state=newstate)
 
     def _handle_cohost_file_browse(self) -> None:

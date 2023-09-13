@@ -22,12 +22,13 @@
 """Analyze SWON data and generate a club compliance report"""
 
 
-import customtkinter as ctk  # type: ignore
-import club_analyzer_ui as ui
-from config import AnalyzerConfig
 import os
 import sys
 
+import customtkinter as ctk  # type: ignore
+
+import club_analyzer_ui as ui
+from config import AnalyzerConfig
 from rtr import RTR
 
 
@@ -56,7 +57,6 @@ def main():
 
     try:
         root.update()
-        # pylint: disable=import-error,import-outside-toplevel
         import pyi_splash  # type: ignore
 
         if pyi_splash.is_alive():

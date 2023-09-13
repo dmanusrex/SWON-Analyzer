@@ -23,42 +23,38 @@
 
 """ DocGen Main Screen """
 
-import os
-import pandas as pd
-import numpy as np
 import logging
-import customtkinter as ctk  # type: ignore
-from CTkMessagebox import CTkMessagebox # type: ignore
-import keyring
-import webbrowser
-import tkinter as tk
-from tkinter import filedialog, ttk, BooleanVar, StringVar, HORIZONTAL
-from typing import Any
-from tooltip import ToolTip
-import keyring
-from slugify import slugify   # type: ignore
-from docx import Document   # type: ignore
-import docx   # type: ignore
-from docxcompose.composer import Composer    # type: ignore
-from threading import Thread
-
+import os
 import smtplib
 import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
+import tkinter as tk
 from datetime import datetime
-from typing import List
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from threading import Thread
+from tkinter import BooleanVar, StringVar, filedialog
+from typing import Any
+
+import customtkinter as ctk  # type: ignore
+import docx # type: ignore
+import keyring
+import pandas as pd
+from docx import Document  # type: ignore
+from docxcompose.composer import Composer  # type: ignore
+from slugify import slugify
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
+from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
+from tooltip import ToolTip
 
 tkContainer = Any
 
 
-class Generate_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class Generate_Documents_Frame(ctk.CTkFrame):  
     """Generate Word Documents from a supplied RTR file"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
@@ -293,7 +289,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancest
             thread.join()
 
 
-class Email_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class Email_Documents_Frame(ctk.CTkFrame):  
     """E-Mail Completed list of Word Documents"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig):
@@ -500,7 +496,7 @@ class docgenCore:
         row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
         row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
 
-    def dump_data_docx(self, club_fullname: str, reportdate: str) -> List:
+    def dump_data_docx(self, club_fullname: str, reportdate: str) -> list:
         """Produce the Word Document for the club and return a list of files"""
 
         _report_directory = self._config.get_str("odp_report_directory")

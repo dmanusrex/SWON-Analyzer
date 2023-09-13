@@ -23,42 +23,39 @@
 
 """  Experimental Module - Generate new pathway migration documents """
 
-import os
-import pandas as pd
-import numpy as np
 import logging
-import customtkinter as ctk    # type: ignore
-from CTkMessagebox import CTkMessagebox   # type: ignore
-import keyring
-import webbrowser
+import os
+import smtplib
+import ssl
 import tkinter as tk
-from tkinter import filedialog, ttk, BooleanVar, StringVar, HORIZONTAL
-from typing import Any
-from tooltip import ToolTip
-import keyring
-from slugify import slugify    # type: ignore
-from docx import Document  # type: ignore
-import docx
-from docx.shared import Inches   # type: ignore
-from docxcompose.composer import Composer  # type: ignore
-from threading import Thread
-
-import smtplib, ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 from datetime import datetime
-from typing import List
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from threading import Thread
+from tkinter import BooleanVar, StringVar, filedialog
+from typing import Any
+
+import customtkinter as ctk  # type: ignore
+import docx  # type: ignore
+import keyring
+import pandas as pd
+from docx import Document  # type: ignore
+from docx.shared import Inches  # type: ignore
+from docxcompose.composer import Composer  # type: ignore
+from slugify import slugify
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
+from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
+from tooltip import ToolTip
 
 tkContainer = Any
 
 
-class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class Pathway_Documents_Frame(ctk.CTkFrame):
     """Generate Word Documents from a supplied RTR file"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
@@ -98,18 +95,16 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
         buttonsframe.rowconfigure(0, weight=0)
 
         # Files Section
-        ctk.CTkLabel(filesframe, text="Files and Directories").grid(
-            column=0, row=0, sticky="w", padx=10
-        )  # pylint: disable=C0330
+        ctk.CTkLabel(filesframe, text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)
 
         btn2 = ctk.CTkButton(filesframe, text="Pathway Docs Folder", command=self._handle_report_dir_browse)
         btn2.grid(column=0, row=1, padx=20, pady=10)
-        ToolTip(btn2, text="Select where output files will be sent")  # pylint: disable=C0330
+        ToolTip(btn2, text="Select where output files will be sent")
         ctk.CTkLabel(filesframe, textvariable=self._np_report_directory).grid(column=1, row=1, sticky="w")
 
         btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
         btn3.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(btn3, text="Set report file name")  # pylint: disable=C0330
+        ToolTip(btn3, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._np_report_file).grid(column=1, row=2, sticky="w")
 
         # Options Frame - Left and Right Panels
@@ -125,9 +120,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
 
         # Program Options on the left frame
 
-        ctk.CTkLabel(left_optionsframe, text="UI Appearance").grid(
-            column=0, row=0, sticky="w", padx=10
-        )  # pylint: disable=C0330
+        ctk.CTkLabel(left_optionsframe, text="UI Appearance").grid(column=0, row=0, sticky="w", padx=10)
 
         ctk.CTkLabel(left_optionsframe, text="Appearance Mode", anchor="w").grid(row=1, column=1, sticky="w")
         ctk.CTkOptionMenu(
@@ -135,9 +128,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
             variable=self._ctk_theme,
-        ).grid(
-            row=1, column=0, padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(row=1, column=0, padx=20, pady=10)
 
         ctk.CTkLabel(left_optionsframe, text="UI Scaling", anchor="w").grid(row=2, column=1, sticky="w")
         ctk.CTkOptionMenu(
@@ -145,9 +136,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             values=["80%", "90%", "100%", "110%", "120%"],
             command=self.change_scaling_event,
             variable=self._ctk_size,
-        ).grid(
-            row=2, column=0, padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(row=2, column=0, padx=20, pady=10)
 
         ctk.CTkLabel(left_optionsframe, text="Colour (Restart Required)", anchor="w").grid(row=3, column=1, sticky="w")
         ctk.CTkOptionMenu(
@@ -155,14 +144,10 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             values=["blue", "green", "dark-blue"],
             command=self.change_colour_event,
             variable=self._ctk_colour,
-        ).grid(
-            row=3, column=0, padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(row=3, column=0, padx=20, pady=10)
 
         # Right options frame for status options
-        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(
-            column=0, row=0, sticky="w", padx=10
-        )  # pylint: disable=C0330
+        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)
 
         ctk.CTkSwitch(
             right_optionsframe,
@@ -171,9 +156,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_pso_pending,
-        ).grid(
-            column=0, row=1, sticky="w", padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(column=0, row=1, sticky="w", padx=20, pady=10)
 
         ctk.CTkSwitch(
             right_optionsframe,
@@ -182,9 +165,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_account_pending,
-        ).grid(
-            column=0, row=2, sticky="w", padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
 
         ctk.CTkSwitch(
             right_optionsframe,
@@ -193,9 +174,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_inv_pending,
-        ).grid(
-            column=0, row=3, sticky="w", padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
 
         # Lower options frame for club selection
 
@@ -209,7 +188,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
 
         # Add Command Buttons
 
-        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)  # pylint: disable=C0330
+        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.reports_btn = ctk.CTkButton(buttonsframe, text="Generate Reports", command=self._handle_reports_btn)
         self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
@@ -243,9 +222,9 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             filetypes=[("Word Documents", "*.docx")],
             defaultextension=".docx",
             title="Report File",
-            initialfile=os.path.basename(self._np_report_file.get()),  # pylint: disable=C0330
+            initialfile=os.path.basename(self._np_report_file.get()),
             initialdir=self._config.get_str("np_report_directory"),
-        )  # pylint: disable=C0330
+        )
         if len(report_file) == 0:
             return
         self._config.set_str("np_report_file_docx", report_file)
@@ -307,7 +286,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancesto
             thread.join()
 
 
-class Pathway_ROR_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class Pathway_ROR_Frame(ctk.CTkFrame):
     """Reports Setting and Generation for RORs and POAs"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
@@ -349,9 +328,7 @@ class Pathway_ROR_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too
             onvalue=True,
             offvalue=False,
             command=self._handle_gen_csv_file,
-        ).grid(
-            column=1, row=0, sticky="news", padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(column=1, row=0, sticky="news", padx=20, pady=10)
 
         self._gen_np_warnings_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_np_warnings"))
         ctk.CTkSwitch(
@@ -361,20 +338,18 @@ class Pathway_ROR_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors,too
             onvalue=True,
             offvalue=False,
             command=self._handle_gen_warnings,
-        ).grid(
-            column=1, row=2, sticky="news", padx=20, pady=10
-        )  # pylint: disable=C0330
+        ).grid(column=1, row=2, sticky="news", padx=20, pady=10)
 
         # Report File
 
         rptbtn = ctk.CTkButton(filesframe, text="Warnings Filename", command=self._handle_report_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=10)
-        ToolTip(rptbtn, text="The name of the warnings/exceptions file")  # pylint: disable=C0330
+        ToolTip(rptbtn, text="The name of the warnings/exceptions file")
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w")
 
         csvbtn = ctk.CTkButton(filesframe, text="CSV Filename", command=self._handle_csv_browse)
         csvbtn.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(csvbtn, text="The name of the consolidated CSV file")  # pylint: disable=C0330
+        ToolTip(csvbtn, text="The name of the consolidated CSV file")
         ctk.CTkLabel(filesframe, textvariable=self._report_csv).grid(column=1, row=2, sticky="w")
 
         # Action Button
@@ -529,7 +504,7 @@ class _Generate_NP_ROR_Reports(Thread):
         logging.info("Reports Complete")
 
 
-class Email_Pathway_Docs_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancestors
+class Email_Pathway_Docs_Frame(ctk.CTkFrame):
     """E-Mail Completed list of Word Documents"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig):
@@ -561,9 +536,7 @@ class Email_Pathway_Docs_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancest
         buttonsframe.rowconfigure(0, weight=0)
 
         # Files Section
-        ctk.CTkLabel(filesframe, text="E-mail Configuration").grid(
-            column=0, row=0, sticky="w", padx=10
-        )  # pylint: disable=C0330
+        ctk.CTkLabel(filesframe, text="E-mail Configuration").grid(column=0, row=0, sticky="w", padx=10)
 
         # options Section
 
@@ -613,7 +586,7 @@ class Email_Pathway_Docs_Frame(ctk.CTkFrame):  # pylint: disable=too-many-ancest
 
         # Add Command Buttons
 
-        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)  # pylint: disable=C0330
+        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.emailtest_btn = ctk.CTkButton(buttonsframe, text="Send Test EMails", command=self._handle_email_test_btn)
         self.emailtest_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
@@ -776,7 +749,7 @@ class NewPathway:
             logging.info("Exception message: {}".format(e))
             CTkMessagebox(title="Error", message="Unable to save CSV file", icon="cancel", corner_radius=0)
 
-    def dump_data_docx(self, club_fullname: str, reportdate: str) -> List:
+    def dump_data_docx(self, club_fullname: str, reportdate: str) -> list:
         """Produce the Word Document for the club and return a list of files"""
 
         _report_directory = self._config.get_str("np_report_directory")
@@ -808,7 +781,9 @@ class NewPathway:
             )
             p.add_run("\n\nClub: " + club_fullname + " (" + self.club_code + ")")
             p.add_run("\n\nCurrent Certification Level: ")
-            p.add_run("NONE" if pd.isnull(entry["Current_CertificationLevel"]) else entry["Current_CertificationLevel"])
+            p.add_run(
+                "NONE" if pd.isnull(entry["Current_CertificationLevel"]) else entry["Current_CertificationLevel"]
+            )
 
             table = doc.add_table(rows=1, cols=4)
             row = table.rows[0].cells
