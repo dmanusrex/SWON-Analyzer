@@ -35,7 +35,7 @@ from datetime import datetime
 from copy import deepcopy, copy
 from tooltip import ToolTip
 from docx import Document   # type: ignore
-from CTkMessagebox import CTkMessagebox
+from CTkMessagebox import CTkMessagebox  # type: ignore
 
 
 # Appliction Specific Imports

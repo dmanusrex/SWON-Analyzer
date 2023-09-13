@@ -27,7 +27,7 @@ import logging
 import tkinter as tk
 import customtkinter as ctk   # type: ignore
 import chardet
-from CTkMessagebox import CTkMessagebox
+from CTkMessagebox import CTkMessagebox # type: ignore
 from tkinter import filedialog, ttk, BooleanVar, StringVar
 from typing import Any, Callable
 from threading import Thread

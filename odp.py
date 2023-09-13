@@ -28,7 +28,7 @@ import pandas as pd
 import numpy as np
 import logging
 import customtkinter as ctk  # type: ignore
-from CTkMessagebox import CTkMessagebox
+from CTkMessagebox import CTkMessagebox # type: ignore
 import keyring
 import webbrowser
 import tkinter as tk
