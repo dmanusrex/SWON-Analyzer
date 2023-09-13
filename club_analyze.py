@@ -22,7 +22,7 @@
 """Analyze SWON data and generate a club compliance report"""
 
 
-import customtkinter as ctk   # type: ignore
+import customtkinter as ctk  # type: ignore
 import club_analyzer_ui as ui
 from config import AnalyzerConfig
 import os
@@ -68,8 +68,8 @@ def main():
 
     # Scaling seems to work better after the root.update() call
     new_scaling_float = int(config.get_str("Scaling").replace("%", "")) / 100
-#    ctk.set_widget_scaling(new_scaling_float)
-#    ctk.set_window_scaling(new_scaling_float)
+    #    ctk.set_widget_scaling(new_scaling_float)
+    #    ctk.set_window_scaling(new_scaling_float)
 
     root.mainloop()
 
