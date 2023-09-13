@@ -6,9 +6,13 @@ pylint
 pytest
 pytest-pylint
 pytest-mypy
+pandas-stubs
+types-requests
+types-python-dateutil
+black
 
 # Application dependencies
-pandas 
+pandas
 python_docx
 ttkwidgets
 customtkinter
@@ -16,6 +20,7 @@ CTkMessagebox
 requests
 semver
 chardet
+keyring
 
 # Documentation dependencies
 plantweb
