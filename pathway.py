@@ -839,9 +839,9 @@ class NewPathway:
             self.add_clinic(
                 table,
                 "Admin Desk (Clerk)",
-                entry["Clerk of Course-ClinicDate"],
-                entry["Clerk of Course-Deck Evaluation #1 Date"],
-                entry["Clerk of Course-Deck Evaluation #2 Date"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-ClinicDate"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"],
             )
             self.add_clinic(
                 table,
@@ -864,7 +864,7 @@ class NewPathway:
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"],
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
             )
-            self.add_clinic(table, "Chief Recorder/Recorder", entry["Recorder-Scorer-ClinicDate"], "N/A", "N/A")
+            self.add_clinic(table, "Chief Recorder/Recorder", entry["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Referee", entry["Referee-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Para eModule", entry["Para Swimming eModule-ClinicDate"], "N/A", "N/A")
 

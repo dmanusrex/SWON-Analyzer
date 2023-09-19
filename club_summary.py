@@ -231,7 +231,7 @@ class club_summary:
             if (
                 row["Judge of Stroke/Inspector of Turns"].lower() == "yes"
                 or row["Chief Timekeeper"].lower() == "yes"
-                or row["Clerk of Course"].lower() == "yes"
+                or row["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "yes"
                 or row["Starter"].lower() == "yes"
                 or row["Chief Finish Judge/Chief Judge"].lower() == "yes"
                 or row["Meet Manager"].lower() == "yes"
@@ -253,9 +253,9 @@ class club_summary:
             official_name = row["Last Name"] + ", " + row["First Name"]
 
             if (
-                row["Recorder-Scorer"].lower() == "yes"
+                row["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"].lower() == "yes"
                 and row["Chief Timekeeper"].lower() == "yes"
-                and row["Clerk of Course"].lower() == "yes"
+                and row["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "yes"
                 and row["Starter"].lower() == "yes"
                 and row["Chief Finish Judge/Chief Judge"].lower() == "yes"
                 and row["Meet Manager"].lower() == "yes"
@@ -336,7 +336,7 @@ class club_summary:
             "Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"
         )
         self.Clerk = self._count_certifications_detail(
-            "Clerk of Course", "Clerk of Course-Deck Evaluation #1 Date", "Clerk of Course-Deck Evaluation #2 Date"
+            "Administration Desk (formerly Clerk of Course) Clinic", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"
         )
         self.MM = self._count_certifications_detail(
             "Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"
@@ -345,7 +345,7 @@ class club_summary:
             "Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"
         )
         self.RecSec = self._count_certifications_detail(
-            "Recorder-Scorer", "Recorder-Scorer-Deck Evaluation #1 Date", "Recorder-Scorer-Deck Evaluation #2 Date"
+            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic", "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #1 Date", "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #2 Date"
         )
         self.CFJ = self._count_certifications_detail(
             "Chief Finish Judge/Chief Judge",

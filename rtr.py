@@ -24,9 +24,9 @@
 import pandas as pd
 import numpy as np
 import logging
-import customtkinter as ctk   # type: ignore
+import customtkinter as ctk  # type: ignore
 import chardet
-from CTkMessagebox import CTkMessagebox # type: ignore
+from CTkMessagebox import CTkMessagebox  # type: ignore
 from tkinter import filedialog, StringVar
 from typing import Any, Callable
 from threading import Thread
@@ -102,8 +102,11 @@ class _Data_Loader(Thread):
 
         if not all(item in self._rtr_data.columns for item in REQUIRED_RTR_FIELDS):
             self.rtr_data = pd.DataFrame
-            logging.info("Missing Fields - Please use a RTR export after September 1, 2023")
-            self.failure_reason = "Missing Fields - Please use a RTR export after September 1, 2023"
+            # print the misssing fields
+            missing_fields = [item for item in REQUIRED_RTR_FIELDS if item not in self._rtr_data.columns]
+            logging.info("Missing Fields - Please use a RTR export after September 18, 2023")
+            logging.info(missing_fields)
+            self.failure_reason = "Missing Fields - Please use a RTR export after September 18, 2023"
             return
 
         # Club Level exports include blank rows, purge those out
@@ -124,6 +127,21 @@ class _Data_Loader(Thread):
         # Normalize the current RTR status fields
 
         self._rtr_data = self._rtr_data.join(self._rtr_data.apply(self._add_new_columns, axis=1))
+
+        # Update the certification columns
+        self._rtr_data["Intro_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Intro"), axis=1)
+        self._rtr_data["ST_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "ST"), axis=1)
+        self._rtr_data["IT_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "IT"), axis=1)
+        self._rtr_data["JoS_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "JoS"), axis=1)
+        self._rtr_data["CT_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "CT"), axis=1)
+        self._rtr_data["Clerk_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Clerk"), axis=1)
+        self._rtr_data["MM_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "MM"), axis=1)
+        self._rtr_data["Starter_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Starter"), axis=1)
+        self._rtr_data["CFJ_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "CFJ"), axis=1)
+        self._rtr_data["ChiefRec_Status"] = self._rtr_data.apply(
+            lambda row: self._cert_status(row, "ChiefRec"), axis=1
+        )
+        self._rtr_data["Referee_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Referee"), axis=1)
 
         # Update the pathway columns
         self._rtr_data["NP_Official"] = self._rtr_data.apply(lambda row: self._np_official(row), axis=1)
@@ -147,17 +165,28 @@ class _Data_Loader(Thread):
     def _add_new_columns(self, row: Any) -> pd.Series:
         return pd.Series(
             [
-                self._cert_status(row, "Intro"),
-                self._cert_status(row, "ST"),
-                self._cert_status(row, "IT"),
-                self._cert_status(row, "JoS"),
-                self._cert_status(row, "CT"),
-                self._cert_status(row, "Clerk"),
-                self._cert_status(row, "MM"),
-                self._cert_status(row, "Starter"),
-                self._cert_status(row, "CFJ"),
-                self._cert_status(row, "ChiefRec"),
-                self._cert_status(row, "Referee"),
+                self._cert_count(row, "Intro"),
+                self._cert_count(row, "ST"),
+                self._cert_count(row, "IT"),
+                self._cert_count(row, "JoS"),
+                self._cert_count(row, "CT"),
+                self._cert_count(row, "Clerk"),
+                self._cert_count(row, "MM"),
+                self._cert_count(row, "Starter"),
+                self._cert_count(row, "CFJ"),
+                self._cert_count(row, "ChiefRec"),
+                self._cert_count(row, "Referee"),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
                 "N",
                 "N",
                 "N",
@@ -167,6 +196,17 @@ class _Data_Loader(Thread):
                 "N",
             ],
             index=[
+                "Intro_Count",
+                "ST_Count",
+                "IT_Count",
+                "JoS_Count",
+                "CT_Count",
+                "Clerk_Count",
+                "MM_Count",
+                "Starter_Count",
+                "CFJ_Count",
+                "ChiefRec_Count",
+                "Referee_Count",
                 "Intro_Status",
                 "ST_Status",
                 "IT_Status",
@@ -199,10 +239,29 @@ class _Data_Loader(Thread):
         except ValueError:
             return False
 
+    def _cert_count(self, row: Any, skill: str) -> int:
+        """Returns the number of sign-offs for a given skill"""
+
+        rtr_fields = self._RTR_Fields[skill]
+
+        if row["Current_CertificationLevel"] in ["LEVEL IV - GREEN PIN", "LEVEL V - BLUE PIN"]:
+            return len(rtr_fields) - 1  # All Level IV/Vs are certified, detail records may not exist
+
+        if (row[rtr_fields[0]].lower() == "no") | (len(rtr_fields) == 1):  # No Clinic Taken or no sign-off required
+            return 0
+
+        cert_count = 0
+
+        for k in range(1, len(rtr_fields)):
+            cert_count += self._is_valid_date(row[rtr_fields[k]])
+
+        return cert_count
+
     def _cert_status(self, row: Any, skill: str) -> str:
         """Returns N for not qualfied, Q for Qualfied and C for Certified"""
 
         rtr_fields = self._RTR_Fields[skill]
+        count_field = skill + "_Count"
 
         if row["Current_CertificationLevel"] in ["LEVEL IV - GREEN PIN", "LEVEL V - BLUE PIN"]:
             return "C"  # Qualified - All Level IV/Vs are certified, detail records may not exist
@@ -210,16 +269,9 @@ class _Data_Loader(Thread):
         if row[rtr_fields[0]].lower() == "no":  # No Clinic Taken
             return "N"
 
-        if len(rtr_fields) == 1:  # No certifications required
-            return "C"
-
-        if len(rtr_fields) == 2:
-            if self._is_valid_date(row[rtr_fields[1]]):
-                return "C"
-        elif self._is_valid_date(row[rtr_fields[1]]) and self._is_valid_date(row[rtr_fields[2]]):
-            return "C"
-
-        return "Q"  # Qualified
+        if row[count_field] < len(rtr_fields) - 1:  # Not all sign-offs completed
+            return "Q"
+        return "C"
 
     def _np_official(self, row: Any) -> str:
         """Check if a certified official in the new pathway"""
@@ -439,7 +491,9 @@ class RTR:
                 str(self.rtr_data.loc[self.rtr_data["Current_CertificationLevel"] == "LEVEL II - WHITE PIN"].shape[0])
             )
             self.total_Level_III.set(
-                str(self.rtr_data.loc[self.rtr_data["Current_CertificationLevel"] == "LEVEL III - ORANGE PIN"].shape[0])
+                str(
+                    self.rtr_data.loc[self.rtr_data["Current_CertificationLevel"] == "LEVEL III - ORANGE PIN"].shape[0]
+                )
             )
             self.total_Level_IV.set(
                 str(self.rtr_data.loc[self.rtr_data["Current_CertificationLevel"] == "LEVEL IV - GREEN PIN"].shape[0])
@@ -475,7 +529,7 @@ class RTR:
         logging.info("Reset Complete")
 
 
-class RTR_Frame(ctk.CTkFrame): 
+class RTR_Frame(ctk.CTkFrame):
     """Load and manage RTR data files"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr_data: RTR):
@@ -523,7 +577,7 @@ class RTR_Frame(ctk.CTkFrame):
 
         self.rtrbtn = ctk.CTkButton(filesframe, text="RTR List", command=self._handle_officials_browse)
         self.rtrbtn.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(self.rtrbtn, text="Select the RTR officials export file") 
+        ToolTip(self.rtrbtn, text="Select the RTR officials export file")
         self.rtrfileentry = ctk.CTkLabel(filesframe, textvariable=self._officials_list)
         self.rtrfileentry.grid(column=1, row=2, sticky="w")
 
@@ -561,10 +615,14 @@ class RTR_Frame(ctk.CTkFrame):
         ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_active).grid(column=1, row=17, sticky="w")
 
         ctk.CTkLabel(self.stats1right, text="PSO Pending:  ").grid(column=0, row=18, sticky="e")
-        ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_pso_pending).grid(column=1, row=18, sticky="w")
+        ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_pso_pending).grid(
+            column=1, row=18, sticky="w"
+        )
 
         ctk.CTkLabel(self.stats1right, text="Invoice Pending:  ").grid(column=0, row=19, sticky="e")
-        ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_inv_pending).grid(column=1, row=19, sticky="w")
+        ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_inv_pending).grid(
+            column=1, row=19, sticky="w"
+        )
 
         ctk.CTkLabel(self.stats1right, text="Account Pending:  ").grid(column=0, row=20, sticky="e")
         ctk.CTkLabel(self.stats1right, textvariable=self._rtr_data.total_account_pending).grid(
@@ -598,7 +656,9 @@ class RTR_Frame(ctk.CTkFrame):
         )
 
         ctk.CTkLabel(self.stats2right, text="Certified Officials:  ").grid(column=0, row=27, sticky="e")
-        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_official).grid(column=1, row=27, sticky="w")
+        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_official).grid(
+            column=1, row=27, sticky="w"
+        )
 
         ctk.CTkLabel(self.stats2right, text="Referee 1:  ").grid(column=0, row=28, sticky="e")
         ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_ref1).grid(column=1, row=28, sticky="w")
@@ -607,10 +667,14 @@ class RTR_Frame(ctk.CTkFrame):
         ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_ref2).grid(column=1, row=29, sticky="w")
 
         ctk.CTkLabel(self.stats2right, text="Starter 1:  ").grid(column=0, row=30, sticky="e")
-        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_starter1).grid(column=1, row=30, sticky="w")
+        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_starter1).grid(
+            column=1, row=30, sticky="w"
+        )
 
         ctk.CTkLabel(self.stats2right, text="Starter 2:  ").grid(column=0, row=31, sticky="e")
-        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_starter2).grid(column=1, row=31, sticky="w")
+        ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_starter2).grid(
+            column=1, row=31, sticky="w"
+        )
 
         ctk.CTkLabel(self.stats2right, text="Meet Manager 1:  ").grid(column=0, row=32, sticky="e")
         ctk.CTkLabel(self.stats2right, textvariable=self._rtr_data.total_np_mm1).grid(column=1, row=32, sticky="w")

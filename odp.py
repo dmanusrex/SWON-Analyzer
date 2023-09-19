@@ -49,6 +49,7 @@ from slugify import slugify
 from config import AnalyzerConfig
 from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
+from rtr_fields import RTR_POSITION_FIELDS
 from tooltip import ToolTip
 
 tkContainer = Any
@@ -580,9 +581,9 @@ class docgenCore:
             self.add_clinic(
                 table,
                 "Admin Desk (Clerk)",
-                entry["Clerk of Course-ClinicDate"],
-                entry["Clerk of Course-Deck Evaluation #1 Date"],
-                entry["Clerk of Course-Deck Evaluation #2 Date"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-ClinicDate"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date"],
+                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"],
             )
             self.add_clinic(
                 table,
@@ -605,7 +606,7 @@ class docgenCore:
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"],
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
             )
-            self.add_clinic(table, "Chief Recorder/Recorder", entry["Recorder-Scorer-ClinicDate"], "N/A", "N/A")
+            self.add_clinic(table, "Chief Recorder/Recorder", entry["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Referee", entry["Referee-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Para eModule", entry["Para Swimming eModule-ClinicDate"], "N/A", "N/A")
 
@@ -672,7 +673,7 @@ class docgenCore:
                         # Check if they have any other clinics
                         if (
                             entry["Chief Timekeeper"].lower() == "no"
-                            and entry["Clerk of Course"].lower() == "no"
+                            and entry["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "no"
                             and entry["Meet Manager"].lower() == "no"
                             and entry["Starter"].lower() == "no"
                             and entry["Chief Finish Judge/Chief Judge"].lower() == "no"
@@ -699,7 +700,7 @@ class docgenCore:
                         # Check if they have any other clinics
                         if (
                             entry["Chief Timekeeper"].lower() == "no"
-                            and entry["Clerk of Course"].lower() == "no"
+                            and entry["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "no"
                             and entry["Meet Manager"].lower() == "no"
                             and entry["Starter"].lower() == "no"
                             and entry["Chief Finish Judge/Chief Judge"].lower() == "no"

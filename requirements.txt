@@ -15,6 +15,7 @@ black
 # Application dependencies
 pandas
 python_docx
+python-slugify
 ttkwidgets
 customtkinter
 CTkMessagebox

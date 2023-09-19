@@ -46,3 +46,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :bug: Stop using ONEFILE option with pyinstaller
 - :bug: Fixed some scaling issues
 - :sparkles: Add option to create desktop icon during installation
+
+### [1.2.2]
+- :sparkles: Support RTR Export format changes
