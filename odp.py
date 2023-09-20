@@ -102,7 +102,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):
         ToolTip(btn2, text="Select where output files will be sent")
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(column=1, row=1, sticky="w")
 
-        btn3 = ctk.CTkButton(filesframe, text="Consolidate Report File", command=self._handle_report_file_browse)
+        btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
         btn3.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(btn3, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w")
