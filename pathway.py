@@ -460,7 +460,7 @@ class _Generate_NP_ROR_Reports(Thread):
                 "IT_Status",
                 "JoS_Status",
                 "CT_Status",
-                "Clerk_Status",
+                "Admin_Status",
                 "MM_Status",
                 "Starter_Status",
                 "CFJ_Status",
@@ -701,7 +701,7 @@ class NewPathway:
         row[0].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
         row[1].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
         row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-        row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+        row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTERAdmin_Status
 
     def add_pathway(self, table, pathway_progression, certified) -> None:
         row = table.add_row().cells
@@ -727,7 +727,7 @@ class NewPathway:
             "IT_Status",
             "JoS_Status",
             "CT_Status",
-            "Clerk_Status",
+            "Admin_Status",
             "MM_Status",
             "Starter_Status",
             "CFJ_Status",

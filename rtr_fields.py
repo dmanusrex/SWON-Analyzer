@@ -116,7 +116,11 @@ RTR_POSITION_FIELDS = {
     ],
     "JoS": ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
     "CT": ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
-    "Clerk": ["Administration Desk (formerly Clerk of Course) Clinic", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"],
+    "Clerk": [
+        "Administration Desk (formerly Clerk of Course) Clinic",
+        "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date",
+        "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date",
+    ],
     "MM": ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
     "Starter": ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
     "ChiefRec": ["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"],
@@ -126,4 +130,95 @@ RTR_POSITION_FIELDS = {
         "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date",
     ],
     "Referee": ["Referee"],
+}
+
+
+# Abstract the RTR fields so that they can be changed easily if the RTR export changes
+
+RTR_CLINICS = {
+    "Intro": {
+        "hasClinic": "Introduction to Swimming Officiating",
+        "clinicDate": "Introduction to Swimming Officiating-ClinicDate",
+        "deckEvals": [
+            "Introduction to Swimming Officiating-Deck Evaluation #1 Date",
+            "Introduction to Swimming Officiating-Deck Evaluation #2 Date",
+        ],
+        "status": "Intro_Status",
+        "signoffs": "Intro_Count",
+    },
+    "ST": {
+        "hasClinic": "Judge of Stroke/Inspector of Turns",
+        "clinicDate": "Judge of Stroke/Inspector of Turns-ClinicDate",
+        "deckEvals": [
+            "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date",
+            "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date",
+        ],
+        "status": "ST_Status",
+        "signoffs": "ST_Count",
+    },
+    "IT": {
+        "hasClinic": "Inspector of Turns",
+        "clinicDate": "Inspector of Turns-ClinicDate",
+        "deckEvals": ["Inspector of Turns-Deck Evaluation #1 Date", "Inspector of Turns-Deck Evaluation #2 Date"],
+        "status": "IT_Status",
+        "signoffs": "IT_Count",
+    },
+    "JoS": {
+        "hasClinic": "Judge of Stroke",
+        "clinicDate": "Judge of Stroke-ClinicDate",
+        "deckEvals": ["Judge of Stroke-Deck Evaluation #1 Date", "Judge of Stroke-Deck Evaluation #2 Date"],
+        "status": "JoS_Status",
+        "signoffs": "JoS_Count",
+    },
+    "CT": {
+        "hasClinic": "Chief Timekeeper",
+        "clinicDate": "Chief Timekeeper-ClinicDate",
+        "deckEvals": ["Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
+        "status": "CT_Status",
+        "signoffs": "CT_Count",
+    },
+    "AdminDesk": {
+        "hasClinic": "Administration Desk (formerly Clerk of Course) Clinic",
+        "clinicDate": "Administration Desk (formerly Clerk of Course) Clinic-ClinicDate",
+        "deckEvals": [
+            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date",
+            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date",
+        ],
+        "status": "Admin_Status",
+        "signoffs": "Admin_Count",
+    },
+    "MM": {
+        "hasClinic": "Meet Manager",
+        "clinicDate": "Meet Manager-ClinicDate",
+        "deckEvals": ["Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
+        "status": "MM_Status",
+        "signoffs": "MM_Count",
+    },
+    "Starter": {
+        "hasClinic": "Starter",
+        "clinicDate": "Starter-ClinicDate",
+        "deckEvals": ["Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
+        "status": "Starter_Status",
+        "signoffs": "Starter_Count",
+    },
+    "ChiefRec": {
+        "hasClinic": "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic",
+        "clinicDate": "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate",
+        "deckEvals": [],
+        "status": "ChiefRec_Status",
+        "signoffs": "ChiefRec_Count",
+    },
+    "CFJ": {
+        "hasClinic": "Chief Finish Judge/Chief Judge",
+        "clinicDate": "Chief Finish Judge/Chief Judge-ClinicDate",
+        "deckEvals": [
+            "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date",
+            "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date",
+        ],
+        "status": "CFJ_Status",
+        "signoffs": "CFJ_Count",
+    },
+    "Referee": {"hasClinic": "Referee", "clinicDate": "Referee-ClinicDate", "deckEvals": [], "status": "Referee_Status", "signoffs": "Referee_Count"},
+    "Para": {"hasClinic": "Para Swimming eModule", "clinicDate": "Para Swimming eModule-ClinicDate", "deckEvals": []},
+    "ParaDom": {"hasClinic": "Para Domestic", "clinicDate": "Para Domestic Course Date", "deckEvals": []},
 }

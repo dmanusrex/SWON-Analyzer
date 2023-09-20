@@ -56,11 +56,12 @@ from docx import Document  # type: ignore
 from docx.shared import Inches  # type: ignore
 
 from config import AnalyzerConfig
-from rtr_fields import RTR_POSITION_FIELDS
+from rtr_fields import RTR_POSITION_FIELDS, RTR_CLINICS
 
 
 class club_summary:
     _RTR_Fields = RTR_POSITION_FIELDS
+    _RTR_Clinics = RTR_CLINICS
 
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set.copy()
@@ -172,7 +173,7 @@ class club_summary:
             if (
                 row["Referee"].lower() == "yes"
                 and row["CT_Status"] == "C"
-                and row["Clerk_Status"] == "C"
+                and row["Admin_Status"] == "C"
                 and row["Starter_Status"] == "C"
                 and (row["CFJ_Status"] == "C" or row["MM_Status"] == "C")
             ):
@@ -186,7 +187,7 @@ class club_summary:
         by definition they must be certified in all positions"""
 
         level45_list = self._club_data_full.query(
-            "Current_CertificationLevel in " + "['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
+            "Current_CertificationLevel in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
         )
         self.Level_4_5s = []
 
@@ -245,7 +246,7 @@ class club_summary:
     def _check_missing_Level_III(self):
         level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
         self.Missing_Level_III = []
-        clinics_to_check = ["CT_Status", "Clerk_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
+        clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
         if level_2_list.empty:
             return
 
@@ -270,7 +271,7 @@ class club_summary:
     def _check_missing_Level_II(self):
         level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
         self.Missing_Level_II = []
-        clinics_to_check = ["CT_Status", "Clerk_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
+        clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
 
         if level_1_list.empty:
             return
@@ -336,7 +337,9 @@ class club_summary:
             "Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"
         )
         self.Clerk = self._count_certifications_detail(
-            "Administration Desk (formerly Clerk of Course) Clinic", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date", "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"
+            "Administration Desk (formerly Clerk of Course) Clinic",
+            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date",
+            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date",
         )
         self.MM = self._count_certifications_detail(
             "Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"
@@ -345,7 +348,9 @@ class club_summary:
             "Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"
         )
         self.RecSec = self._count_certifications_detail(
-            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic", "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #1 Date", "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #2 Date"
+            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic",
+            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #1 Date",
+            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #2 Date",
         )
         self.CFJ = self._count_certifications_detail(
             "Chief Finish Judge/Chief Judge",

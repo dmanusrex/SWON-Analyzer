@@ -35,7 +35,7 @@ from tooltip import ToolTip
 
 # Appliction Specific Imports
 from config import AnalyzerConfig
-from rtr_fields import REQUIRED_RTR_FIELDS, RTR_POSITION_FIELDS
+from rtr_fields import REQUIRED_RTR_FIELDS, RTR_CLINICS
 
 NoneFn = Callable[[], None]
 
@@ -45,18 +45,17 @@ tkContainer = Any
 class _Data_Loader(Thread):
     """Load RTR Data files"""
 
-    _RTR_Fields = RTR_POSITION_FIELDS
+    _RTR_Fields = RTR_CLINICS
 
     def __init__(self, config: AnalyzerConfig):
         super().__init__()
         self._config = config
-        self.rtr_data: pd.DataFrame
+        self.rtr_data: pd.DataFrame  # The final RTR data
         self.failure_reason = ""
 
     def run(self):
         html_file = self._config.get_str("officials_list")
-        self.club_list_names_df = pd.DataFrame
-        self.club_list_names = []
+
         logging.info("Loading RTR Data")
 
         # Check if the RTR file is a CSV or HTML file by reading the first line and looking for "Registration Id"
@@ -116,17 +115,29 @@ class _Data_Loader(Thread):
         self._rtr_data.replace("0001-01-01", np.nan, inplace=True)
 
         # The RTR export is inconsistent on column values for certifications. Fix that.
-        self._rtr_data.replace("Yes", "yes", inplace=True)  # We don't use the no value so no need to fix it
+        self._rtr_data.replace("Yes", "yes", inplace=True)
+        self._rtr_data.replace("No", "no", inplace=True)
 
         # Filter to the required RTR Fields
 
         self._rtr_data = self._rtr_data[REQUIRED_RTR_FIELDS]
 
-        # Extend the RTR dataset with the new pathway checks
-
-        # Normalize the current RTR status fields
+        # Normalize the current RTR status fields and add new pathway mapping
 
         self._rtr_data = self._rtr_data.join(self._rtr_data.apply(self._add_new_columns, axis=1))
+
+        # Update the Certification Count (# of signoffs)
+        self._rtr_data["Intro_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "Intro"), axis=1)
+        self._rtr_data["ST_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "ST"), axis=1)
+        self._rtr_data["IT_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "IT"), axis=1)
+        self._rtr_data["JoS_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "JoS"), axis=1)
+        self._rtr_data["CT_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "CT"), axis=1)
+        self._rtr_data["Admin_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "AdminDesk"), axis=1)
+        self._rtr_data["MM_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "MM"), axis=1)
+        self._rtr_data["Starter_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "Starter"), axis=1)
+        self._rtr_data["CFJ_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "CFJ"), axis=1)
+        self._rtr_data["ChiefRec_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "ChiefRec"), axis=1)
+        self._rtr_data["Referee_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "Referee"), axis=1)
 
         # Update the certification columns
         self._rtr_data["Intro_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Intro"), axis=1)
@@ -134,7 +145,7 @@ class _Data_Loader(Thread):
         self._rtr_data["IT_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "IT"), axis=1)
         self._rtr_data["JoS_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "JoS"), axis=1)
         self._rtr_data["CT_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "CT"), axis=1)
-        self._rtr_data["Clerk_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Clerk"), axis=1)
+        self._rtr_data["Admin_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "AdminDesk"), axis=1)
         self._rtr_data["MM_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "MM"), axis=1)
         self._rtr_data["Starter_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Starter"), axis=1)
         self._rtr_data["CFJ_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "CFJ"), axis=1)
@@ -163,19 +174,22 @@ class _Data_Loader(Thread):
         logging.info("Loading Complete")
 
     def _add_new_columns(self, row: Any) -> pd.Series:
+        """Abstract RTR data and add new pathway columns"""
+
         return pd.Series(
             [
-                self._cert_count(row, "Intro"),
-                self._cert_count(row, "ST"),
-                self._cert_count(row, "IT"),
-                self._cert_count(row, "JoS"),
-                self._cert_count(row, "CT"),
-                self._cert_count(row, "Clerk"),
-                self._cert_count(row, "MM"),
-                self._cert_count(row, "Starter"),
-                self._cert_count(row, "CFJ"),
-                self._cert_count(row, "ChiefRec"),
-                self._cert_count(row, "Referee"),
+                self._set_level(row),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
                 0,
                 0,
                 0,
@@ -196,12 +210,13 @@ class _Data_Loader(Thread):
                 "N",
             ],
             index=[
+                "Level",
                 "Intro_Count",
                 "ST_Count",
                 "IT_Count",
                 "JoS_Count",
                 "CT_Count",
-                "Clerk_Count",
+                "Admin_Count",
                 "MM_Count",
                 "Starter_Count",
                 "CFJ_Count",
@@ -212,7 +227,7 @@ class _Data_Loader(Thread):
                 "IT_Status",
                 "JoS_Status",
                 "CT_Status",
-                "Clerk_Status",
+                "Admin_Status",
                 "MM_Status",
                 "Starter_Status",
                 "CFJ_Status",
@@ -231,54 +246,75 @@ class _Data_Loader(Thread):
     def _is_valid_date(self, date_string) -> bool:
         if pd.isnull(date_string):
             return False
-        if date_string == "0001-01-01":
-            return False
+
         try:
             datetime.strptime(date_string, "%Y-%m-%d")
             return True
         except ValueError:
             return False
 
+    def _set_level(self, row: Any) -> int:
+        """Convert the text level to an integer - a NaN value is 0"""
+
+        if pd.isnull(row["Current_CertificationLevel"]):
+            return 0
+        if row["Current_CertificationLevel"] == "LEVEL I - RED PIN":
+            return 1
+        if row["Current_CertificationLevel"] == "LEVEL II - WHITE PIN":
+            return 2
+        if row["Current_CertificationLevel"] == "LEVEL III - ORANGE PIN":
+            return 3
+        if row["Current_CertificationLevel"] == "LEVEL IV - GREEN PIN":
+            return 4
+        if row["Current_CertificationLevel"] == "LEVEL V - BLUE PIN":
+            return 5
+        return 0  # This should never happen
+
     def _cert_count(self, row: Any, skill: str) -> int:
         """Returns the number of sign-offs for a given skill"""
 
-        rtr_fields = self._RTR_Fields[skill]
+        rtr_clinic = self._RTR_Fields[skill]["hasClinic"]
+        rtr_evals = self._RTR_Fields[skill]["deckEvals"]
 
-        if row["Current_CertificationLevel"] in ["LEVEL IV - GREEN PIN", "LEVEL V - BLUE PIN"]:
-            return len(rtr_fields) - 1  # All Level IV/Vs are certified, detail records may not exist
+        if row["Level"] > 3:
+            return len(rtr_evals)  # All Level IV/Vs are certified, detail records may not exist
 
-        if (row[rtr_fields[0]].lower() == "no") | (len(rtr_fields) == 1):  # No Clinic Taken or no sign-off required
+        if (row[rtr_clinic].lower() == "no") | (len(rtr_evals) == 0):  # No Clinic Taken or no sign-off required
             return 0
 
         cert_count = 0
 
-        for k in range(1, len(rtr_fields)):
-            cert_count += self._is_valid_date(row[rtr_fields[k]])
+        for k in range(0, len(rtr_evals)):
+            cert_count += self._is_valid_date(row[rtr_evals[k]])
 
         return cert_count
 
     def _cert_status(self, row: Any, skill: str) -> str:
         """Returns N for not qualfied, Q for Qualfied and C for Certified"""
 
-        rtr_fields = self._RTR_Fields[skill]
-        count_field = skill + "_Count"
+        rtr_clinic = self._RTR_Fields[skill]["hasClinic"]
+        rtr_evals = self._RTR_Fields[skill]["deckEvals"]
+        rtr_signoffs = self._RTR_Fields[skill]["signoffs"]
 
-        if row["Current_CertificationLevel"] in ["LEVEL IV - GREEN PIN", "LEVEL V - BLUE PIN"]:
-            return "C"  # Qualified - All Level IV/Vs are certified, detail records may not exist
+        if row["Level"] > 3:
+            return "C"  # Certified - All Level IV/Vs are certified, detail records may not exist
 
-        if row[rtr_fields[0]].lower() == "no":  # No Clinic Taken
+        if row[rtr_clinic].lower() == "no":  # No Clinic Taken
             return "N"
 
-        if row[count_field] < len(rtr_fields) - 1:  # Not all sign-offs completed
+        if row[rtr_signoffs] < len(rtr_evals):  # Not all sign-offs completed
             return "Q"
+
         return "C"
 
     def _np_official(self, row: Any) -> str:
         """Check if a certified official in the new pathway"""
 
+        # In the RTR S&T would be expressed as either the old combo clinic or new IT clinic plus the SJ clinic
+
         if (
             row["Intro_Status"] == "C"
-            and (row["ST_Status"] == "Q" or row["ST_Status"] == "C")
+            and ((row["ST_Status"] != "N") or (row["IT_Status"] != "N" and row["JoS_Status"] != "N"))
             and row["CT_Status"] == "C"
         ):
             return "Yes"
@@ -287,21 +323,23 @@ class _Data_Loader(Thread):
     def _np_ref_1(self, row: Any) -> str:
         """Referee 1 in the new pathway"""
 
-        if row["NP_Official"] == "No":  # You have to be a certified official first
-            return "No"
-
         # New Pathway - ST&T, Starter and Admin Desk and Referee Certified, Chief Recorder, CFJ and MM Qualfiied or certified
 
-        C_or_Q = ["C", "Q"]
+        # In the RTR S&T is expressed as either certified in the old combined S&T plus a SJ clinic or
+        # certified in the new IT clinic plus the SJ clinic
 
         if (
-            row["ST_Status"] == "C"
+            row["NP_Official"] == "Yes"
+            and (
+                (row["ST_Status"] == "C" and row["JoS_Status"] == "C")
+                or (row["IT_Status"] == "C" and row["JoS_Status"] == "C")
+            )
             and row["Starter_Status"] == "C"
-            and row["Clerk_Status"] == "C"
-            and row["Referee_Status"] in C_or_Q
-            and row["ChiefRec_Status"] in C_or_Q
-            and row["CFJ_Status"] in C_or_Q
-            and row["MM_Status"] in C_or_Q
+            and row["Admin_Status"] == "C"
+            and row["Referee_Status"] != "N"
+            and row["ChiefRec_Status"] != "N"
+            and row["CFJ_Status"] != "N"
+            and row["MM_Status"] != "N"
             and (row["Para Swimming eModule"].lower() == "yes" or row["Para Domestic"] == "Trained Official")
         ):
             return "Yes"
@@ -311,18 +349,14 @@ class _Data_Loader(Thread):
     def _np_ref_2(self, row: Any) -> str:
         """Referee 1 in the new pathway"""
 
-        if row["NP_Ref1"] == "No":  # You have to be a certified Refree 1 first
-            return "No"
-
         # New Pathway - Ref 1 + Certified in Chief Recorder, CFJ and MM, must be signed off as ref (which is currently IV/V)
 
-        C_or_Q = ["C", "Q"]
-
         if (
-            row["ChiefRec_Status"] == "C"
+            row["NP_Ref1"] == "Yes"
+            and row["ChiefRec_Status"] == "C"
             and row["CFJ_Status"] == "C"
             and row["MM_Status"] == "C"
-            and row["Current_CertificationLevel"] in ["LEVEL IV - GREEN PIN", "LEVEL V - BLUE PIN"]
+            and row["Level"] > 3
         ):
             return "Yes"
 
@@ -336,8 +370,14 @@ class _Data_Loader(Thread):
 
         # New Pathway - S&T, Starter Certified plus on-line para clinic
 
+        # In the RTR S&T is expressed as either certified in the old combined S&T plus a SJ clinic or
+        # certified in the new IT clinic plus the SJ clinic
+
         if (
-            row["ST_Status"] == "C"
+            (
+                (row["ST_Status"] == "C" and row["JoS_Status"] == "C")
+                or (row["IT_Status"] == "C" and row["JoS_Status"] == "C")
+            )
             and row["Starter_Status"] == "C"
             and (row["Para Swimming eModule"].lower() == "yes" or row["Para Domestic"] == "Trained Official")
         ):
@@ -348,12 +388,9 @@ class _Data_Loader(Thread):
     def _np_starter_2(self, row: Any) -> str:
         """Starter 2 in the new pathway"""
 
-        if row["NP_Starter1"] == "No":  # You have to be a certified Starter 1 first
-            return "No"
-
         # New Pathway - Starter 1 + Certified as CFJ
 
-        if row["CFJ_Status"] == "C":
+        if row["NP_Starter1"] == "Yes" and row["CFJ_Status"] == "C":
             return "Yes"
 
         return "No"
@@ -361,12 +398,8 @@ class _Data_Loader(Thread):
     def _np_mm_1(self, row: Any) -> str:
         """MM 1 in the new pathway"""
 
-        if row["NP_Official"] == "No":  # You have to be a certified official first
-            return "No"
-
-        # New Pathway - Certifed as Meet Manager
-
-        if row["MM_Status"] == "C":
+        # Certified as an officials plus certified as a meet manager
+        if row["NP_Official"] == "Yes" and row["MM_Status"] == "C":
             return "Yes"
 
         return "No"
@@ -374,12 +407,14 @@ class _Data_Loader(Thread):
     def _np_mm_2(self, row: Any) -> str:
         """MM 2 in the new pathway"""
 
-        if row["NP_MM1"] == "No":  # You have to be a certified MM 1 first
-            return "No"
+        # New Pathway - MM1 + Certifed in Chief Recorder, CFJ, Clerk of Course
 
-        # New Pathway - Certifed in Chief Recorder, CFJ, Clerk of Course
-
-        if row["ChiefRec_Status"] == "C" and row["CFJ_Status"] == "C" and row["Clerk_Status"] == "C":
+        if (
+            row["NP_MM1"] == "Yes"
+            and row["ChiefRec_Status"] == "C"
+            and row["CFJ_Status"] == "C"
+            and row["Admin_Status"] == "C"
+        ):
             return "Yes"
 
         return "No"
@@ -444,12 +479,17 @@ class RTR:
             logging.info("No affiliation records found")
         else:
             self.affiliates["AffiliatedClubs"] = self.affiliates["AffiliatedClubs"].str.split(",")
-            self.affiliates = self.affiliates.explode("AffiliatedClubs")
+            self.affiliates = self.affiliates.explode("AffiliatedClubs").drop_duplicates()
+
+            # Eliminate any affiliations not in the current club list
+
+            self.affiliates = self.affiliates[
+                self.affiliates["AffiliatedClubs"].isin(self.club_list_names_df["ClubCode"])
+            ].copy()
+
             logging.info("Extracted %d affiliation records" % self.affiliates.shape[0])
 
         self.calculate_stats()
-
-    #            self.cohost.refresh_club_list(self.club_list_names)
 
     def calculate_stats(self) -> None:
         """Calculate statistics on the loaded data"""
