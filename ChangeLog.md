@@ -50,3 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.2.2]
 - :sparkles: Support RTR Export format changes
+
+### [1.3.0]
+- :bug: Show new clinics properly in Sanctioning Module
+- :sparkles: First phase of internal re-work to full abstract RTR export format
