@@ -65,9 +65,7 @@ class club_summary:
 
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set.copy()
-        self._club_data = self._club_data_full.query(
-            "Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
-        )
+        self._club_data = self._club_data_full.query("Level > 3")
         self.club_code = club
         self._config = config
 
@@ -114,8 +112,8 @@ class club_summary:
         # Build the summary data and check sanctioning abilities
         self._count_levels()
         self._count_certifications()
-        self._find_qualfied_refs()
         self._find_all_level4_5s()
+        self._find_qualfied_refs()
         self._check_sanctions()
 
         # RTR Error Checks
@@ -141,10 +139,10 @@ class club_summary:
         rtr_fields = self._RTR_Fields[skill]
 
         if len(rtr_fields) == 2:
-            if row[rtr_fields[0]].lower() == "yes" and self._is_valid_date(row[rtr_fields[1]]):
+            if row[rtr_fields[0]] == "yes" and self._is_valid_date(row[rtr_fields[1]]):
                 return True
         elif (
-            row[rtr_fields[0]].lower() == "yes"
+            row[rtr_fields[0]] == "yes"
             and self._is_valid_date(row[rtr_fields[1]])
             and self._is_valid_date(row[rtr_fields[2]])
         ):
@@ -153,17 +151,20 @@ class club_summary:
         return False
 
     def _count_levels(self):
-        self.Level_None = self._club_data.query("Current_CertificationLevel.isnull()").shape[0]
-        self.Level_1s = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'").shape[0]
-        self.Level_2s = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'").shape[0]
-        self.Level_3s = self._club_data.query("Current_CertificationLevel == 'LEVEL III - ORANGE PIN'").shape[0]
-        self.Level_4s = self._club_data_full.query("Current_CertificationLevel == 'LEVEL IV - GREEN PIN'").shape[0]
-        self.Level_5s = self._club_data_full.query("Current_CertificationLevel == 'LEVEL V - BLUE PIN'").shape[0]
+        """Level Statistics"""
+
+        level_counts = self._club_data_full["Level"].value_counts()
+        self.Level_None = level_counts.get(0, 0)
+        self.Level_1s = level_counts.get(1, 0)
+        self.Level_2s = level_counts.get(2, 0)
+        self.Level_3s = level_counts.get(3, 0)
+        self.Level_4s = level_counts.get(4, 0)
+        self.Level_5s = level_counts.get(5, 0)
 
     def _find_qualfied_refs(self):
         # To be a Level III referee you need CT, Clerk, Starter and one of CFJ or MM
         # Also check domestic clinic status
-        level3_list = self._club_data.query("Current_CertificationLevel == 'LEVEL III - ORANGE PIN'")
+        level3_list = self._club_data.query("Level == 3")
         self.Qualified_Refs = []
         self.Level_3_list = []
 
@@ -171,7 +172,7 @@ class club_summary:
             ref_name = row["Last Name"] + ", " + row["First Name"]
             self.Level_3_list.append(ref_name)
             if (
-                row["Referee"].lower() == "yes"
+                row["Referee_Status"] != "N"
                 and row["CT_Status"] == "C"
                 and row["Admin_Status"] == "C"
                 and row["Starter_Status"] == "C"
@@ -186,56 +187,34 @@ class club_summary:
         """In the RTR Level 4/5s may not have the underlying detail but
         by definition they must be certified in all positions"""
 
-        level45_list = self._club_data_full.query(
-            "Current_CertificationLevel in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
-        )
+        level45_list = self._club_data_full.query("Level > 3")
         self.Level_4_5s = []
 
         # Get all their names
 
         for index, row in level45_list.iterrows():
-            L45_name = row["Last Name"] + ", " + row["First Name"]
-            self.Level_4_5s.append(L45_name)
-
-        # Add them to all the qualification lists
-        if self.Level_4_5s:
-            self.ChiefT[3].extend(self.Level_4_5s)
-            self.ChiefT[4].extend(self.Level_4_5s)
-            self.MM[3].extend(self.Level_4_5s)
-            self.MM[4].extend(self.Level_4_5s)
-            self.Clerk[3].extend(self.Level_4_5s)
-            self.Clerk[4].extend(self.Level_4_5s)
-            self.Starter[3].extend(self.Level_4_5s)
-            self.Starter[4].extend(self.Level_4_5s)
-            self.CFJ[3].extend(self.Level_4_5s)
-            self.CFJ[4].extend(self.Level_4_5s)
-            self.SandT[3].extend(self.Level_4_5s)
-            self.SandT[4].extend(self.Level_4_5s)
-            self.IT[3].extend(self.Level_4_5s)
-            self.IT[4].extend(self.Level_4_5s)
-            self.JoS[3].extend(self.Level_4_5s)
-            self.JoS[4].extend(self.Level_4_5s)
+            self.Level_4_5s.append(row["Full Name"])
 
     def _check_no_levels(self):
-        no_level_list = self._club_data.query("Current_CertificationLevel.isnull()")
+        no_level_list = self._club_data.query("Level == 0")
         has_both = []
         has_intro_only = []
         has_level_ii = []
 
         for index, row in no_level_list.iterrows():
             official_name = row["Last Name"] + ", " + row["First Name"]
-            if row["Introduction to Swimming Officiating"].lower() == "yes":
-                if row["Safety Marshal"].lower() == "yes":
+            if row["Intro_Status"] != "N":
+                if row["Safety_Status"] != "N":
                     has_both.append(official_name)
                 else:
                     has_intro_only.append(official_name)
             if (
-                row["Judge of Stroke/Inspector of Turns"].lower() == "yes"
-                or row["Chief Timekeeper"].lower() == "yes"
-                or row["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "yes"
-                or row["Starter"].lower() == "yes"
-                or row["Chief Finish Judge/Chief Judge"].lower() == "yes"
-                or row["Meet Manager"].lower() == "yes"
+                (row["ST_Status"] != "N" or row["IT_Status"] != "N")
+                and row["CT_Status"] != "N"
+                and row["Admin_Status"] != "N"
+                and row["MM_Status"] != "N"
+                and row["Starter_Status"] != "N"
+                and row["CFJ_Status"] != "N"
             ):
                 has_level_ii.append(official_name)
 
@@ -254,12 +233,12 @@ class club_summary:
             official_name = row["Last Name"] + ", " + row["First Name"]
 
             if (
-                row["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"].lower() == "yes"
-                and row["Chief Timekeeper"].lower() == "yes"
-                and row["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "yes"
-                and row["Starter"].lower() == "yes"
-                and row["Chief Finish Judge/Chief Judge"].lower() == "yes"
-                and row["Meet Manager"].lower() == "yes"
+                row["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"] == "yes"
+                and row["Chief Timekeeper"] == "yes"
+                and row["Administration Desk (formerly Clerk of Course) Clinic"] == "yes"
+                and row["Starter"] == "yes"
+                and row["Chief Finish Judge/Chief Judge"] == "yes"
+                and row["Meet Manager"] == "yes"
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
@@ -293,73 +272,54 @@ class club_summary:
                 if cert_count >= 1:
                     self.Missing_Level_II.append(official_name)
 
-    def _count_certifications_detail(self, cert_name, cert_date_1, cert_date_2):
+    def _count_certifications_detail(self, clinic: dict):
         cert_total = 0  # Count of clinics taken
         cert_1so = 0  # Has 1 Sign-Off
         cert_2so = 0  # Has 2 Sign-Offs (fully qualified)
-        qual_list = []  # List of officials fully qualified
-        cert_list = []  # List of offiicals certified (excludes full qualified officials)
+        #        qual_list = []  # List of officials fully qualified
+        #        cert_list = []  # List of offiicals certified (excludes full qualified officials)
 
-        for index, row in self._club_data.iterrows():
-            if row[cert_name].lower() == "yes":
-                cert_total += 1
-                qual_list.append(row["Last Name"] + ", " + row["First Name"])
-                if self._is_valid_date(row[cert_date_1]) and self._is_valid_date(row[cert_date_2]):
-                    cert_2so += 1
-                    cert_list.append(row["Last Name"] + ", " + row["First Name"])
-                elif self._is_valid_date(row[cert_date_1]) or self._is_valid_date(row[cert_date_2]):
-                    cert_1so += 1
+        cert_name = clinic["status"]
+        cert_count = clinic["signoffs"]
+
+        # Get the full name column as a list where CT_Status is C000
+
+        cert_list = self._club_data_full.loc[self._club_data_full[cert_name] == "C", ["Full Name"]][
+            "Full Name"
+        ].values.tolist()
+        qual_list = self._club_data_full.loc[self._club_data_full[cert_name] != "N", ["Full Name"]][
+            "Full Name"
+        ].values.tolist()
+        cert_counts = self._club_data.loc[self._club_data[cert_name] != "N", cert_count].value_counts()
+        cert_1so = cert_counts.get(1, 0)
+        cert_2so = cert_counts.get(2, 0)
+        cert_total = cert_counts.get(0, 0) + cert_1so + cert_2so
 
         return [cert_total, cert_1so, cert_2so, qual_list, cert_list]
 
     def _count_certifications(self):
-        self.Intro = self._count_certifications_detail(
-            "Introduction to Swimming Officiating",
-            "Introduction to Swimming Officiating-Deck Evaluation #1 Date",
-            "Introduction to Swimming Officiating-Deck Evaluation #2 Date",
-        )
-        self.SandT = self._count_certifications_detail(
-            "Judge of Stroke/Inspector of Turns",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date",
-        )
-        self.IT = self._count_certifications_detail(
-            "Judge of Stroke/Inspector of Turns",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date",
-        )
-        self.JoS = self._count_certifications_detail(
-            "Judge of Stroke/Inspector of Turns",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date",
-            "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date",
-        )
-        self.ChiefT = self._count_certifications_detail(
-            "Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"
-        )
-        self.Clerk = self._count_certifications_detail(
-            "Administration Desk (formerly Clerk of Course) Clinic",
-            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date",
-            "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date",
-        )
-        self.MM = self._count_certifications_detail(
-            "Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"
-        )
-        self.Starter = self._count_certifications_detail(
-            "Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"
-        )
-        self.RecSec = self._count_certifications_detail(
-            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic",
-            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #1 Date",
-            "Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-Deck Evaluation #2 Date",
-        )
-        self.CFJ = self._count_certifications_detail(
-            "Chief Finish Judge/Chief Judge",
-            "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date",
-            "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date",
-        )
-        self.Referee = self._count_certifications_detail(
-            "Referee", "Referee-Deck Evaluation #1 Date", "Referee-Deck Evaluation #2 Date"
-        )
+        self.Intro = self._count_certifications_detail(RTR_CLINICS["Intro"])
+        self.SandT = self._count_certifications_detail(RTR_CLINICS["ST"])
+        self.IT = self._count_certifications_detail(RTR_CLINICS["IT"])
+        self.JoS = self._count_certifications_detail(RTR_CLINICS["JoS"])
+        self.ChiefT = self._count_certifications_detail(RTR_CLINICS["CT"])
+        self.Clerk = self._count_certifications_detail(RTR_CLINICS["AdminDesk"])
+        self.MM = self._count_certifications_detail(RTR_CLINICS["MM"])
+        self.Starter = self._count_certifications_detail(RTR_CLINICS["Starter"])
+        self.CFJ = self._count_certifications_detail(RTR_CLINICS["CFJ"])
+        self.RecSec = self._count_certifications_detail(RTR_CLINICS["ChiefRec"])
+        self.Referee = self._count_certifications_detail(RTR_CLINICS["Referee"])
+
+        # For IT and JoS extend their lists to include S&T and drop duplicates (temp fix)
+        self.IT[3].extend(self.SandT[3])
+        self.IT[4].extend(self.SandT[4])
+        self.JoS[3].extend(self.SandT[3])
+        self.JoS[4].extend(self.SandT[4])
+
+        self.IT[3] = list(set(self.IT[3]))
+        self.IT[4] = list(set(self.IT[4]))
+        self.JoS[3] = list(set(self.JoS[3]))
+        self.JoS[4] = list(set(self.JoS[4]))
 
     def _check_sanctions(self):
         approved_sanctions = []

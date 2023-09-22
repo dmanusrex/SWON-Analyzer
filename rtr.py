@@ -165,6 +165,9 @@ class _Data_Loader(Thread):
         self._rtr_data["NP_MM1"] = self._rtr_data.apply(lambda row: self._np_mm_1(row), axis=1)
         self._rtr_data["NP_MM2"] = self._rtr_data.apply(lambda row: self._np_mm_2(row), axis=1)
 
+        # Pre-format their full name (Last, First)
+        self._rtr_data["Full Name"] = self._rtr_data["Last Name"].astype(str)  + ", " + self._rtr_data["First Name"]
+
         # final verion - Filter for all valid statuses and make a copy
 
         self.rtr_data = self._rtr_data.loc[
@@ -212,6 +215,7 @@ class _Data_Loader(Thread):
                 "N",
                 "N",
                 "N",
+                "",
             ],
             index=[
                 "Level",
@@ -246,6 +250,7 @@ class _Data_Loader(Thread):
                 "NP_Starter2",
                 "NP_MM1",
                 "NP_MM2",
+                "Full Name"
             ],
         )
 
