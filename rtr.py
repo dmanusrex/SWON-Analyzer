@@ -128,6 +128,7 @@ class _Data_Loader(Thread):
 
         # Update the Certification Count (# of signoffs)
         self._rtr_data["Intro_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "Intro"), axis=1)
+        self._rtr_data["Safety_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "Safety"), axis=1)
         self._rtr_data["ST_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "ST"), axis=1)
         self._rtr_data["IT_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "IT"), axis=1)
         self._rtr_data["JoS_Count"] = self._rtr_data.apply(lambda row: self._cert_count(row, "JoS"), axis=1)
@@ -141,6 +142,7 @@ class _Data_Loader(Thread):
 
         # Update the certification columns
         self._rtr_data["Intro_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Intro"), axis=1)
+        self._rtr_data["Safety_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "Safety"), axis=1)
         self._rtr_data["ST_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "ST"), axis=1)
         self._rtr_data["IT_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "IT"), axis=1)
         self._rtr_data["JoS_Status"] = self._rtr_data.apply(lambda row: self._cert_status(row, "JoS"), axis=1)
@@ -201,6 +203,8 @@ class _Data_Loader(Thread):
                 0,
                 0,
                 0,
+                0,
+                0,
                 "N",
                 "N",
                 "N",
@@ -212,6 +216,7 @@ class _Data_Loader(Thread):
             index=[
                 "Level",
                 "Intro_Count",
+                "Safety_Count",
                 "ST_Count",
                 "IT_Count",
                 "JoS_Count",
@@ -223,6 +228,7 @@ class _Data_Loader(Thread):
                 "ChiefRec_Count",
                 "Referee_Count",
                 "Intro_Status",
+                "Safety_Status",
                 "ST_Status",
                 "IT_Status",
                 "JoS_Status",

@@ -146,6 +146,13 @@ RTR_CLINICS = {
         "status": "Intro_Status",
         "signoffs": "Intro_Count",
     },
+    "Safety": {
+        "hasClinic": "Safety Marshal",
+        "clinicDate": "Safety Marshal-ClinicDate",
+        "deckEvals": [],
+        "status": "Safety_Status",
+        "signoffs": "Safety_Count",
+    },
     "ST": {
         "hasClinic": "Judge of Stroke/Inspector of Turns",
         "clinicDate": "Judge of Stroke/Inspector of Turns-ClinicDate",
@@ -166,7 +173,7 @@ RTR_CLINICS = {
     "JoS": {
         "hasClinic": "Judge of Stroke",
         "clinicDate": "Judge of Stroke-ClinicDate",
-        "deckEvals": ["Judge of Stroke-Deck Evaluation #1 Date", "Judge of Stroke-Deck Evaluation #2 Date"],
+        "deckEvals": ["Judge of Stroke-Deck Evaluation #1 Date"],
         "status": "JoS_Status",
         "signoffs": "JoS_Count",
     },

@@ -38,7 +38,7 @@ from tkinter import BooleanVar, StringVar, filedialog
 from typing import Any
 
 import customtkinter as ctk  # type: ignore
-import docx # type: ignore
+import docx  # type: ignore
 import keyring
 import pandas as pd
 from docx import Document  # type: ignore
@@ -49,13 +49,13 @@ from slugify import slugify
 from config import AnalyzerConfig
 from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
-from rtr_fields import RTR_POSITION_FIELDS
+from rtr_fields import RTR_POSITION_FIELDS, RTR_CLINICS
 from tooltip import ToolTip
 
 tkContainer = Any
 
 
-class Generate_Documents_Frame(ctk.CTkFrame):  
+class Generate_Documents_Frame(ctk.CTkFrame):
     """Generate Word Documents from a supplied RTR file"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
@@ -290,7 +290,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):
             thread.join()
 
 
-class Email_Documents_Frame(ctk.CTkFrame):  
+class Email_Documents_Frame(ctk.CTkFrame):
     """E-Mail Completed list of Word Documents"""
 
     def __init__(self, container: tkContainer, config: AnalyzerConfig):
@@ -448,9 +448,7 @@ class Email_Documents_Frame(ctk.CTkFrame):
 class docgenCore:
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set
-        self._club_data = self._club_data_full.query(
-            "Current_CertificationLevel not in ['LEVEL IV - GREEN PIN','LEVEL V - BLUE PIN']"
-        )
+        self._club_data = self._club_data_full.query("Level < 4")
         self.club_code = club
 
         self._config = config
@@ -458,9 +456,6 @@ class docgenCore:
     def _is_valid_date(self, date_string) -> bool:
         if pd.isnull(date_string):
             return False
-        if date_string == "0001-01-01":
-            return False
-
         try:
             datetime.strptime(date_string, "%Y-%m-%d")
             return True
@@ -470,24 +465,22 @@ class docgenCore:
     def _get_date(self, date_string) -> str:
         if pd.isnull(date_string):
             return ""
-        if date_string == "0001-01-01":
-            return ""
         return date_string
 
-    def _count_signoffs(self, clinic_date_1, clinic_date_2) -> int:
-        count = 0
-        if self._is_valid_date(clinic_date_1):
-            count += 1
-        if self._is_valid_date(clinic_date_2):
-            count += 1
-        return count
-
-    def add_clinic(self, table, clinic_name, clinic_date, signoff_1, signoff_2) -> None:
+    def add_clinic(self, table: Any, clinic_name: str, entry: Any, pos_info:dict) -> None:
         row = table.add_row().cells
         row[0].text = clinic_name
-        row[1].text = self._get_date(clinic_date)
-        row[2].text = self._get_date(signoff_1)
-        row[3].text = self._get_date(signoff_2)
+        row[1].text = self._get_date(entry[pos_info["clinicDate"]])
+        if pos_info["deckEvals"]:
+            row[2].text = self._get_date(entry[pos_info["deckEvals"]][0])
+            if len(entry[pos_info["deckEvals"]]) > 1:
+                row[3].text = self._get_date(entry[pos_info["deckEvals"]][1])
+            else:  
+                row[3].text = "N/A"
+        else:
+            row[2].text = "N/A"
+            row[3].text = "N/A"
+
         row[0].width = docx.shared.Inches(2.5)
         row[1].width = docx.shared.Inches(1.5)
         row[2].width = docx.shared.Inches(1.5)
@@ -529,7 +522,9 @@ class docgenCore:
             )
             p.add_run("\n\nClub: " + club_fullname + " (" + self.club_code + ")")
             p.add_run("\n\nCurrent Certification Level: ")
-            p.add_run("NONE" if pd.isnull(entry["Current_CertificationLevel"]) else entry["Current_CertificationLevel"])
+            p.add_run(
+                "NONE" if pd.isnull(entry["Current_CertificationLevel"]) else entry["Current_CertificationLevel"]
+            )
 
             table = doc.add_table(rows=1, cols=4)
             row = table.rows[0].cells
@@ -542,73 +537,19 @@ class docgenCore:
             row[2].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
             row[3].paragraphs[0].alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
 
-            self.add_clinic(
-                table,
-                "Intro to Swimming",
-                entry["Introduction to Swimming Officiating-ClinicDate"],
-                entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],
-                entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(table, "Safety Marshal", entry["Safety Marshal-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(
-                table,
-                "Stroke & Turn (Pre Sept/23)",
-                entry["Judge of Stroke/Inspector of Turns-ClinicDate"],
-                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"],
-                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Inspector of Turns",
-                entry["Inspector of Turns-ClinicDate"],
-                entry["Inspector of Turns-Deck Evaluation #1 Date"],
-                entry["Inspector of Turns-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Judge of Stroke",
-                entry["Judge of Stroke-ClinicDate"],
-                entry["Judge of Stroke-Deck Evaluation #1 Date"],
-                entry["Judge of Stroke-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Chief Timekeeper",
-                entry["Chief Timekeeper-ClinicDate"],
-                entry["Chief Timekeeper-Deck Evaluation #1 Date"],
-                entry["Chief Timekeeper-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Admin Desk (Clerk)",
-                entry["Administration Desk (formerly Clerk of Course) Clinic-ClinicDate"],
-                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date"],
-                entry["Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Meet Manager",
-                entry["Meet Manager-ClinicDate"],
-                entry["Meet Manager-Deck Evaluation #1 Date"],
-                entry["Meet Manager-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "Starter",
-                entry["Starter-ClinicDate"],
-                entry["Starter-Deck Evaluation #1 Date"],
-                entry["Starter-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(
-                table,
-                "CFJ/CJE",
-                entry["Chief Finish Judge/Chief Judge-ClinicDate"],
-                entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"],
-                entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
-            )
-            self.add_clinic(table, "Chief Recorder/Recorder", entry["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(table, "Referee", entry["Referee-ClinicDate"], "N/A", "N/A")
-            self.add_clinic(table, "Para eModule", entry["Para Swimming eModule-ClinicDate"], "N/A", "N/A")
+            self.add_clinic(table, "Intro to Swimming", entry, RTR_CLINICS["Intro"])
+            self.add_clinic(table, "Safety Marshal", entry, RTR_CLINICS["Safety"])
+            self.add_clinic(table, "Stroke & Turn (Combo)", entry, RTR_CLINICS["ST"])
+            self.add_clinic(table, "Inspector of Turns", entry, RTR_CLINICS["IT"])
+            self.add_clinic(table, "Judge of Stroke", entry, RTR_CLINICS["JoS"])
+            self.add_clinic(table, "Chief Timekeeper", entry, RTR_CLINICS["CT"])
+            self.add_clinic(table, "Admin Desk (Clerk)", entry, RTR_CLINICS["AdminDesk"])
+            self.add_clinic(table, "Meet Manager", entry, RTR_CLINICS["MM"])
+            self.add_clinic(table, "Starter", entry, RTR_CLINICS["Starter"])
+            self.add_clinic(table, "CFJ/CJE", entry, RTR_CLINICS["CFJ"])
+            self.add_clinic(table, "Chief Recorder/Recorder", entry, RTR_CLINICS["ChiefRec"])
+            self.add_clinic(table, "Referee", entry, RTR_CLINICS["Referee"])
+            self.add_clinic(table, "Para eModule", entry, RTR_CLINICS["Para"])
 
             table.style = "Light Grid Accent 5"
             table.autofit = True
@@ -617,28 +558,15 @@ class docgenCore:
 
             doc.add_heading("Recommended Actions", 2)
 
-            Intro_Signoffs = self._count_signoffs(
-                entry["Introduction to Swimming Officiating-Deck Evaluation #1 Date"],
-                entry["Introduction to Swimming Officiating-Deck Evaluation #2 Date"],
-            )
-
-            IT_Signoffs = self._count_signoffs(
-                entry["Inspector of Turns-Deck Evaluation #1 Date"], entry["Inspector of Turns-Deck Evaluation #2 Date"]
-            )
-
-            JoS_Signoffs = self._count_signoffs(
-                entry["Judge of Stroke-Deck Evaluation #1 Date"], entry["Judge of Stroke-Deck Evaluation #2 Date"]
-            )
-
-            Combo_Signoffs = self._count_signoffs(
-                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"],
-                entry["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"],
-            )
+            Intro_Signoffs = entry["Intro_Count"]
+            IT_Signoffs = entry["IT_Count"]
+            JoS_Signoffs = entry["JoS_Count"]
+            Combo_Signoffs = entry["ST_Count"]
 
             # For NoLevel officials, add a section to identify what they need to do to get to Level I
 
-            if pd.isnull(entry["Current_CertificationLevel"]):
-                if entry["Introduction to Swimming Officiating"].lower() == "no":
+            if entry["Level"] == 0:
+                if entry["Intro_Status"] == "N":
                     doc.add_paragraph(
                         "Take Introduction to Swimming Officiating Clinic and obtain sign-offs", style="List Bullet"
                     )
@@ -650,33 +578,33 @@ class docgenCore:
                             style="List Bullet",
                         )
 
-                if entry["Safety Marshal"].lower() == "no":
+                if entry["Safety_Status"] == "N":
                     doc.add_paragraph("Take Safety Marshal Clinc", style="List Bullet")
 
             # For Level I officials - check if they have stroke & turn and have completed 2 sign-offs
 
-            if entry["Current_CertificationLevel"] == "LEVEL I - RED PIN":
+            if entry["Level"] == 1:
                 if Intro_Signoffs < 2:
                     doc.add_paragraph(
                         f"Obtain {2-Intro_Signoffs} sign-off(s) for Introduction to Swimming Officiating",
                         style="List Bullet",
                     )
 
-                if entry["Judge of Stroke/Inspector of Turns"].lower() == "no":  # They don't have the combo clinic
-                    if entry["Inspector of Turns"].lower() == "no":  # They don't have the new IT clinic either
+                if entry["ST_Status"] == "N":  # They don't have the combo clinic
+                    if entry["IT_Status"] == "N":  # They don't have the new IT clinic either
                         doc.add_paragraph("Take Inspector of Turns Clinic", style="List Bullet")
-                    elif entry["Judge of Stroke"].lower() == "no":  # They have the new IT clinic but not the JoS clinic
+                    elif entry["JoS_Status"] == "N":  # They have the new IT clinic but not the JoS clinic
                         doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
                     if (
                         Intro_Signoffs + IT_Signoffs + JoS_Signoffs >= 4
                     ):  # They have completed or nearly completed "core" requirements
                         # Check if they have any other clinics
                         if (
-                            entry["Chief Timekeeper"].lower() == "no"
-                            and entry["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "no"
-                            and entry["Meet Manager"].lower() == "no"
-                            and entry["Starter"].lower() == "no"
-                            and entry["Chief Finish Judge/Chief Judge"].lower() == "no"
+                            entry["CT_Status"] == "N"
+                            and entry["Admin_Status"] == "N"
+                            and entry["MM_Status"] == "N"
+                            and entry["Starter_Status"] == "N"
+                            and entry["CFJ_Status"] == "N"
                         ):
                             doc.add_paragraph(
                                 "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
@@ -699,11 +627,11 @@ class docgenCore:
                     ):  # They have completed or nearly completed "core" requirements
                         # Check if they have any other clinics
                         if (
-                            entry["Chief Timekeeper"].lower() == "no"
-                            and entry["Administration Desk (formerly Clerk of Course) Clinic"].lower() == "no"
-                            and entry["Meet Manager"].lower() == "no"
-                            and entry["Starter"].lower() == "no"
-                            and entry["Chief Finish Judge/Chief Judge"].lower() == "no"
+                             entry["CT_Status"] == "N"
+                            and entry["Admin_Status"] == "N"
+                            and entry["MM_Status"] == "N"
+                            and entry["Starter_Status"] == "N"
+                            and entry["CFJ_Status"] == "N"
                         ):
                             doc.add_paragraph(
                                 "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
