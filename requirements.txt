@@ -15,6 +15,7 @@ black
 # Application dependencies
 pandas
 python_docx
+docxcompose
 python-slugify
 ttkwidgets
 customtkinter
@@ -23,6 +24,7 @@ requests
 semver
 chardet
 keyring
+
 
 # Documentation dependencies
 plantweb

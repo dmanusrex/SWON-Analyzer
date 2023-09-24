@@ -49,7 +49,7 @@ from slugify import slugify
 from config import AnalyzerConfig
 from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
-from rtr_fields import RTR_POSITION_FIELDS, RTR_CLINICS
+from rtr_fields import RTR_CLINICS
 from tooltip import ToolTip
 
 tkContainer = Any
@@ -453,29 +453,20 @@ class docgenCore:
 
         self._config = config
 
-    def _is_valid_date(self, date_string) -> bool:
-        if pd.isnull(date_string):
-            return False
-        try:
-            datetime.strptime(date_string, "%Y-%m-%d")
-            return True
-        except ValueError:
-            return False
-
     def _get_date(self, date_string) -> str:
         if pd.isnull(date_string):
             return ""
         return date_string
 
-    def add_clinic(self, table: Any, clinic_name: str, entry: Any, pos_info:dict) -> None:
+    def add_clinic(self, table: Any, clinic_name: str, entry: Any, pos_info: dict) -> None:
         row = table.add_row().cells
         row[0].text = clinic_name
         row[1].text = self._get_date(entry[pos_info["clinicDate"]])
         if pos_info["deckEvals"]:
-            row[2].text = self._get_date(entry[pos_info["deckEvals"]][0])
+            row[2].text = self._get_date(entry[pos_info["deckEvals"]].iloc[0])
             if len(entry[pos_info["deckEvals"]]) > 1:
-                row[3].text = self._get_date(entry[pos_info["deckEvals"]][1])
-            else:  
+                row[3].text = self._get_date(entry[pos_info["deckEvals"]].iloc[1])
+            else:
                 row[3].text = "N/A"
         else:
             row[2].text = "N/A"
@@ -570,78 +561,96 @@ class docgenCore:
                     doc.add_paragraph(
                         "Take Introduction to Swimming Officiating Clinic and obtain sign-offs", style="List Bullet"
                     )
-                else:
-                    # if < 2 clinics tell user to get remaining sign-offs (2 - # of clinics)
-                    if Intro_Signoffs < 2:
+                elif Intro_Signoffs < 2:
                         doc.add_paragraph(
-                            f"Obtain {2-Intro_Signoffs} sign-off(s) for Introduction to Swimming Officiating",
+                            f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
                             style="List Bullet",
                         )
 
                 if entry["Safety_Status"] == "N":
                     doc.add_paragraph("Take Safety Marshal Clinc", style="List Bullet")
 
-            # For Level I officials - check if they have stroke & turn and have completed 2 sign-offs
+            # For Level I officials - check if they have stroke & turn and have completed 2 sign-offsj
 
-            if entry["Level"] == 1:
+            # With addition of the separated clinics the recommendation logic has been modified as:
+            # Combo clinic - 2 sign offs - Recommend JoS sign-off if they don't have one.
+            # Combo clinic - < 2 sign offs - Recommend IT sign-offs + JoS sign-off
+            # Split clinic - # of neeed IT sign offs if < 2
+            # Split clinic - Take JoS if they don't have it and have at least 1 IT sign-off
+            # Split Clinic - JoS Sign-off if still need it
+            # If they have most of the sign-offs tell them to take a L2 clinic. 3 out of the 5 needed signoffs.
+
+            if entry["Level"] == 1 and Intro_Signoffs > 0:
                 if Intro_Signoffs < 2:
-                    doc.add_paragraph(
-                        f"Obtain {2-Intro_Signoffs} sign-off(s) for Introduction to Swimming Officiating",
-                        style="List Bullet",
-                    )
-
+                        doc.add_paragraph(
+                            f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                            style="List Bullet",
+                        )
                 if entry["ST_Status"] == "N":  # They don't have the combo clinic
                     if entry["IT_Status"] == "N":  # They don't have the new IT clinic either
-                        doc.add_paragraph("Take Inspector of Turns Clinic", style="List Bullet")
-                    elif entry["JoS_Status"] == "N":  # They have the new IT clinic but not the JoS clinic
-                        doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
-                    if (
-                        Intro_Signoffs + IT_Signoffs + JoS_Signoffs >= 4
-                    ):  # They have completed or nearly completed "core" requirements
-                        # Check if they have any other clinics
-                        if (
-                            entry["CT_Status"] == "N"
-                            and entry["Admin_Status"] == "N"
-                            and entry["MM_Status"] == "N"
-                            and entry["Starter_Status"] == "N"
-                            and entry["CFJ_Status"] == "N"
-                        ):
-                            doc.add_paragraph(
-                                "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
-                                style="List Bullet",
-                            )
-                        else:
-                            doc.add_paragraph(
-                                "Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)",
-                                style="List Bullet",
-                            )
+                        doc.add_paragraph("Take Inspector of Turns Clinic and obtain 2 sign-offs", style="List Bullet")
+                    elif Intro_Signoffs < 2:  # They don't have all their IT sign-offs yet
+                        doc.add_paragraph(
+                            f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                            style="List Bullet",
+                        )
+                    if Intro_Signoffs > 0:  # They have at least 1 Intro Sign-Off
+                        if entry["JoS_Status"] == "N":  # They have the new IT clinic but not the JoS clinic
+                            doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
+                        elif JoS_Signoffs == 0:
+                            doc.add_paragraph("Obtain 1 sign-off as Judge of Stroke", style="List Bullet")
                 else:  # Has the Legacy Combo Clinic
                     if Combo_Signoffs < 2:
                         doc.add_paragraph(
-                            f"Obtain {2-Combo_Signoffs} sign-off(s) for Judge of Stroke/Inspector of Turns",
+                            f"Obtain {2-Combo_Signoffs} sign-off(s) as Inspector of Turns",
                             style="List Bullet",
                         )
-                    # At this point we know they have stroke & turn and intro.  Determine Level II recommendations.
+                    if (Combo_Signoffs > 0) and (JoS_Signoffs == 0):
+                        doc.add_paragraph("Obtain 1 sign-off as Judge of Stroke", style="List Bullet")
+
+                # Determine Level II clinic recommendations.
+                if (Intro_Signoffs + Combo_Signoffs + JoS_Signoffs >= 3) or (
+                    Intro_Signoffs + IT_Signoffs + JoS_Signoffs >= 3
+                ):  # They have completed or nearly completed "core" requirements
+                    # Check if they have any other clinics
                     if (
-                        Intro_Signoffs + Combo_Signoffs >= 3
-                    ):  # They have completed or nearly completed "core" requirements
-                        # Check if they have any other clinics
-                        if (
-                             entry["CT_Status"] == "N"
-                            and entry["Admin_Status"] == "N"
-                            and entry["MM_Status"] == "N"
-                            and entry["Starter_Status"] == "N"
-                            and entry["CFJ_Status"] == "N"
+                        entry["CT_Status"] == "N"
+                        and entry["Admin_Status"] == "N"
+                        and entry["MM_Status"] == "N"
+                        and entry["Starter_Status"] == "N"
+                        and entry["CFJ_Status"] == "N"
+                    ):
+                        doc.add_paragraph(
+                            "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
+                            style="List Bullet",
+                        )
+                    else:  # They have a clinic - Check if any are fully signed off. If not recommend that.
+                        if not (
+                            entry["CT_Count"] == 2
+                            or entry["Admin_Count"] == 2
+                            or entry["MM_Count"] == 2
+                            or entry["Starter_Count"] == 2
+                            or entry["CFJ_Count"] == 2
                         ):
-                            doc.add_paragraph(
-                                "Take a Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter) and obtain sign-offs",
-                                style="List Bullet",
-                            )
-                        else:
                             doc.add_paragraph(
                                 "Obtain sign-offs on at least 1 Level II clinic (CT, MM, CFJ/CJE, Admin Desk or Starter)",
                                 style="List Bullet",
                             )
+            elif Intro_Signoffs < 2:
+                    doc.add_paragraph(
+                        f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                        style="List Bullet",
+                    )
+
+
+                # If they are a referee and don't have the Para e-module or Domestic clinic
+            #    para_status = RTR_CLINICS["Para"]
+            #    pentry = entry["Para Swimming eModule"]
+            #                paradom_status = RTR_CLINICS["ParaDom"]["hasClinic"]
+            #                if entry["Referee_Status"] != "N" and (
+            #                    (entry[para_status] != "yes") or (entry[paradom_status] != "Trained Official")
+            #                ):
+            #                    doc.add_paragraph("Take the Para-Swimming e-Module")
             try:
                 doc.save(filename)
 

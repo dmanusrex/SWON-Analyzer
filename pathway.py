@@ -207,7 +207,7 @@ class Pathway_Documents_Frame(ctk.CTkFrame):
             self.club_dropdown.set(self._club_list[1])
         else:
             self.club_dropdown.set(self._club_list[0])
-        logging.info("Club List Refreshed")
+        logging.info("New Pathway Module - Club List Refreshed")
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()

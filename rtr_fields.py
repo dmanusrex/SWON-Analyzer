@@ -98,42 +98,13 @@ REQUIRED_RTR_FIELDS = [
     "AffiliatedClubs",
 ]
 
-RTR_POSITION_FIELDS = {
-    "Intro": [
-        "Introduction to Swimming Officiating",
-        "Introduction to Swimming Officiating-Deck Evaluation #1 Date",
-        "Introduction to Swimming Officiating-Deck Evaluation #2 Date",
-    ],
-    "ST": [
-        "Judge of Stroke/Inspector of Turns",
-        "Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date",
-        "Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date",
-    ],
-    "IT": [
-        "Inspector of Turns",
-        "Inspector of Turns-Deck Evaluation #1 Date",
-        "Inspector of Turns-Deck Evaluation #2 Date",
-    ],
-    "JoS": ["Judge of Stroke", "Judge of Stroke-Deck Evaluation #1 Date"],
-    "CT": ["Chief Timekeeper", "Chief Timekeeper-Deck Evaluation #1 Date", "Chief Timekeeper-Deck Evaluation #2 Date"],
-    "Clerk": [
-        "Administration Desk (formerly Clerk of Course) Clinic",
-        "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #1 Date",
-        "Administration Desk (formerly Clerk of Course) Clinic-Deck Evaluation #2 Date",
-    ],
-    "MM": ["Meet Manager", "Meet Manager-Deck Evaluation #1 Date", "Meet Manager-Deck Evaluation #2 Date"],
-    "Starter": ["Starter", "Starter-Deck Evaluation #1 Date", "Starter-Deck Evaluation #2 Date"],
-    "ChiefRec": ["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"],
-    "CFJ": [
-        "Chief Finish Judge/Chief Judge",
-        "Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date",
-        "Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date",
-    ],
-    "Referee": ["Referee"],
-}
-
-
 # Abstract the RTR fields so that they can be changed easily if the RTR export changes
+
+# hasClinic - The RTR yes/no field for the clinic
+# clinicDate - The RTR clinic date
+# deckEvals - Which evaluation dates to use for the clinic (if any)
+# status - The abstracted clinic status (generated at data load time)
+# swimoffs - The abstracted number of sign offs (generated at data load time)
 
 RTR_CLINICS = {
     "Intro": {
@@ -225,7 +196,13 @@ RTR_CLINICS = {
         "status": "CFJ_Status",
         "signoffs": "CFJ_Count",
     },
-    "Referee": {"hasClinic": "Referee", "clinicDate": "Referee-ClinicDate", "deckEvals": [], "status": "Referee_Status", "signoffs": "Referee_Count"},
+    "Referee": {
+        "hasClinic": "Referee",
+        "clinicDate": "Referee-ClinicDate",
+        "deckEvals": [],
+        "status": "Referee_Status",
+        "signoffs": "Referee_Count",
+    },
     "Para": {"hasClinic": "Para Swimming eModule", "clinicDate": "Para Swimming eModule-ClinicDate", "deckEvals": []},
     "ParaDom": {"hasClinic": "Para Domestic", "clinicDate": "Para Domestic Course Date", "deckEvals": []},
 }

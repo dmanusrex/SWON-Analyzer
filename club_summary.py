@@ -56,16 +56,13 @@ from docx import Document  # type: ignore
 from docx.shared import Inches  # type: ignore
 
 from config import AnalyzerConfig
-from rtr_fields import RTR_POSITION_FIELDS, RTR_CLINICS
+from rtr_fields import RTR_CLINICS
 
 
 class club_summary:
-    _RTR_Fields = RTR_POSITION_FIELDS
-    _RTR_Clinics = RTR_CLINICS
-
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
         self._club_data_full = club_data_set.copy()
-        self._club_data = self._club_data_full.query("Level > 3")
+        self._club_data = self._club_data_full.query("Level < 4")
         self.club_code = club
         self._config = config
 
@@ -124,31 +121,12 @@ class club_summary:
     def _is_valid_date(self, date_string) -> bool:
         if pd.isnull(date_string):
             return False
-        if date_string == "0001-01-01":
-            return False
 
         try:
             datetime.strptime(date_string, "%Y-%m-%d")
             return True
         except ValueError:
             return False
-
-    def _is_certified(self, row: Any, skill: str) -> bool:
-        """Returns true if the official has required sign-offs"""
-
-        rtr_fields = self._RTR_Fields[skill]
-
-        if len(rtr_fields) == 2:
-            if row[rtr_fields[0]] == "yes" and self._is_valid_date(row[rtr_fields[1]]):
-                return True
-        elif (
-            row[rtr_fields[0]] == "yes"
-            and self._is_valid_date(row[rtr_fields[1]])
-            and self._is_valid_date(row[rtr_fields[2]])
-        ):
-            return True
-
-        return False
 
     def _count_levels(self):
         """Level Statistics"""
@@ -169,8 +147,7 @@ class club_summary:
         self.Level_3_list = []
 
         for index, row in level3_list.iterrows():
-            ref_name = row["Last Name"] + ", " + row["First Name"]
-            self.Level_3_list.append(ref_name)
+            self.Level_3_list.append(row["Full Name"])
             if (
                 row["Referee_Status"] != "N"
                 and row["CT_Status"] == "C"
@@ -178,9 +155,7 @@ class club_summary:
                 and row["Starter_Status"] == "C"
                 and (row["CFJ_Status"] == "C" or row["MM_Status"] == "C")
             ):
-                para_dom = row["Para Domestic"]
-                para_emodule = row["Para Swimming eModule"]
-                self.Qualified_Refs.append([ref_name, para_dom, para_emodule])
+                self.Qualified_Refs.append([row["Full Name"], row["Para Domestic"], row["Para Swimming eModule"]])
         self.Qual_Refs = len(self.Qualified_Refs)
 
     def _find_all_level4_5s(self):
@@ -205,17 +180,17 @@ class club_summary:
             official_name = row["Last Name"] + ", " + row["First Name"]
             if row["Intro_Status"] != "N":
                 if row["Safety_Status"] != "N":
-                    has_both.append(official_name)
+                    has_both.append(official_name)  # Missing Certification Record
                 else:
-                    has_intro_only.append(official_name)
+                    has_intro_only.append(official_name)  # Missing Safety Marshal
             if (
-                (row["ST_Status"] != "N" or row["IT_Status"] != "N")
+                (row["ST_Status"] != "N" or (row["IT_Status"] != "N" and row["JoS_Status"] != "N"))
                 and row["CT_Status"] != "N"
                 and row["Admin_Status"] != "N"
                 and row["MM_Status"] != "N"
                 and row["Starter_Status"] != "N"
                 and row["CFJ_Status"] != "N"
-            ):
+            ):  # Has Level II clinics but missing Level I
                 has_level_ii.append(official_name)
 
         self.NoLevel_Missing_Cert = has_both
@@ -223,32 +198,30 @@ class club_summary:
         self.NoLevel_Has_II = has_level_ii
 
     def _check_missing_Level_III(self):
-        level_2_list = self._club_data.query("Current_CertificationLevel == 'LEVEL II - WHITE PIN'")
+        level_2_list = self._club_data.query("Level == 2")
         self.Missing_Level_III = []
         clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
+
         if level_2_list.empty:
             return
 
         for index, row in level_2_list.iterrows():
-            official_name = row["Last Name"] + ", " + row["First Name"]
-
             if (
-                row["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic"] == "yes"
-                and row["Chief Timekeeper"] == "yes"
-                and row["Administration Desk (formerly Clerk of Course) Clinic"] == "yes"
-                and row["Starter"] == "yes"
-                and row["Chief Finish Judge/Chief Judge"] == "yes"
-                and row["Meet Manager"] == "yes"
+                row["CT_Status"] == "C"
+                and row["Admin_Status"] == "C"
+                and row["Starter_Status"] == "C"
+                and row["CFJ_Status"] == "C"
+                and row["MM_Status"] == "C"
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
                     if row[clinic] == "C":
                         cert_count += 1
                 if cert_count >= 4:
-                    self.Missing_Level_III.append(official_name)
+                    self.Missing_Level_III.append(row["Full Name"])
 
     def _check_missing_Level_II(self):
-        level_1_list = self._club_data.query("Current_CertificationLevel == 'LEVEL I - RED PIN'")
+        level_1_list = self._club_data.query("Level == 1")
         self.Missing_Level_II = []
         clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
 
@@ -256,13 +229,8 @@ class club_summary:
             return
 
         for index, row in level_1_list.iterrows():
-            official_name = row["Last Name"] + ", " + row["First Name"]
-
-            if (
-                self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #1 Date"])
-                and self._is_valid_date(row["Introduction to Swimming Officiating-Deck Evaluation #2 Date"])
-                and self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #1 Date"])
-                and self._is_valid_date(row["Judge of Stroke/Inspector of Turns-Deck Evaluation #2 Date"])
+            if row["Intro_Status"] == "C" and (
+                row["ST_Status"] == "C" or (row["IT_Status"] == "C" and row["JoS_Status"] == "C")
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
@@ -270,19 +238,17 @@ class club_summary:
                         cert_count += 1
 
                 if cert_count >= 1:
-                    self.Missing_Level_II.append(official_name)
+                    self.Missing_Level_II.append(row["Full Name"])
 
     def _count_certifications_detail(self, clinic: dict):
         cert_total = 0  # Count of clinics taken
         cert_1so = 0  # Has 1 Sign-Off
         cert_2so = 0  # Has 2 Sign-Offs (fully qualified)
-        #        qual_list = []  # List of officials fully qualified
-        #        cert_list = []  # List of offiicals certified (excludes full qualified officials)
 
         cert_name = clinic["status"]
         cert_count = clinic["signoffs"]
 
-        # Get the full name column as a list where CT_Status is C000
+        # Create the certification lists using the officials full name
 
         cert_list = self._club_data_full.loc[self._club_data_full[cert_name] == "C", ["Full Name"]][
             "Full Name"
@@ -290,7 +256,10 @@ class club_summary:
         qual_list = self._club_data_full.loc[self._club_data_full[cert_name] != "N", ["Full Name"]][
             "Full Name"
         ].values.tolist()
-        cert_counts = self._club_data.loc[self._club_data[cert_name] != "N", cert_count].value_counts()
+
+        cert_counts = self._club_data_full.loc[self._club_data_full[cert_name] != "N", [cert_count]][
+            cert_count
+        ].value_counts()
         cert_1so = cert_counts.get(1, 0)
         cert_2so = cert_counts.get(2, 0)
         cert_total = cert_counts.get(0, 0) + cert_1so + cert_2so
@@ -421,7 +390,7 @@ class club_summary:
             Cert_CFJ = 0
 
         if self._config.get_bool("contractor_mm"):
-            logging.info("Contractor Results Enabled - Downgrading Certified MM to Qualified MM")
+            logging.info("Contractor Meet Manager Enabled - Downgrading Certified MM to Qualified MM")
             Qual_MM = Qual_MM + Cert_MM
             Cert_MM = 0
 
@@ -541,7 +510,7 @@ class club_summary:
             return {}
 
         # For efficiency, build the scenario from easiest to hardest positions to staff
-        # This aids in early termination of the search
+        # This aids in early termination of the search.
         for x in range(Qual_CT):
             scenario["CT_Q" + str(x)] = self.ChiefT[3]
         for x in range(Cert_CT):
@@ -621,7 +590,7 @@ class club_summary:
             return []
 
         # We need to make copies of the scenario and the current plan as we are going to check
-        # This is a recursive function so we need to make sure we don't modify the original data
+        # This is recursive so we need to make sure we don't modify the original data
 
         scenario_copy = deepcopy(scenario)
         current_skill = scenario_copy.popitem()
