@@ -54,3 +54,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### [1.3.0]
 - :bug: Show new clinics properly in Sanctioning Module
 - :sparkles: First phase of internal re-work to full abstract RTR export format
+
+### [1.3.1]
+- :bug: Fix bug introduced in 1.3.0 that caused summary stats to be incorrect
+- :sparkles: RTR data abstraction is complete
+- :sparkles: Recommendations are now in line with new split clinic requirements
