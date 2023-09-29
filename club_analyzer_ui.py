@@ -37,6 +37,7 @@ from config import AnalyzerConfig
 from odp import Email_Documents_Frame, Generate_Documents_Frame
 from pathway import Pathway_Documents_Frame, Pathway_ROR_Frame
 from rtr import RTR, RTR_Frame
+from rtrbrowse import RTR_Browse_Frame
 from sanction import Sanction_COA_CoHost, Sanction_Preferences, Sanction_ROR
 from version import ANALYZER_VERSION, UNLOCK_CODE
 
@@ -109,7 +110,7 @@ class SwonApp(ctk.CTkFrame):
         # create navigation frame
         self.navigation_frame = ctk.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(6, weight=1)
+        self.navigation_frame.grid_rowconfigure(7, weight=1)
 
         self.navigation_frame_label = ctk.CTkLabel(
             self.navigation_frame,
@@ -225,6 +226,19 @@ class SwonApp(ctk.CTkFrame):
             command=self.odp_email_button_event,
         )
 
+        self.rtr_browser_button = ctk.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            border_spacing=10,
+            text="RTR Browser",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            command=self.rtr_browser_button_event,
+        )
+
         # Create the Pathway Buttons
 
         self.pathway_ror_button = ctk.CTkButton(
@@ -268,7 +282,7 @@ class SwonApp(ctk.CTkFrame):
             command=self.unlock_code_button_event,
         )
         if UNLOCK_CODE is not None:
-            self.unlock_code_button.grid(row=7, column=0, sticky="sew")
+            self.unlock_code_button.grid(row=8, column=0, sticky="sew")
 
         """Turn on the New Version button if there's a newer released version"""
 
@@ -288,7 +302,7 @@ class SwonApp(ctk.CTkFrame):
                     command=self.new_ver_button_event,
                 )
                 self.new_ver_url = latest_version.url
-                self.new_ver_button.grid(row=8, column=0, sticky="sew")
+                self.new_ver_button.grid(row=9, column=0, sticky="sew")
         except RequestException as ex:
             logging.warning("Error checking for update: %s", ex)
 
@@ -304,7 +318,7 @@ class SwonApp(ctk.CTkFrame):
             anchor="w",
             command=self.log_button_event,
         )
-        self.log_button.grid(row=9, column=0, sticky="sew")
+        self.log_button.grid(row=10, column=0, sticky="sew")
 
         self.help_button = ctk.CTkButton(
             self.navigation_frame,
@@ -318,7 +332,7 @@ class SwonApp(ctk.CTkFrame):
             anchor="w",
             command=self.help_button_event,
         )
-        self.help_button.grid(row=10, column=0, sticky="sew")
+        self.help_button.grid(row=11, column=0, sticky="sew")
 
         # The RTR frame is common to all applications
 
@@ -353,6 +367,10 @@ class SwonApp(ctk.CTkFrame):
         self.odp_email_frame.configure(corner_radius=0, fg_color="transparent")
         self.odp_email_frame.grid_columnconfigure(0, weight=1)
 
+        self.rtr_browser_frame = RTR_Browse_Frame(self, self._config, self._rtr_data)
+        self.rtr_browser_frame.configure(corner_radius=0, fg_color="transparent")
+        self.rtr_browser_frame.grid_columnconfigure(0, weight=1)
+
         # create the subframes - New Pathway Application
 
         self.pathway_ror_frame = Pathway_ROR_Frame(self, self._config, self._rtr_data)
@@ -379,6 +397,7 @@ class SwonApp(ctk.CTkFrame):
             #            self.odp_preferences_button.grid_forget()
             self.odp_doc_button.grid_forget()
             self.odp_email_button.grid_forget()
+            self.rtr_browser_button.grid_forget()
             self.pathway_ror_button.grid_forget()
             self.pathway_doc_button.grid_forget()
             self.rtr_button_event()
@@ -389,6 +408,7 @@ class SwonApp(ctk.CTkFrame):
             #            self.odp_preferences_button.grid(row=2, column=0, sticky="ew")
             self.odp_doc_button.grid(row=4, column=0, sticky="ew")
             self.odp_email_button.grid(row=5, column=0, sticky="ew")
+            self.rtr_browser_button.grid(row=6, column=0, sticky="ew")
             self.pathway_ror_button.grid_forget()
             self.pathway_doc_button.grid_forget()
             self.rtr_button_event()
@@ -398,6 +418,7 @@ class SwonApp(ctk.CTkFrame):
             self.sanction_coa_button.grid_forget()
             self.odp_doc_button.grid_forget()
             self.odp_email_button.grid_forget()
+            self.rtr_browser_button.grid_forget()
             self.pathway_ror_button.grid(row=4, column=0, sticky="ew")
             self.pathway_doc_button.grid(row=5, column=0, sticky="ew")
             self.rtr_button_event()
@@ -416,6 +437,7 @@ class SwonApp(ctk.CTkFrame):
         )
         self.odp_doc_button.configure(fg_color=("gray75", "gray25") if name == "odp-doc" else "transparent")
         self.odp_email_button.configure(fg_color=("gray75", "gray25") if name == "odp-email" else "transparent")
+        self.rtr_browser_button.configure(fg_color=("gray75", "gray25") if name == "rtr-browser" else "transparent")
         self.log_button.configure(fg_color=("gray75", "gray25") if name == "log" else "transparent")
         self.pathway_doc_button.configure(fg_color=("gray75", "gray25") if name == "pathway-doc" else "transparent")
 
@@ -448,6 +470,10 @@ class SwonApp(ctk.CTkFrame):
             self.odp_email_frame.grid(row=0, column=1, sticky="new")
         else:
             self.odp_email_frame.grid_forget()
+        if name == "rtr-browser":
+            self.rtr_browser_frame.grid(row=0, column=1, sticky="new")
+        else:
+            self.rtr_browser_frame.grid_forget()
         if name == "log":
             self.log_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -481,6 +507,9 @@ class SwonApp(ctk.CTkFrame):
 
     def odp_email_button_event(self) -> None:
         self.select_frame_by_name("odp-email")
+
+    def rtr_browser_button_event(self) -> None:
+        self.select_frame_by_name("rtr-browser")
 
     def pathway_ror_button_event(self) -> None:
         self.select_frame_by_name("pathway-ror")
