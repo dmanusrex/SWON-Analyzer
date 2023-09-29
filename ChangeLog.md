@@ -59,3 +59,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :bug: Fix bug introduced in 1.3.0 that caused summary stats to be incorrect
 - :sparkles: RTR data abstraction is complete
 - :sparkles: Recommendations are now in line with new split clinic requirements
+
+### [1.4.0]
+- :sparkles: New RTR Browser and simplied data export
