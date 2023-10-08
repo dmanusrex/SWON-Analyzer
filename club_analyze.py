@@ -24,12 +24,48 @@
 
 import os
 import sys
+import sentry_sdk
+from sentry_sdk.integrations.socket import SocketIntegration
+from sentry_sdk.integrations.threading import ThreadingIntegration
+import platform
 
 import customtkinter as ctk  # type: ignore
 
 import club_analyzer_ui as ui
 from config import AnalyzerConfig
 from rtr import RTR
+from version import ANALYZER_VERSION, SENTRY_DSN
+
+
+def initialize_sentry(settings: AnalyzerConfig) -> None:
+    """Initialize sentry.io crash reporting"""
+
+    execution_environment = "development"
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        execution_environment = "executable"
+
+    # Initialize Sentry crash reporting
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        sample_rate=1.0,
+        traces_sample_rate=1.0,
+        environment=execution_environment,
+        release=f"swon-analyzer@{ANALYZER_VERSION}",
+        include_local_variables=True,
+        integrations=[SocketIntegration(), ThreadingIntegration(propagate_hub=True)],
+        debug=False,
+    )
+    uname = platform.uname()
+    sentry_sdk.set_tag("os_system", uname.system)
+    sentry_sdk.set_tag("os_release", uname.release)
+    sentry_sdk.set_tag("os_version", uname.version)
+    sentry_sdk.set_tag("os_machine", uname.machine)
+    sentry_sdk.set_user(
+        {
+            "id": settings.get_str("client_id"),
+            "ip_address": "{{auto}}",
+        }
+    )
 
 
 def main():
@@ -40,6 +76,8 @@ def main():
     root = ctk.CTk()
     config = AnalyzerConfig()
     rtr_data = RTR(config)
+
+    initialize_sentry(config)
 
     ctk.set_appearance_mode(config.get_str("Theme"))  # Modes: "System" (standard), "Dark", "Light"
     ctk.set_default_color_theme(config.get_str("Colour"))  # Themes: "blue" (standard), "green", "dark-blue"

@@ -466,7 +466,7 @@ class club_summary:
                 if self.debug:
                     logging.debug(self.club_code + ": " + msg)
                 self.Failed_Sanctions.append(msg)
-
+                self.best_scenario.append("FAILED TO STAFF")   # The last job is the one that failed
                 self.best_scenario.reverse()
                 failed_scenario_jobs = list(my_scenario.keys())[-len(self.best_scenario) :]
                 # combine the two lists element-wise into text entries in a list

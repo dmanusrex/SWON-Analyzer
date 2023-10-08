@@ -22,7 +22,7 @@
 """Config parsing and options"""
 
 import configparser
-
+import uuid
 
 class AnalyzerConfig:
     """Get/Set program options"""
@@ -67,6 +67,7 @@ class AnalyzerConfig:
             "Theme": "System",  # Theme- System, Dark or Light
             "Scaling": "100%",  # Display Zoom Level
             "Colour": "blue",  # Colour Theme
+            "client_id": "", # Client ID
         }
     }
 
@@ -74,6 +75,15 @@ class AnalyzerConfig:
         self._config = configparser.ConfigParser(interpolation=None)
         self._config.read_dict(self._CONFIG_DEFAULTS)
         self._config.read(self._CONFIG_FILE)
+        client_id = self.get_str("client_id")
+
+        if client_id is None or len(client_id) == 0:
+            client_id = str(uuid.uuid4())
+        try:
+            uuid.UUID(client_id)
+        except ValueError:
+            client_id = str(uuid.uuid4())
+        self.set_str("client_id", client_id)        
 
     def save(self) -> None:
         """Save the (updated) configuration to the ini file"""

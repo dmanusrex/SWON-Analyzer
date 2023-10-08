@@ -66,6 +66,13 @@ with open("version.py", "w") as f:
     else:
         f.write("UNLOCK_CODE = None\n")
 
+    # Sentry DSN
+    dsn = os.getenv("SENTRY_DSN")
+    if dsn is not None:
+        f.write(f'SENTRY_DSN = "{dsn}"\n')
+    else:
+        f.write("SENTRY_DSN = None\n")
+
     f.flush()
     f.close()
 
@@ -127,6 +134,7 @@ with open("version.py", "w") as f:
     f.write('"""Version information"""\n\n')
     f.write(f'ANALYZER_VERSION = "unreleased"\n')
     f.write("UNLOCK_CODE = None\n")
+    f.write("SENTRY_DSN = None\n")
 
     f.flush()
     f.close()
