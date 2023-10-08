@@ -559,7 +559,7 @@ class docgenCore:
             if entry["Level"] == 0:
                 if entry["Intro_Status"] == "N":
                     doc.add_paragraph(
-                        "Take Introduction to Swimming Officiating Clinic and obtain sign-offs", style="List Bullet"
+                        "Take Introduction to Swimming Officiating Clinic", style="List Bullet"
                     )
                 elif Intro_Signoffs < 2:
                         doc.add_paragraph(
@@ -589,13 +589,13 @@ class docgenCore:
                 if entry["ST_Status"] == "N":  # They don't have the combo clinic
                     if entry["IT_Status"] == "N":  # They don't have the new IT clinic either
                         doc.add_paragraph("Take Inspector of Turns Clinic and obtain 2 sign-offs", style="List Bullet")
-                    elif Intro_Signoffs < 2:  # They don't have all their IT sign-offs yet
+                    elif Intro_Signoffs < 2:  # They don't have all their Timer sign-offs yet
                         doc.add_paragraph(
                             f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
                             style="List Bullet",
                         )
                     if Intro_Signoffs > 0:  # They have at least 1 Intro Sign-Off
-                        if entry["JoS_Status"] == "N":  # They have the new IT clinic but not the JoS clinic
+                        if entry["JoS_Status"] == "N" and entry["IT_Status"] != "N":  # They have the new IT clinic but not the JoS clinic
                             doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
                         elif JoS_Signoffs == 0:
                             doc.add_paragraph("Obtain 1 sign-off as Judge of Stroke", style="List Bullet")

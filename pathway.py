@@ -1,5 +1,4 @@
-# DocGen - https://github.com/dmanusrex/SWON-Analyzer
-#
+# Club Analyzer - https://github.com/dmanusrex/SWON-Analyzer
 # Copyright (C) 2023 - Darren Richer
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
