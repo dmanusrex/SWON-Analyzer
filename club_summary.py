@@ -58,6 +58,8 @@ from docx.shared import Inches  # type: ignore
 from config import AnalyzerConfig
 from rtr_fields import RTR_CLINICS
 
+LIST_OR_DICT = list | dict
+
 
 class club_summary:
     def __init__(self, club: str, club_data_set: pd.DataFrame, config: AnalyzerConfig, **kwargs):
@@ -106,6 +108,10 @@ class club_summary:
 
         self.debug = False
 
+        # Track the best scenario found for each sanctioning level
+
+        self.best_scenario: list = []
+
         # Build the summary data and check sanctioning abilities
         self._count_levels()
         self._count_certifications()
@@ -139,7 +145,7 @@ class club_summary:
         self.Level_4s = level_counts.get(4, 0)
         self.Level_5s = level_counts.get(5, 0)
 
-    def _find_qualfied_refs(self):
+    def _find_qualfied_refs(self) -> None:
         # To be a Level III referee you need CT, Clerk, Starter and one of CFJ or MM
         # Also check domestic clinic status
         level3_list = self._club_data.query("Level == 3")
@@ -158,7 +164,7 @@ class club_summary:
                 self.Qualified_Refs.append([row["Full Name"], row["Para Domestic"], row["Para Swimming eModule"]])
         self.Qual_Refs = len(self.Qualified_Refs)
 
-    def _find_all_level4_5s(self):
+    def _find_all_level4_5s(self) -> None:
         """In the RTR Level 4/5s may not have the underlying detail but
         by definition they must be certified in all positions"""
 
@@ -170,7 +176,7 @@ class club_summary:
         for index, row in level45_list.iterrows():
             self.Level_4_5s.append(row["Full Name"])
 
-    def _check_no_levels(self):
+    def _check_no_levels(self) -> None:
         no_level_list = self._club_data.query("Level == 0")
         has_both = []
         has_intro_only = []
@@ -197,7 +203,7 @@ class club_summary:
         self.NoLevel_Missing_SM = has_intro_only
         self.NoLevel_Has_II = has_level_ii
 
-    def _check_missing_Level_III(self):
+    def _check_missing_Level_III(self) -> None:
         level_2_list = self._club_data.query("Level == 2")
         self.Missing_Level_III = []
         clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
@@ -220,7 +226,7 @@ class club_summary:
                 if cert_count >= 4:
                     self.Missing_Level_III.append(row["Full Name"])
 
-    def _check_missing_Level_II(self):
+    def _check_missing_Level_II(self) -> None:
         level_1_list = self._club_data.query("Level == 1")
         self.Missing_Level_II = []
         clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
@@ -240,7 +246,7 @@ class club_summary:
                 if cert_count >= 1:
                     self.Missing_Level_II.append(row["Full Name"])
 
-    def _count_certifications_detail(self, clinic: dict):
+    def _count_certifications_detail(self, clinic: dict) -> list:
         cert_total = 0  # Count of clinics taken
         cert_1so = 0  # Has 1 Sign-Off
         cert_2so = 0  # Has 2 Sign-Offs (fully qualified)
@@ -266,7 +272,7 @@ class club_summary:
 
         return [cert_total, cert_1so, cert_2so, qual_list, cert_list]
 
-    def _count_certifications(self):
+    def _count_certifications(self) -> None:
         self.Intro = self._count_certifications_detail(RTR_CLINICS["Intro"])
         self.SandT = self._count_certifications_detail(RTR_CLINICS["ST"])
         self.IT = self._count_certifications_detail(RTR_CLINICS["IT"])
@@ -290,7 +296,7 @@ class club_summary:
         self.JoS[3] = list(set(self.JoS[3]))
         self.JoS[4] = list(set(self.JoS[4]))
 
-    def _check_sanctions(self):
+    def _check_sanctions(self) -> None:
         approved_sanctions = []
 
         """Sanctioning Parameters to pass:
@@ -423,39 +429,59 @@ class club_summary:
         if self.debug:
             logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(my_scenario))
 
-        if my_scenario:
+        if isinstance(my_scenario, dict):
+            self.best_scenario = []
             staff_list = self._find_staffing_scenario(my_scenario, [], len(my_scenario))
             if staff_list:  # Passed Sr. Checks - Check S&T then continue
                 if self.debug:
                     logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(staff_list))
                 SandT_scenario = self._build_staffing_scenario_SandT(Qual_IT, Cert_IT, Qual_JoS, Cert_JoS, staff_list)
-                if self.debug:
-                    logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(SandT_scenario))
-                SandT_list = self._find_staffing_scenario(SandT_scenario, [], len(SandT_scenario))
-                if SandT_list:
+                if isinstance(SandT_scenario, dict):
                     if self.debug:
-                        logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(SandT_list))
-                    staff_list.extend(SandT_list)
-                    staff_list.reverse()
-                    staff_jobs = list(my_scenario.keys())
-                    staff_jobs.extend(list(SandT_scenario.keys()))
-                    return dict(zip(staff_jobs, staff_list))
+                        logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(SandT_scenario))
+                    self.best_scenario = []
+                    SandT_list = self._find_staffing_scenario(SandT_scenario, [], len(SandT_scenario))
+                    if SandT_list:
+                        if self.debug:
+                            logging.debug(self.club_code + ": " + dbg_scenario_name + " - " + str(SandT_list))
+                        staff_list.extend(SandT_list)
+                        staff_list.reverse()
+                        staff_jobs = list(my_scenario.keys())
+                        staff_jobs.extend(list(SandT_scenario.keys()))
+                        return dict(zip(staff_jobs, staff_list))
+                    else:
+                        msg = dbg_scenario_name + " : Unable to staff stroke & turn"
+                        if self.debug:
+                            logging.debug(self.club_code + ": " + msg)
+                        self.Failed_Sanctions.append(msg)
+                        return {}
                 else:
-                    msg = dbg_scenario_name + " : Unable to staff stroke & turn"
+                    msg = dbg_scenario_name + " : Insufficient remaining stroke & turn"
                     if self.debug:
                         logging.debug(self.club_code + ": " + msg)
                     self.Failed_Sanctions.append(msg)
-                    return {}
+                    self.Failed_Sanctions.extend(SandT_scenario)
             else:
                 msg = dbg_scenario_name + " : Unable to staff senior grid"
                 if self.debug:
                     logging.debug(self.club_code + ": " + msg)
                 self.Failed_Sanctions.append(msg)
+
+                self.best_scenario.reverse()
+                failed_scenario_jobs = list(my_scenario.keys())[-len(self.best_scenario) :]
+                # combine the two lists element-wise into text entries in a list
+                failed_scenario = [
+                    "  " + failed_scenario_jobs[i] + ": " + self.best_scenario[i]
+                    for i in range(len(failed_scenario_jobs))
+                ]
+                self.Failed_Sanctions.extend(failed_scenario)
                 return {}
-        msg = dbg_scenario_name + " : Minimum available skills not met"
-        if self.debug:
-            logging.debug(self.club_code + ": " + msg)
-        self.Failed_Sanctions.append(msg)
+        else:
+            msg = dbg_scenario_name + " : Minimum available skills not met"
+            if self.debug:
+                logging.debug(self.club_code + ": " + msg)
+            self.Failed_Sanctions.append(msg)
+            self.Failed_Sanctions.extend(my_scenario)
         return {}
 
     def _build_staffing_scenario(
@@ -477,12 +503,13 @@ class club_summary:
         Cert_IT: int,
         Qual_JoS: int,
         Cert_JoS: int,
-    ) -> dict:
+    ) -> LIST_OR_DICT:
         """Build the dictionary for the senior grid scenario"""
 
         # Higher Level Positions can backfill lower level positions to achieve the desired outcome
 
         scenario = {}
+        failure_reasons: list = []
 
         # No need to performance optimize this, we also do some pre-checks to avoid analysis on scenarios
         # we know would fail
@@ -507,7 +534,58 @@ class club_summary:
             or (Qual_Ref + Level4_5) > (self.Level_4s + self.Level_5s + self.Qual_Refs)
             or (Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s)
         ):
-            return {}
+            # Return each condition that failed as a list showing required and available
+            if Level4_5 > (self.Level_4s + self.Level_5s):
+                failure_reasons.append(" Level 4/5: " + str(self.Level_4s + self.Level_5s) + "/" + str(Level4_5))
+            if (Qual_Ref + Level4_5) > (self.Level_4s + self.Level_5s + self.Qual_Refs):
+                failure_reasons.append(
+                    " Level 3 Refs: "
+                    + str(self.Level_4s + self.Level_5s + self.Qual_Refs)
+                    + "/"
+                    + str(Qual_Ref + Level4_5)
+                )
+            if (Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s):
+                failure_reasons.append(
+                    " Level 3s: "
+                    + str(self.Level_5s + self.Level_4s + self.Level_3s)
+                    + "/"
+                    + str(Level3 + Level4_5 + Qual_Ref)
+                )
+
+            if len(self.ChiefT[3]) < Qual_CT + Cert_CT:
+                failure_reasons.append(" CT (Qualified): " + str(len(self.ChiefT[3])) + "/" + str(Qual_CT + Cert_CT))
+            if len(self.ChiefT[4]) < Cert_CT:
+                failure_reasons.append(" CT (Certified): " + str(len(self.ChiefT[4])) + "/" + str(Cert_CT))
+            if len(self.MM[3]) < Qual_MM + Cert_MM:
+                failure_reasons.append(" MM (Qualified): " + str(len(self.MM[3])) + "/" + str(Qual_MM + Cert_MM))
+            if len(self.MM[4]) < Cert_MM:
+                failure_reasons.append(" MM (Certified): " + str(len(self.MM[4])) + "/" + str(Cert_MM))
+            if len(self.Clerk[3]) < Qual_Clerk + Cert_Clerk:
+                failure_reasons.append(
+                    " Admin Desk (Qualified): " + str(len(self.Clerk[3])) + "/" + str(Qual_Clerk + Cert_Clerk)
+                )
+            if len(self.Clerk[4]) < Cert_Clerk:
+                failure_reasons.append(" Admin Desk (Certified): " + str(len(self.Clerk[4])) + "/" + str(Cert_Clerk))
+            if len(self.Starter[3]) < Qual_Starter + Cert_Starter:
+                failure_reasons.append(
+                    " Starter (Qualified): " + str(len(self.Starter[3])) + "/" + str(Qual_Starter + Cert_Starter)
+                )
+            if len(self.Starter[4]) < Cert_Starter:
+                failure_reasons.append(" Starter (Certified): " + str(len(self.Starter[4])) + "/" + str(Cert_Starter))
+            if len(self.CFJ[3]) < Qual_CFJ + Cert_CFJ:
+                failure_reasons.append(" CFJ (Qualified): " + str(len(self.CFJ[3])) + "/" + str(Qual_CFJ + Cert_CFJ))
+            if len(self.CFJ[4]) < Cert_CFJ:
+                failure_reasons.append(" CFJ (Certified): " + str(len(self.CFJ[4])) + "/" + str(Cert_CFJ))
+            if len(self.IT[3]) < Qual_IT:
+                failure_reasons.append(" IT (Qualified): " + str(len(self.IT[3])) + "/" + str(Qual_IT))
+            if len(self.IT[4]) < Cert_IT:
+                failure_reasons.append(" IT (Certified): " + str(len(self.IT[4])) + "/" + str(Cert_IT))
+            if len(self.JoS[3]) < Qual_JoS:
+                failure_reasons.append(" JoS (Qualified): " + str(len(self.JoS[3])) + "/" + str(Qual_JoS))
+            if len(self.JoS[4]) < Cert_JoS:
+                failure_reasons.append(" JoS (Certified): " + str(len(self.JoS[4])) + "/" + str(Cert_JoS))
+
+            return failure_reasons
 
         # For efficiency, build the scenario from easiest to hardest positions to staff
         # This aids in early termination of the search.
@@ -550,10 +628,11 @@ class club_summary:
 
     def _build_staffing_scenario_SandT(
         self, Qual_IT: int, Cert_IT: int, Qual_JoS: int, Cert_JoS: int, staff_list: list
-    ) -> dict:
+    ) -> LIST_OR_DICT:
         """Build the dictionary for the stroke & turn scenario"""
 
         scenario = {}
+        failure_reasons: list = []
 
         # Remove anyone already staffed on the senior grid
 
@@ -569,7 +648,19 @@ class club_summary:
             or len(qual_JoS_left) < Qual_JoS + Cert_JoS
             or len(cert_JoS_left) < Cert_JoS
         ):
-            return {}
+            # Return each condition that failed as a list showing required and available
+            if len(qual_IT_left) < Qual_IT + Cert_IT + Qual_JoS + Cert_JoS:
+                failure_reasons.append(
+                    " IT (Qualified): " + str(len(qual_IT_left)) + "/" + str(Qual_IT + Cert_IT + Qual_JoS + Cert_JoS)
+                )
+            if len(cert_IT_left) < Cert_IT:
+                failure_reasons.append(" IT (Certified): " + str(len(cert_IT_left)) + "/" + str(Cert_IT))
+            if len(qual_JoS_left) < Qual_JoS + Cert_JoS:
+                failure_reasons.append(" JoS (Qualified): " + str(len(qual_JoS_left)) + "/" + str(Qual_JoS + Cert_JoS))
+            if len(cert_JoS_left) < Cert_JoS:
+                failure_reasons.append(" JoS (Certified): " + str(len(cert_JoS_left)) + "/" + str(Cert_JoS))
+
+            return failure_reasons
 
         for x in range(Qual_IT):
             scenario["IT_Q" + str(x)] = qual_IT_left
@@ -600,6 +691,8 @@ class club_summary:
             if name not in current_plan and scenario_copy:
                 working_plan = copy(current_plan)
                 working_plan.append(name)
+                if len(working_plan) > len(self.best_scenario):
+                    self.best_scenario = copy(working_plan)
                 sub = self._find_staffing_scenario(scenario_copy, working_plan, required_staff)
                 if sub and len(sub) == required_staff:
                     if self.debug:
@@ -609,6 +702,8 @@ class club_summary:
                 if self.debug:
                     logging.debug(self.club_code + "Found: " + str(name))
                 working_plan.append(name)
+                if len(working_plan) > len(self.best_scenario):
+                    self.best_scenario = copy(working_plan)
                 return working_plan
         return []
 
