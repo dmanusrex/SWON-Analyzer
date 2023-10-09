@@ -466,7 +466,7 @@ class club_summary:
                 if self.debug:
                     logging.debug(self.club_code + ": " + msg)
                 self.Failed_Sanctions.append(msg)
-                self.best_scenario.append("FAILED TO STAFF")   # The last job is the one that failed
+                self.best_scenario.append("FAILED TO STAFF")  # The last job is the one that failed
                 self.best_scenario.reverse()
                 failed_scenario_jobs = list(my_scenario.keys())[-len(self.best_scenario) :]
                 # combine the two lists element-wise into text entries in a list
@@ -535,55 +535,64 @@ class club_summary:
             or (Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s)
         ):
             # Return each condition that failed as a list showing required and available
-            if Level4_5 > (self.Level_4s + self.Level_5s):
-                failure_reasons.append(" Level 4/5: " + str(self.Level_4s + self.Level_5s) + "/" + str(Level4_5))
-            if (Qual_Ref + Level4_5) > (self.Level_4s + self.Level_5s + self.Qual_Refs):
-                failure_reasons.append(
-                    " Level 3 Refs: "
-                    + str(self.Level_4s + self.Level_5s + self.Qual_Refs)
-                    + "/"
-                    + str(Qual_Ref + Level4_5)
-                )
-            if (Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s):
-                failure_reasons.append(
-                    " Level 3s: "
-                    + str(self.Level_5s + self.Level_4s + self.Level_3s)
-                    + "/"
-                    + str(Level3 + Level4_5 + Qual_Ref)
-                )
+            # For Level 4/5, Level 3 Refs, and Level 3s we need to look at the entire pool when generating the
+            # failure message. Calculate the remaining offiicals at each level and use that to generate the message
+            # and ensure the remainder is not negative
+
+            # Level 4/5s left
+            err_45_level = self.Level_4s + self.Level_5s - Level4_5
+            err_45_level = err_45_level if err_45_level > 0 else 0
+
+            # of Level 3 Refs used
+            err_3_ref_unfilled = Qual_Ref - (self.Qual_Refs + err_45_level)
+            err_3_ref_unfilled = err_3_ref_unfilled if err_3_ref_unfilled > 0 else 0
+            err_3_ref_used = Qual_Ref - err_3_ref_unfilled
+
+            # of Level 3s left to staff - Level 3s are a superset of Level 3 refs
+            err_3 = Level3 - (self.Level_3s + err_45_level - err_3_ref_used)
+            err_3 = err_3 if err_3 > 0 else 0
+            err_3_used = Level3 - err_3
+
+            if Level4_5 > (self.Level_4s + self.Level_5s):  # Not enough Level 4/5s
+                failure_reasons.append("  Level 4/5: " + str(self.Level_4s + self.Level_5s) + "/" + str(Level4_5))
+
+            if ((Qual_Ref + Level4_5) > (self.Level_4s + self.Level_5s + self.Qual_Refs)) and (Qual_Ref > 0):
+                failure_reasons.append("  Level 3 Refs: " + str(err_3_ref_used) + "/" + str(Qual_Ref))
+            if ((Level3 + Level4_5 + Qual_Ref) > (self.Level_5s + self.Level_4s + self.Level_3s)) and (Level3 > 0):
+                failure_reasons.append("  Level 3s: " + str(err_3_used) + "/" + str(Level3))
 
             if len(self.ChiefT[3]) < Qual_CT + Cert_CT:
-                failure_reasons.append(" CT (Qualified): " + str(len(self.ChiefT[3])) + "/" + str(Qual_CT + Cert_CT))
+                failure_reasons.append("  CT (Qualified): " + str(len(self.ChiefT[3])) + "/" + str(Qual_CT + Cert_CT))
             if len(self.ChiefT[4]) < Cert_CT:
-                failure_reasons.append(" CT (Certified): " + str(len(self.ChiefT[4])) + "/" + str(Cert_CT))
+                failure_reasons.append("  CT (Certified): " + str(len(self.ChiefT[4])) + "/" + str(Cert_CT))
             if len(self.MM[3]) < Qual_MM + Cert_MM:
-                failure_reasons.append(" MM (Qualified): " + str(len(self.MM[3])) + "/" + str(Qual_MM + Cert_MM))
+                failure_reasons.append("  MM (Qualified): " + str(len(self.MM[3])) + "/" + str(Qual_MM + Cert_MM))
             if len(self.MM[4]) < Cert_MM:
-                failure_reasons.append(" MM (Certified): " + str(len(self.MM[4])) + "/" + str(Cert_MM))
+                failure_reasons.append("  MM (Certified): " + str(len(self.MM[4])) + "/" + str(Cert_MM))
             if len(self.Clerk[3]) < Qual_Clerk + Cert_Clerk:
                 failure_reasons.append(
-                    " Admin Desk (Qualified): " + str(len(self.Clerk[3])) + "/" + str(Qual_Clerk + Cert_Clerk)
+                    "  Admin Desk (Qualified): " + str(len(self.Clerk[3])) + "/" + str(Qual_Clerk + Cert_Clerk)
                 )
             if len(self.Clerk[4]) < Cert_Clerk:
-                failure_reasons.append(" Admin Desk (Certified): " + str(len(self.Clerk[4])) + "/" + str(Cert_Clerk))
+                failure_reasons.append("  Admin Desk (Certified): " + str(len(self.Clerk[4])) + "/" + str(Cert_Clerk))
             if len(self.Starter[3]) < Qual_Starter + Cert_Starter:
                 failure_reasons.append(
-                    " Starter (Qualified): " + str(len(self.Starter[3])) + "/" + str(Qual_Starter + Cert_Starter)
+                    "  Starter (Qualified): " + str(len(self.Starter[3])) + "/" + str(Qual_Starter + Cert_Starter)
                 )
             if len(self.Starter[4]) < Cert_Starter:
-                failure_reasons.append(" Starter (Certified): " + str(len(self.Starter[4])) + "/" + str(Cert_Starter))
+                failure_reasons.append("  Starter (Certified): " + str(len(self.Starter[4])) + "/" + str(Cert_Starter))
             if len(self.CFJ[3]) < Qual_CFJ + Cert_CFJ:
-                failure_reasons.append(" CFJ (Qualified): " + str(len(self.CFJ[3])) + "/" + str(Qual_CFJ + Cert_CFJ))
+                failure_reasons.append("  CFJ (Qualified): " + str(len(self.CFJ[3])) + "/" + str(Qual_CFJ + Cert_CFJ))
             if len(self.CFJ[4]) < Cert_CFJ:
-                failure_reasons.append(" CFJ (Certified): " + str(len(self.CFJ[4])) + "/" + str(Cert_CFJ))
+                failure_reasons.append("  CFJ (Certified): " + str(len(self.CFJ[4])) + "/" + str(Cert_CFJ))
             if len(self.IT[3]) < Qual_IT:
-                failure_reasons.append(" IT (Qualified): " + str(len(self.IT[3])) + "/" + str(Qual_IT))
+                failure_reasons.append("  IT (Qualified): " + str(len(self.IT[3])) + "/" + str(Qual_IT))
             if len(self.IT[4]) < Cert_IT:
-                failure_reasons.append(" IT (Certified): " + str(len(self.IT[4])) + "/" + str(Cert_IT))
+                failure_reasons.append("  IT (Certified): " + str(len(self.IT[4])) + "/" + str(Cert_IT))
             if len(self.JoS[3]) < Qual_JoS:
-                failure_reasons.append(" JoS (Qualified): " + str(len(self.JoS[3])) + "/" + str(Qual_JoS))
+                failure_reasons.append("  JoS (Qualified): " + str(len(self.JoS[3])) + "/" + str(Qual_JoS))
             if len(self.JoS[4]) < Cert_JoS:
-                failure_reasons.append(" JoS (Certified): " + str(len(self.JoS[4])) + "/" + str(Cert_JoS))
+                failure_reasons.append("  JoS (Certified): " + str(len(self.JoS[4])) + "/" + str(Cert_JoS))
 
             return failure_reasons
 
