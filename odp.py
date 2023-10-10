@@ -210,7 +210,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):
             self.club_dropdown.set(self._club_list[1])
         else:
             self.club_dropdown.set(self._club_list[0])
-        logging.info("Club List Refreshed")
+        logging.info("Officials Development - Club List Refreshed")
 
     def _handle_report_dir_browse(self) -> None:
         directory = filedialog.askdirectory()
@@ -558,14 +558,12 @@ class docgenCore:
 
             if entry["Level"] == 0:
                 if entry["Intro_Status"] == "N":
-                    doc.add_paragraph(
-                        "Take Introduction to Swimming Officiating Clinic", style="List Bullet"
-                    )
+                    doc.add_paragraph("Take Introduction to Swimming Officiating Clinic", style="List Bullet")
                 elif Intro_Signoffs < 2:
-                        doc.add_paragraph(
-                            f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
-                            style="List Bullet",
-                        )
+                    doc.add_paragraph(
+                        f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                        style="List Bullet",
+                    )
 
                 if entry["Safety_Status"] == "N":
                     doc.add_paragraph("Take Safety Marshal Clinc", style="List Bullet")
@@ -582,10 +580,10 @@ class docgenCore:
 
             if entry["Level"] == 1 and Intro_Signoffs > 0:
                 if Intro_Signoffs < 2:
-                        doc.add_paragraph(
-                            f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
-                            style="List Bullet",
-                        )
+                    doc.add_paragraph(
+                        f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                        style="List Bullet",
+                    )
                 if entry["ST_Status"] == "N":  # They don't have the combo clinic
                     if entry["IT_Status"] == "N":  # They don't have the new IT clinic either
                         doc.add_paragraph("Take Inspector of Turns Clinic and obtain 2 sign-offs", style="List Bullet")
@@ -595,7 +593,9 @@ class docgenCore:
                             style="List Bullet",
                         )
                     if Intro_Signoffs > 0:  # They have at least 1 Intro Sign-Off
-                        if entry["JoS_Status"] == "N" and entry["IT_Status"] != "N":  # They have the new IT clinic but not the JoS clinic
+                        if (
+                            entry["JoS_Status"] == "N" and entry["IT_Status"] != "N"
+                        ):  # They have the new IT clinic but not the JoS clinic
                             doc.add_paragraph("Take Judge of Stroke Clinic", style="List Bullet")
                         elif JoS_Signoffs == 0:
                             doc.add_paragraph("Obtain 1 sign-off as Judge of Stroke", style="List Bullet")
@@ -637,13 +637,12 @@ class docgenCore:
                                 style="List Bullet",
                             )
             elif Intro_Signoffs < 2:
-                    doc.add_paragraph(
-                        f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
-                        style="List Bullet",
-                    )
+                doc.add_paragraph(
+                    f"Obtain {2-Intro_Signoffs} sign-off(s) as a Timer",
+                    style="List Bullet",
+                )
 
-
-                # If they are a referee and don't have the Para e-module or Domestic clinic
+            # If they are a referee and don't have the Para e-module or Domestic clinic
             #    para_status = RTR_CLINICS["Para"]
             #    pentry = entry["Para Swimming eModule"]
             #                paradom_status = RTR_CLINICS["ParaDom"]["hasClinic"]

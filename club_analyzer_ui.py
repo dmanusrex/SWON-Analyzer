@@ -23,10 +23,13 @@
 """ SWON Officials Utilities Main Screen """
 
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import tkinter as tk
 import webbrowser
 from typing import Any
+from platformdirs import user_log_dir
+import pathlib
 
 import customtkinter as ctk  # type: ignore
 import pandas as pd
@@ -82,15 +85,35 @@ class _Logging(ctk.CTkFrame):
         self.logwin = ctk.CTkTextbox(self, state="disabled")
         self.logwin.grid(column=0, row=1, sticky="nsew")
         # Logging configuration
-        logfile = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "swon-analyzer.log"))
+        logdir = user_log_dir("swon-analyzer", "Swim Ontario")
+        pathlib.Path(logdir).mkdir(parents=True, exist_ok=True)
+        logfile = os.path.abspath(os.path.join(logdir, "swon-analyzer.log"))
 
-        logging.basicConfig(filename=logfile, level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+        simple_formatter = logging.Formatter("%(asctime)s - %(message)s")
+        detailed_formatter = logging.Formatter("%(asctime)s %(name)s[%(process)d]: %(levelname)s - %(message)s")
+
+        # get a top-level logger,
+        # set its log level to DEBUG,
+        # BUT PREVENT IT from propagating messages to the root logger
+        # This allows different levels to be logged to the file and the text window
+
+        log = logging.getLogger()
+        log.setLevel(logging.INFO)
+        log.propagate = False
+
+        # create a file handler
+        file_handler = RotatingFileHandler(logfile, maxBytes=1000000, backupCount=5)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(detailed_formatter)
+
         # Create textLogger
         text_handler = TextHandler(self.logwin)
-        text_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
+        text_handler.setLevel(logging.INFO)
+        text_handler.setFormatter(simple_formatter)
+
         # Add the handler to logger
-        logger = logging.getLogger()
-        logger.addHandler(text_handler)
+        log.addHandler(file_handler)
+        log.addHandler(text_handler)
 
 
 class SwonApp(ctk.CTkFrame):  

@@ -22,7 +22,11 @@
 """Config parsing and options"""
 
 import configparser
+from platformdirs import user_config_dir
 import uuid
+import os
+import pathlib
+
 
 class AnalyzerConfig:
     """Get/Set program options"""
@@ -67,13 +71,16 @@ class AnalyzerConfig:
             "Theme": "System",  # Theme- System, Dark or Light
             "Scaling": "100%",  # Display Zoom Level
             "Colour": "blue",  # Colour Theme
-            "client_id": "", # Client ID
+            "client_id": "",  # Client ID
         }
     }
 
     def __init__(self):
         self._config = configparser.ConfigParser(interpolation=None)
         self._config.read_dict(self._CONFIG_DEFAULTS)
+        userconfdir = user_config_dir("swon-analyzer", "Swim Ontario")
+        pathlib.Path(userconfdir).mkdir(parents=True, exist_ok=True)
+        self._CONFIG_FILE = os.path.join(userconfdir, self._CONFIG_FILE)
         self._config.read(self._CONFIG_FILE)
         client_id = self.get_str("client_id")
 
@@ -83,7 +90,7 @@ class AnalyzerConfig:
             uuid.UUID(client_id)
         except ValueError:
             client_id = str(uuid.uuid4())
-        self.set_str("client_id", client_id)        
+        self.set_str("client_id", client_id)
 
     def save(self) -> None:
         """Save the (updated) configuration to the ini file"""

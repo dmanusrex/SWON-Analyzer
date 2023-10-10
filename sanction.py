@@ -25,12 +25,12 @@
 import os
 import pandas as pd
 import logging
-import customtkinter as ctk   # type: ignore
+import customtkinter as ctk  # type: ignore
 from tkinter import filedialog, BooleanVar, StringVar
 from threading import Thread
 from datetime import datetime
 from tooltip import ToolTip
-from docx import Document   # type: ignore
+from docx import Document  # type: ignore
 from CTkMessagebox import CTkMessagebox  # type: ignore
 
 
@@ -40,7 +40,7 @@ from club_summary import club_summary
 from rtr import RTR
 
 
-class Sanction_Preferences(ctk.CTkFrame):  
+class Sanction_Preferences(ctk.CTkFrame):
     """Miscellaneous settings"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
@@ -85,7 +85,10 @@ class Sanction_Preferences(ctk.CTkFrame):
         self.appearance_mode_label = ctk.CTkLabel(fr4, text="Appearance Mode", anchor="w")
         self.appearance_mode_label.grid(row=0, column=1)
         self.appearance_mode_optionemenu = ctk.CTkOptionMenu(
-            fr4, values=["Light", "Dark", "System"], command=self.change_appearance_mode_event, variable=self._ctk_theme
+            fr4,
+            values=["Light", "Dark", "System"],
+            command=self.change_appearance_mode_event,
+            variable=self._ctk_theme,
         )
         self.appearance_mode_optionemenu.grid(row=0, column=0, padx=20, pady=10)
 
@@ -124,9 +127,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_contractor_results,
-        ).grid(
-            column=1, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to use a contractor for results")
         return frame
 
@@ -183,9 +184,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             variable=self._incl_errors_var,
             onvalue=True,
             offvalue=False,
-        ).grid(
-            column=0, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=0, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include errors and anomalies detected")
         return frame
 
@@ -204,9 +203,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_inv_pending,
-        ).grid(
-            column=1, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include Invoice Pending status")
         return frame
 
@@ -225,9 +222,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_pso_pending,
-        ).grid(
-            column=1, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include PSO Pending status")
         return frame
 
@@ -246,9 +241,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_account_pending,
-        ).grid(
-            column=1, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include Account Pending status")
         return frame
 
@@ -267,9 +260,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_affiliates,
-        ).grid(
-            column=1, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include affiliated officials in the analysis")
         return frame
 
@@ -288,9 +279,7 @@ class Sanction_Preferences(ctk.CTkFrame):
             variable=self._incl_sanction_errors_var,
             onvalue=True,
             offvalue=False,
-        ).grid(
-            column=0, row=0, sticky="n", padx=20, pady=10
-        )  
+        ).grid(column=0, row=0, sticky="n", padx=20, pady=10)
         ToolTip(frame, "Select to include why the sanctioning tier could not be permitted")
         return frame
 
@@ -313,7 +302,7 @@ class Sanction_Preferences(ctk.CTkFrame):
         self._config.set_str("Colour", new_colour)
 
 
-class Sanction_ROR(ctk.CTkFrame):  
+class Sanction_ROR(ctk.CTkFrame):
     """Reports Setting and Generation for RORs and POAs"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
@@ -355,9 +344,7 @@ class Sanction_ROR(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_gen_1_per_club,
-        ).grid(
-            column=1, row=0, sticky="news", padx=20, pady=10
-        )  
+        ).grid(column=1, row=0, sticky="news", padx=20, pady=10)
 
         self._gen_word_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_word"))
         ctk.CTkSwitch(
@@ -367,20 +354,18 @@ class Sanction_ROR(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_gen_word,
-        ).grid(
-            column=1, row=2, sticky="news", padx=20, pady=10
-        )  
+        ).grid(column=1, row=2, sticky="news", padx=20, pady=10)
 
         # Report File
 
         rptbtn = ctk.CTkButton(filesframe, text="Main Report File Name", command=self._handle_report_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=10)
-        ToolTip(rptbtn, text="Set report file name")  
+        ToolTip(rptbtn, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w")
 
         rptdirbtn = ctk.CTkButton(filesframe, text="Report Folder", command=self._handle_report_dir_browse)
         rptdirbtn.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(rptdirbtn, text="Select where output files will be sent")  
+        ToolTip(rptdirbtn, text="Select where output files will be sent")
         ctk.CTkLabel(filesframe, textvariable=self._report_directory).grid(column=1, row=2, sticky="w")
 
         # Action Button
@@ -445,7 +430,7 @@ class Sanction_ROR(ctk.CTkFrame):
             thread.join()
 
 
-class Sanction_COA_CoHost(ctk.CTkFrame): 
+class Sanction_COA_CoHost(ctk.CTkFrame):
     """Co-Hosting"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
@@ -500,7 +485,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):
 
         rptbtn = ctk.CTkButton(filesframe, text="COA/Co-Host Report Filename", command=self._handle_cohost_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=(20, 10))
-        ToolTip(rptbtn, text="Set report file name")  
+        ToolTip(rptbtn, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w", pady=5)
 
         # Action Button
@@ -529,7 +514,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):
             self.club2_dropdown.grid_forget()
             self.club3_dropdown.grid_forget()
 
-        logging.info("Club List Refreshed")
+        logging.info("Sanctioning - Club List Refreshed")
 
     def get_clubs(self) -> list:
         selected_items = [self.club1.get(), self.club2.get(), self.club3.get()]
