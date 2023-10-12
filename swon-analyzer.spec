@@ -1,19 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files
 
-# pyi-makespec --noconsole --add-data media\swon-analyzer.ico;media --icon media\swon-analyzer.ico --name swon-analyzer
-#    --splash media\swon-splash.png --version-file swon-analyzer.fileinfo club_analyze.py
+datas = [('media\\swon-analyzer.ico', 'media')]
+datas += collect_data_files('CTkMessagebox')
+datas += collect_data_files('docxcompose')
 
 
 block_cipher = None
 
-added_files = [ ('media\\swon-analyzer.ico', 'media'),
-   ('CTkMessagebox\\icons', 'CTKMessagebox\\icons')]
 
 a = Analysis(
     ['club_analyze.py'],
     pathex=[],
     binaries=[],
-    datas=added_files,
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -46,7 +46,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
