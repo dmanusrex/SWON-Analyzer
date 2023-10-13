@@ -4,14 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
 - :bug: Fix UI scaling
-- :sparkles: Migrate to internal fields for certifications to abstract RTR changes
-- :sparkles: Move configs and logs to user directories
-- :sparkles: Clarify Level 3/4/5 failure reasons
-- :sparkles: Add Sentry SDK support
-- :bug: Correct Intro recommendation
-- :sparkles: Add verbose failure reasons (# of missing skills, which position couldn't be staffed)
-- :sparkles: Allow for All Users/This User Only installs on Windows
-- :bug: Fix pyinstaller spec not picking up supporting docxcompose files
+
 
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing
@@ -69,3 +62,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.4.0]
 - :sparkles: New RTR Browser and simplied data export
+
+### [1.5.0]
+
+- :sparkles: Migrate to internal fields for certifications to abstract RTR changes
+- :sparkles: Move configs and logs to user directories
+- :sparkles: Clarify Level 3/4/5 failure reasons
+- :sparkles: Add Sentry SDK support
+- :bug: Correct Intro recommendation
+- :sparkles: Add verbose failure reasons (# of missing skills, which position couldn't be staffed)
+- :sparkles: Allow for All Users/This User Only installs on Windows
+- :bug: Fix pyinstaller spec not picking up supporting docxcompose files
