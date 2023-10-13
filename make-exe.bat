@@ -10,6 +10,7 @@ signtool sign /a /s MY /n "Open Source Developer, Darren Richer" /fd SHA256 /t h
 
 ::: Build the installer
 
+::: makensis swon-analyzer.nsi
 makensis swon-analyzer.nsi
 
 ::: Sign the installer
