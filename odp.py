@@ -494,7 +494,6 @@ class docgenCore:
             filename = os.path.abspath(
                 os.path.join(_report_directory, slugify(entry["Last Name"] + "_" + entry["First Name"]) + ".docx")
             )
-            csv_list.append([entry["Last Name"], entry["First Name"], entry["Email"], filename])
 
             doc = Document()
 
@@ -652,7 +651,9 @@ class docgenCore:
             #                    doc.add_paragraph("Take the Para-Swimming e-Module")
             try:
                 doc.save(filename)
-
+                csv_list.append(
+                    [entry["Last Name"], entry["First Name"], entry["Email"], filename]
+                )  # Only add if saved
             except Exception as e:
                 logging.info(
                     f'Error processing offiical {entry["Last Name"]}, {entry["First Name"]}: {type(e).__name__} - {e}'
@@ -728,7 +729,12 @@ class Generate_Reports(Thread):
         master = Document()
         composer = Composer(master)
         for i in range(0, number_of_sections):
-            doc_temp = Document(all_csv_entries[i][3])
+            try:
+                doc_temp = Document(all_csv_entries[i][3])
+            except Exception as e:
+                logging.info("Unable to load document: {}".format(type(e).__name__))
+                logging.info("Exception message: {}".format(e))
+                continue
             doc_temp.add_page_break()
             composer.append(doc_temp)
 
