@@ -255,6 +255,7 @@ class club_summary:
         cert_count = clinic["signoffs"]
 
         # Create the certification lists using the officials full name
+        # we use the full list for the names (include Level 4/5s) but our counts exclude 4/5s
 
         cert_list = self._club_data_full.loc[self._club_data_full[cert_name] == "C", ["Full Name"]][
             "Full Name"
@@ -263,7 +264,7 @@ class club_summary:
             "Full Name"
         ].values.tolist()
 
-        cert_counts = self._club_data_full.loc[self._club_data_full[cert_name] != "N", [cert_count]][
+        cert_counts = self._club_data.loc[self._club_data[cert_name] != "N", [cert_count]][
             cert_count
         ].value_counts()
         cert_1so = cert_counts.get(1, 0)
