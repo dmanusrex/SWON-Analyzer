@@ -26,8 +26,8 @@ import os
 import shutil
 import subprocess
 
-import PyInstaller.__main__ 
-import PyInstaller.utils.win32.versioninfo as vinfo 
+import PyInstaller.__main__
+import PyInstaller.utils.win32.versioninfo as vinfo
 
 import semver  # type: ignore
 import swon_version
@@ -73,6 +73,14 @@ with open("version.py", "w") as f:
     else:
         f.write("SENTRY_DSN = None\n")
 
+    # IPINFO Token
+
+    ipinfo = os.getenv("IPINFO_TOKEN")
+    if ipinfo is not None:
+        f.write(f'IPINFO_TOKEN = "{ipinfo}"\n')
+    else:
+        f.write("IPINFO_TOKEN = None\n")
+
     f.flush()
     f.close()
 
@@ -88,22 +96,22 @@ v = vinfo.VSVersionInfo(
         subtype=0x0,
     ),
     kids=[
-        vinfo.StringFileInfo(    
+        vinfo.StringFileInfo(
             [
-                vinfo.StringTable(   
+                vinfo.StringTable(
                     "040904e4",
                     [
                         # https://docs.microsoft.com/en-us/windows/win32/menurc/versioninfo-resource
                         # Required fields:
-                        vinfo.StringStruct("CompanyName", "Swim Ontario"),  
-                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),  
-                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),  
-                        vinfo.StringStruct("InternalName", "club_analyze"),   
-                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),   
-                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),  
-                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),  
+                        vinfo.StringStruct("CompanyName", "Swim Ontario"),
+                        vinfo.StringStruct("FileDescription", "Sanctions Analyzer"),
+                        vinfo.StringStruct("FileVersion", ANALYZER_VERSION),
+                        vinfo.StringStruct("InternalName", "club_analyze"),
+                        vinfo.StringStruct("ProductName", "Sanctions Analyzer"),
+                        vinfo.StringStruct("ProductVersion", ANALYZER_VERSION),
+                        vinfo.StringStruct("OriginalFilename", "swon-analyzer.exe"),
                         # Optional fields
-                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),   
+                        vinfo.StringStruct("LegalCopyright", "(c) Swim Ontario"),
                     ],
                 )
             ]
@@ -111,7 +119,7 @@ v = vinfo.VSVersionInfo(
         vinfo.VarFileInfo(
             [
                 # 1033 -> Engligh; 1252 -> charsetID
-                vinfo.VarStruct("Translation", [1033, 1252])   
+                vinfo.VarStruct("Translation", [1033, 1252])
             ]
         ),
     ],
@@ -135,6 +143,7 @@ with open("version.py", "w") as f:
     f.write(f'ANALYZER_VERSION = "unreleased"\n')
     f.write("UNLOCK_CODE = None\n")
     f.write("SENTRY_DSN = None\n")
+    f.write("IPINFO_TOKEN = None\n")
 
     f.flush()
     f.close()

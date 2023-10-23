@@ -42,8 +42,8 @@ Function un.onInit
   !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
-!finalize 'signtool sign /a /s MY /n "Open Source Developer, Darren Richer" /fd SHA256 /t http://time.certum.pl /v "%1"' = 0 ; %1 is replaced by the install exe to be signed.
-!uninstfinalize 'signtool sign /a /s MY /n "Open Source Developer, Darren Richer" /fd SHA256 /t http://time.certum.pl /v "%1"' = 0 ; %1 is replaced by the uninstaller exe to be signed
+!finalize 'signtool sign /a /s MY /n "NGN Management Inc." /fd SHA256 /td SHA256 /tr http://timestamp.sectigo.com /v "%1"' = 0 ; %1 is replaced by the install exe to be signed.
+!uninstfinalize 'signtool sign /a /s MY /n "NGN Management Inc." /fd SHA256 /td SHA256 /tr http://timestamp.sectigo.com /v "%1"' = 0 ; %1 is replaced by the uninstaller exe to be signed
 
 ;--------------------------------
 

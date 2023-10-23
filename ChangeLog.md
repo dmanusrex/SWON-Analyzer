@@ -43,27 +43,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :sparkles: Generate a setup exe for windows (uses NSIS installer)
 
 
-### [1.2.1]
+### [1.2.1] - 2023-09-12
 - :bug: Stop using ONEFILE option with pyinstaller
 - :bug: Fixed some scaling issues
 - :sparkles: Add option to create desktop icon during installation
 
-### [1.2.2]
+### [1.2.2] - 2023-09-19
 - :sparkles: Support RTR Export format changes
 
-### [1.3.0]
+### [1.3.0] - 2023-09-22
 - :bug: Show new clinics properly in Sanctioning Module
 - :sparkles: First phase of internal re-work to full abstract RTR export format
 
-### [1.3.1]
+### [1.3.1] - 2023-09-25
 - :bug: Fix bug introduced in 1.3.0 that caused summary stats to be incorrect
 - :sparkles: RTR data abstraction is complete
 - :sparkles: Recommendations are now in line with new split clinic requirements
 
-### [1.4.0]
+### [1.4.0] - 2023-09-29
 - :sparkles: New RTR Browser and simplied data export
 
-### [1.5.0]
+### [1.5.0] - 2023-10-13
 
 - :sparkles: Migrate to internal fields for certifications to abstract RTR changes
 - :sparkles: Move configs and logs to user directories
@@ -73,3 +73,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :sparkles: Add verbose failure reasons (# of missing skills, which position couldn't be staffed)
 - :sparkles: Allow for All Users/This User Only installs on Windows
 - :bug: Fix pyinstaller spec not picking up supporting docxcompose files
+
+### [1.5.1] - 2023-10-23
+- :bug: When generating recommendations reports, do not add to the CSV if the individual report failed. (SWON-ANALYZER-5)
+- :sparkles: Switch code signing certificates
