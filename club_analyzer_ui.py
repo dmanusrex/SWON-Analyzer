@@ -37,7 +37,7 @@ from requests.exceptions import RequestException
 
 import swon_version
 from config import AnalyzerConfig
-from odp import Email_Documents_Frame, Generate_Documents_Frame
+from odp import Generate_Documents_Frame
 from pathway import Pathway_Documents_Frame, Pathway_ROR_Frame
 from rtr import RTR, RTR_Frame
 from rtrbrowse import RTR_Browse_Frame
@@ -71,7 +71,7 @@ class TextHandler(logging.Handler):
         self.text.after(0, append)
 
 
-class _Logging(ctk.CTkFrame):  
+class _Logging(ctk.CTkFrame):
     """Logging Window"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
@@ -116,7 +116,7 @@ class _Logging(ctk.CTkFrame):
         log.addHandler(text_handler)
 
 
-class SwonApp(ctk.CTkFrame):  
+class SwonApp(ctk.CTkFrame):
     """Main Appliction"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr_data: RTR):
@@ -234,19 +234,6 @@ class SwonApp(ctk.CTkFrame):
             hover_color=("gray70", "gray30"),
             anchor="w",
             command=self.odp_doc_button_event,
-        )
-
-        self.odp_email_button = ctk.CTkButton(
-            self.navigation_frame,
-            corner_radius=0,
-            height=40,
-            border_spacing=10,
-            text="Emails",
-            fg_color="transparent",
-            text_color=("gray10", "gray90"),
-            hover_color=("gray70", "gray30"),
-            anchor="w",
-            command=self.odp_email_button_event,
         )
 
         self.rtr_browser_button = ctk.CTkButton(
@@ -386,10 +373,6 @@ class SwonApp(ctk.CTkFrame):
         self.odp_doc_frame.configure(corner_radius=0, fg_color="transparent")
         self.odp_doc_frame.grid_columnconfigure(0, weight=1)
 
-        self.odp_email_frame = Email_Documents_Frame(self, self._config)
-        self.odp_email_frame.configure(corner_radius=0, fg_color="transparent")
-        self.odp_email_frame.grid_columnconfigure(0, weight=1)
-
         self.rtr_browser_frame = RTR_Browse_Frame(self, self._config, self._rtr_data)
         self.rtr_browser_frame.configure(corner_radius=0, fg_color="transparent")
         self.rtr_browser_frame.grid_columnconfigure(0, weight=1)
@@ -419,7 +402,6 @@ class SwonApp(ctk.CTkFrame):
             self.sanction_coa_button.grid(row=5, column=0, sticky="ew")
             #            self.odp_preferences_button.grid_forget()
             self.odp_doc_button.grid_forget()
-            self.odp_email_button.grid_forget()
             self.rtr_browser_button.grid_forget()
             self.pathway_ror_button.grid_forget()
             self.pathway_doc_button.grid_forget()
@@ -430,8 +412,7 @@ class SwonApp(ctk.CTkFrame):
             self.sanction_coa_button.grid_forget()
             #            self.odp_preferences_button.grid(row=2, column=0, sticky="ew")
             self.odp_doc_button.grid(row=4, column=0, sticky="ew")
-            self.odp_email_button.grid(row=5, column=0, sticky="ew")
-            self.rtr_browser_button.grid(row=6, column=0, sticky="ew")
+            self.rtr_browser_button.grid(row=5, column=0, sticky="ew")
             self.pathway_ror_button.grid_forget()
             self.pathway_doc_button.grid_forget()
             self.rtr_button_event()
@@ -440,7 +421,6 @@ class SwonApp(ctk.CTkFrame):
             self.sanction_ror_button.grid_forget()
             self.sanction_coa_button.grid_forget()
             self.odp_doc_button.grid_forget()
-            self.odp_email_button.grid_forget()
             self.rtr_browser_button.grid_forget()
             self.pathway_ror_button.grid(row=4, column=0, sticky="ew")
             self.pathway_doc_button.grid(row=5, column=0, sticky="ew")
@@ -459,7 +439,6 @@ class SwonApp(ctk.CTkFrame):
             fg_color=("gray75", "gray25") if name == "odp-preferences" else "transparent"
         )
         self.odp_doc_button.configure(fg_color=("gray75", "gray25") if name == "odp-doc" else "transparent")
-        self.odp_email_button.configure(fg_color=("gray75", "gray25") if name == "odp-email" else "transparent")
         self.rtr_browser_button.configure(fg_color=("gray75", "gray25") if name == "rtr-browser" else "transparent")
         self.log_button.configure(fg_color=("gray75", "gray25") if name == "log" else "transparent")
         self.pathway_doc_button.configure(fg_color=("gray75", "gray25") if name == "pathway-doc" else "transparent")
@@ -489,10 +468,6 @@ class SwonApp(ctk.CTkFrame):
             self.odp_doc_frame.grid(row=0, column=1, sticky="new")
         else:
             self.odp_doc_frame.grid_forget()
-        if name == "odp-email":
-            self.odp_email_frame.grid(row=0, column=1, sticky="new")
-        else:
-            self.odp_email_frame.grid_forget()
         if name == "rtr-browser":
             self.rtr_browser_frame.grid(row=0, column=1, sticky="new")
         else:
@@ -527,9 +502,6 @@ class SwonApp(ctk.CTkFrame):
 
     def odp_doc_button_event(self) -> None:
         self.select_frame_by_name("odp-doc")
-
-    def odp_email_button_event(self) -> None:
-        self.select_frame_by_name("odp-email")
 
     def rtr_browser_button_event(self) -> None:
         self.select_frame_by_name("rtr-browser")
