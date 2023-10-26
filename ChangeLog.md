@@ -74,7 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :sparkles: Allow for All Users/This User Only installs on Windows
 - :bug: Fix pyinstaller spec not picking up supporting docxcompose files
 
-### [1.5.1] - 2023-10-23
+### [1.5.1] - 2023-10-26
 - :bug: When generating recommendations reports, do not add to the CSV if the individual report failed. (SWON-ANALYZER-5)
 - :bug: Fix skill summary counts
 - :sparkles: Switch code signing certificates
