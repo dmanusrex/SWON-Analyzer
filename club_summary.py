@@ -219,8 +219,8 @@ class club_summary:
                 row["CT_Status"] == "C"
                 and row["Admin_Status"] == "C"
                 and row["Starter_Status"] == "C"
-                and row["CFJ_Status"] == "C"
-                and row["MM_Status"] == "C"
+                and (row["CFJ_Status"] == "C" or row["CFJ_Status"] == "Q")
+                and (row["MM_Status"] == "C" or row["MM_Status"] == "Q")
             ):
                 cert_count = 0
                 for clinic in clinics_to_check:
