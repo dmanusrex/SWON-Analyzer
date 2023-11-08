@@ -99,6 +99,8 @@ class club_summary:
         self.NoLevel_Has_II: list = []
         self.Missing_Level_II: list = []
         self.Missing_Level_III: list = []
+        self.SandT_IT_Combo_Error: list = []
+        self.SandT_JS_Date_Warning: list = []
 
         # List of approved and failed sanctions. Failed sanctions include the failure reason.
         self.Sanction_Level: list = []
@@ -123,6 +125,7 @@ class club_summary:
         self._check_no_levels()
         self._check_missing_Level_III()
         self._check_missing_Level_II()
+        self._check_SandT_errors()
 
     def _is_valid_date(self, date_string) -> bool:
         if pd.isnull(date_string):
@@ -246,6 +249,27 @@ class club_summary:
                 if cert_count >= 1:
                     self.Missing_Level_II.append(row["Full Name"])
 
+    def _check_SandT_errors(self) -> None:
+        """Check for SandT errors"""
+
+        self.SandT_IT_Combo_Error = []
+        self.SandT_JS_Date_Warning = []
+
+        # Clinic Date Column Names
+        JoS_clinic_date = RTR_CLINICS["JoS"]["clinicDate"]
+        ST_clinic_date = RTR_CLINICS["ST"]["clinicDate"]
+
+        self.SandT_IT_Combo_Error = self._club_data.loc[
+            (self._club_data["ST_Status"] != "N") & (self._club_data["IT_Status"] != "N"), ["Full Name"]
+        ]["Full Name"].values.tolist()
+
+        self.SandT_JS_Date_Warning = self._club_data.loc[
+            (self._club_data["ST_Status"] != "N")
+            & (self._club_data["JoS_Status"] != "N")
+            & (self._club_data[JoS_clinic_date] != self._club_data[ST_clinic_date]),
+            ["Full Name"],
+        ]["Full Name"].values.tolist()
+
     def _count_certifications_detail(self, clinic: dict) -> list:
         cert_total = 0  # Count of clinics taken
         cert_1so = 0  # Has 1 Sign-Off
@@ -264,9 +288,7 @@ class club_summary:
             "Full Name"
         ].values.tolist()
 
-        cert_counts = self._club_data.loc[self._club_data[cert_name] != "N", [cert_count]][
-            cert_count
-        ].value_counts()
+        cert_counts = self._club_data.loc[self._club_data[cert_name] != "N", [cert_count]][cert_count].value_counts()
         cert_1so = cert_counts.get(1, 0)
         cert_2so = cert_counts.get(2, 0)
         cert_total = cert_counts.get(0, 0) + cert_1so + cert_2so
@@ -838,6 +860,13 @@ class club_summary:
                 error_p2.add_run("* COA to check last certification date and para certification status\n")
                 error_p2.add_run("\n".join(self.Missing_Level_III))
 
+            if self.SandT_IT_Combo_Error:
+                doc.add_heading(
+                    "RTR Error - Official(s) has IT Record and Combo S&T record - Should only be one", level=2
+                )
+                error_p4 = doc.add_paragraph()
+                error_p4.add_run("\n".join(self.SandT_IT_Combo_Error))
+
             if self.NoLevel_Missing_SM:
                 doc.add_heading("RTR Warning - Level I Partially Complete - Need Safety Marshal", level=2)
                 warn_p = doc.add_paragraph()
@@ -847,3 +876,8 @@ class club_summary:
                 doc.add_heading("RTR Warning - Official has Level II clinics - Missing Level I Certification", level=2)
                 warn_p2 = doc.add_paragraph()
                 warn_p2.add_run("\n".join(self.NoLevel_Has_II))
+
+            if self.SandT_JS_Date_Warning:
+                doc.add_heading("RTR Warning - S&T Combo Clinic and JoS Clinic date mismatch", level=2)
+                warn_p3 = doc.add_paragraph()
+                warn_p3.add_run("\n".join(self.SandT_JS_Date_Warning))
