@@ -4,10 +4,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [Unreleased]
 - :bug: Fix UI scaling
-- :sparkles: Add new RTR Errors/Warnings
-- :sparkles: UI Re-designed based on job function rather than task
-- :bug: Fix Level III checks on recommendations
-
 
 ### [0.5.5] - 2023-07-28
 - :sparkles: Baseline release for testing
@@ -81,3 +77,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :bug: When generating recommendations reports, do not add to the CSV if the individual report failed. (SWON-ANALYZER-5)
 - :bug: Fix skill summary counts
 - :sparkles: Switch code signing certificates
+
+### [1.6.0] - 2023-11-11
+- :sparkles: Add new RTR Errors/Warnings
+- :sparkles: UI Re-designed based on job function rather than task
+- :bug: Fix Level III checks on recommendations
