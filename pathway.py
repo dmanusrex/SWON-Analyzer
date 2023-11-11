@@ -24,21 +24,13 @@
 
 import logging
 import os
-import smtplib
-import ssl
-import tkinter as tk
 from datetime import datetime
-from email import encoders
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from threading import Thread
 from tkinter import BooleanVar, StringVar, filedialog
-from typing import Any
+
 
 import customtkinter as ctk  # type: ignore
 import docx  # type: ignore
-import keyring
 import pandas as pd
 from docx import Document  # type: ignore
 from docx.shared import Inches  # type: ignore
@@ -50,14 +42,13 @@ from config import AnalyzerConfig
 from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
 from tooltip import ToolTip
-
-tkContainer = Any
+from ui_common import Officials_Status_Frame
 
 
 class Pathway_Documents_Frame(ctk.CTkFrame):
     """Generate Word Documents from a supplied RTR file"""
 
-    def __init__(self, container: tkContainer, config: AnalyzerConfig, rtr: RTR):
+    def __init__(self, container: ctk.CTk, config: AnalyzerConfig, rtr: RTR):
         super().__init__(container)
         self._config = config
         self._rtr = rtr
@@ -67,12 +58,6 @@ class Pathway_Documents_Frame(ctk.CTkFrame):
         self._officials_list_filename = StringVar(value=os.path.basename(self._officials_list.get()))
         self._np_report_directory = StringVar(value=self._config.get_str("np_report_directory"))
         self._np_report_file = StringVar(value=self._config.get_str("np_report_file_docx"))
-        self._ctk_theme = StringVar(value=self._config.get_str("Theme"))
-        self._ctk_size = StringVar(value=self._config.get_str("Scaling"))
-        self._ctk_colour = StringVar(value=self._config.get_str("Colour"))
-        self._incl_inv_pending = BooleanVar(value=self._config.get_bool("incl_inv_pending"))
-        self._incl_pso_pending = BooleanVar(value=self._config.get_bool("incl_pso_pending"))
-        self._incl_account_pending = BooleanVar(value=self._config.get_bool("incl_account_pending"))
 
         # Add support for the club selection
         self._club_list = ["None"]
@@ -80,117 +65,54 @@ class Pathway_Documents_Frame(ctk.CTkFrame):
 
         # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
-        filesframe = ctk.CTkFrame(self)
-        filesframe.grid(column=0, row=0, sticky="news")
-        filesframe.rowconfigure(0, weight=1)
-        filesframe.rowconfigure(1, weight=1)
-        filesframe.rowconfigure(2, weight=1)
 
-        optionsframe = ctk.CTkFrame(self)
-        optionsframe.grid(column=0, row=2, sticky="news")
+        # Setup the sub-frames
+        ctk.CTkLabel(self, text="New Pathway Recommendations").grid(column=0, row=0, sticky="we", pady=(10, 0))
+
+        club_select_frame = ctk.CTkFrame(self)
+        club_select_frame.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
+
+        Officials_Status_Frame(self, self._config).grid(column=0, row=2, sticky="news")
+
+        filesframe = ctk.CTkFrame(self)
+        filesframe.grid(column=0, row=3, sticky="news", padx=10, pady=10)
+        filesframe.rowconfigure(0, weight=1)
 
         buttonsframe = ctk.CTkFrame(self)
-        buttonsframe.grid(column=0, row=4, sticky="news")
+        buttonsframe.grid(column=0, row=4, sticky="news", padx=10, pady=10)
         buttonsframe.rowconfigure(0, weight=0)
 
-        # Files Section
-        ctk.CTkLabel(filesframe, text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)
-
-        btn2 = ctk.CTkButton(filesframe, text="Pathway Docs Folder", command=self._handle_report_dir_browse)
-        btn2.grid(column=0, row=1, padx=20, pady=10)
-        ToolTip(btn2, text="Select where output files will be sent")
-        ctk.CTkLabel(filesframe, textvariable=self._np_report_directory).grid(column=1, row=1, sticky="w")
-
-        btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
-        btn3.grid(column=0, row=2, padx=20, pady=10)
-        ToolTip(btn3, text="Set report file name")
-        ctk.CTkLabel(filesframe, textvariable=self._np_report_file).grid(column=1, row=2, sticky="w")
-
-        # Options Frame - Left and Right Panels
-
-        left_optionsframe = ctk.CTkFrame(optionsframe)
-        left_optionsframe.grid(column=0, row=0, sticky="news", padx=10, pady=10)
-        left_optionsframe.rowconfigure(0, weight=1)
-        right_optionsframe = ctk.CTkFrame(optionsframe)
-        right_optionsframe.grid(column=1, row=0, sticky="news", padx=10, pady=10)
-        right_optionsframe.rowconfigure(0, weight=1)
-        lower_optionsframe = ctk.CTkFrame(optionsframe)
-        lower_optionsframe.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
-
-        # Program Options on the left frame
-
-        ctk.CTkLabel(left_optionsframe, text="UI Appearance").grid(column=0, row=0, sticky="w", padx=10)
-
-        ctk.CTkLabel(left_optionsframe, text="Appearance Mode", anchor="w").grid(row=1, column=1, sticky="w")
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["Light", "Dark", "System"],
-            command=self.change_appearance_mode_event,
-            variable=self._ctk_theme,
-        ).grid(row=1, column=0, padx=20, pady=10)
-
-        ctk.CTkLabel(left_optionsframe, text="UI Scaling", anchor="w").grid(row=2, column=1, sticky="w")
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["80%", "90%", "100%", "110%", "120%"],
-            command=self.change_scaling_event,
-            variable=self._ctk_size,
-        ).grid(row=2, column=0, padx=20, pady=10)
-
-        ctk.CTkLabel(left_optionsframe, text="Colour (Restart Required)", anchor="w").grid(row=3, column=1, sticky="w")
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["blue", "green", "dark-blue"],
-            command=self.change_colour_event,
-            variable=self._ctk_colour,
-        ).grid(row=3, column=0, padx=20, pady=10)
-
-        # Right options frame for status options
-        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="PSO Pending",
-            variable=self._incl_pso_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_pso_pending,
-        ).grid(column=0, row=1, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Account Pending",
-            variable=self._incl_account_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_account_pending,
-        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Invoice Pending",
-            variable=self._incl_inv_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_inv_pending,
-        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
-
-        # Lower options frame for club selection
+        # Club selection
 
         self.club_dropdown = ctk.CTkOptionMenu(
-            lower_optionsframe, dynamic_resizing=True, values=self._club_list, variable=self._club_selected
+            club_select_frame, dynamic_resizing=True, values=self._club_list, variable=self._club_selected
         )
-        self.club_dropdown.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
-        ctk.CTkLabel(lower_optionsframe, text="Club", anchor="w").grid(
-            row=0, column=1, sticky="w", padx=20, pady=(20, 10)
+        self.club_dropdown.grid(row=0, column=1, padx=20, pady=(10, 10), sticky="w")
+        ctk.CTkLabel(club_select_frame, text="Club", anchor="w").grid(
+            row=0, column=0, sticky="w", padx=10, pady=(10, 10)
         )
 
-        # Add Command Buttons
+        # Files Section
+        ctk.CTkLabel(filesframe, text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10, columnspan=2)
+
+        btn2 = ctk.CTkButton(filesframe, text="Pathway Docs Folder", command=self._handle_report_dir_browse)
+        btn2.grid(column=0, row=1, padx=10, pady=10, sticky="ew")
+        ToolTip(btn2, text="Select where output files will be sent")
+        ctk.CTkLabel(filesframe, textvariable=self._np_report_directory).grid(
+            column=1, row=1, sticky="w", padx=(0, 10)
+        )
+
+        btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
+        btn3.grid(column=0, row=2, padx=10, pady=10, sticky="ew")
+        ToolTip(btn3, text="Set report file name")
+        ctk.CTkLabel(filesframe, textvariable=self._np_report_file).grid(column=1, row=2, sticky="w", padx=(0, 10))
+
+        # Add Command Button
 
         ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.reports_btn = ctk.CTkButton(buttonsframe, text="Generate Reports", command=self._handle_reports_btn)
-        self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
+        self.reports_btn.grid(column=0, row=1, sticky="news", padx=10, pady=10)
 
         self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation="horizontal", mode="indeterminate")
 
@@ -228,29 +150,6 @@ class Pathway_Documents_Frame(ctk.CTkFrame):
             return
         self._config.set_str("np_report_file_docx", report_file)
         self._np_report_file.set(report_file)
-
-    def _handle_incl_pso_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_pso_pending", self._incl_pso_pending.get())
-
-    def _handle_incl_account_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_account_pending", self._incl_account_pending.get())
-
-    def _handle_incl_inv_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_inv_pending", self._incl_inv_pending.get())
-
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        ctk.set_appearance_mode(new_appearance_mode)
-        self._config.set_str("Theme", new_appearance_mode)
-
-    def change_scaling_event(self, new_scaling: str) -> None:
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        ctk.set_widget_scaling(new_scaling_float)
-        self._config.set_str("Scaling", new_scaling)
-
-    def change_colour_event(self, new_colour: str) -> None:
-        logging.info("Changing colour to : " + new_colour)
-        ctk.set_default_color_theme(new_colour)
-        self._config.set_str("Colour", new_colour)
 
     def buttons(self, newstate) -> None:
         """Enable/disable all buttons"""
@@ -298,13 +197,14 @@ class Pathway_ROR_Frame(ctk.CTkFrame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
 
         # Setup the sub-frames
-        ctk.CTkLabel(self, text="ROR/POA Pathway Reports (Multi-Club)").grid(column=0, row=0, sticky="we", pady=10)
+        ctk.CTkLabel(self, text="ROR/POA New Pathway Reports (Multi-Club)").grid(column=0, row=0, sticky="we", pady=10)
 
         optionsframe = ctk.CTkFrame(self)
         optionsframe.grid(column=0, row=2, sticky="news", padx=10, pady=10)
+
+        Officials_Status_Frame(self, self._config).grid(column=0, row=1, sticky="news")
 
         filesframe = ctk.CTkFrame(self)
         filesframe.grid(column=0, row=4, sticky="news", padx=10, pady=10)
@@ -344,12 +244,12 @@ class Pathway_ROR_Frame(ctk.CTkFrame):
         rptbtn = ctk.CTkButton(filesframe, text="Warnings Filename", command=self._handle_report_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=10)
         ToolTip(rptbtn, text="The name of the warnings/exceptions file")
-        ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w")
+        ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w", padx=(0, 10))
 
         csvbtn = ctk.CTkButton(filesframe, text="CSV Filename", command=self._handle_csv_browse)
         csvbtn.grid(column=0, row=2, padx=20, pady=10)
         ToolTip(csvbtn, text="The name of the consolidated CSV file")
-        ctk.CTkLabel(filesframe, textvariable=self._report_csv).grid(column=1, row=2, sticky="w")
+        ctk.CTkLabel(filesframe, textvariable=self._report_csv).grid(column=1, row=2, sticky="w", padx=(0, 10))
 
         # Action Button
 
@@ -501,162 +401,6 @@ class _Generate_NP_ROR_Reports(Thread):
         CTkMessagebox(title="Reports", message="Reports complete", icon="check", option_1="OK", corner_radius=0)
 
         logging.info("Reports Complete")
-
-
-class Email_Pathway_Docs_Frame(ctk.CTkFrame):
-    """E-Mail Completed list of Word Documents"""
-
-    def __init__(self, container: tkContainer, config: AnalyzerConfig):
-        super().__init__(container)
-        self._config = config
-
-        self._np_report_directory = StringVar(value=self._config.get_str("np_report_directory"))
-        self._email_list_csv = StringVar(value=self._config.get_str("email_list_csv"))
-        self._email_smtp_server = StringVar(value=self._config.get_str("email_smtp_server"))
-        self._email_smtp_port = StringVar(value=self._config.get_str("email_smtp_port"))
-        self._email_smtp_user = StringVar(value=self._config.get_str("email_smtp_user"))
-        self._email_from = StringVar(value=self._config.get_str("email_from"))
-        self._email_subject = StringVar(value=self._config.get_str("email_subject"))
-        self._email_body = self._config.get_str("email_body")
-
-        # self is a vertical container that will contain 3 frames
-        self.columnconfigure(0, weight=1)
-
-        filesframe = ctk.CTkFrame(self)
-        filesframe.grid(column=0, row=0, sticky="news")
-        filesframe.rowconfigure(0, weight=1)
-        filesframe.rowconfigure(1, weight=1)
-
-        optionsframe = ctk.CTkFrame(self)
-        optionsframe.grid(column=0, row=2, sticky="news")
-
-        buttonsframe = ctk.CTkFrame(self)
-        buttonsframe.grid(column=0, row=4, sticky="news")
-        buttonsframe.rowconfigure(0, weight=0)
-
-        # Files Section
-        ctk.CTkLabel(filesframe, text="E-mail Configuration").grid(column=0, row=0, sticky="w", padx=10)
-
-        # options Section
-
-        entry_width = 500
-
-        #        reg_email_smtp_server = self.register(self._handle_email_smtp_server)
-        #       A registered validation function seems to disable the interactive logging window. Need to investigate
-
-        ctk.CTkLabel(optionsframe, text="SMTP Server", anchor="w").grid(row=1, column=0, sticky="w")
-
-        smtp_server_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_server, width=entry_width)
-        smtp_server_entry.grid(column=1, row=1, sticky="w", padx=10, pady=10)
-        smtp_server_entry.bind("<FocusOut>", self._handle_email_smtp_server)
-
-        ctk.CTkLabel(optionsframe, text="SMTP Port", anchor="w").grid(row=2, column=0, sticky="w")
-        smtp_port_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_port, width=entry_width)
-        smtp_port_entry.grid(column=1, row=2, sticky="w", padx=10, pady=10)
-        smtp_port_entry.bind("<FocusOut>", self._handle_email_smtp_port)
-
-        ctk.CTkLabel(optionsframe, text="SMTP Username", anchor="w").grid(row=3, column=0, sticky="w")
-        smtp_user_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_smtp_user, width=entry_width)
-        smtp_user_entry.grid(column=1, row=3, sticky="w", padx=10, pady=10)
-        smtp_user_entry.bind("<FocusOut>", self._handle_email_smtp_user)
-
-        ctk.CTkLabel(optionsframe, text="SMTP Password", anchor="w").grid(row=4, column=0, sticky="w")
-        self.password_entry = ctk.CTkEntry(optionsframe, placeholder_text="Password", show="*", width=entry_width)
-        self.password_entry.grid(column=1, row=4, sticky="w", padx=10, pady=10)
-        self.password_entry.bind("<FocusOut>", self._handle_email_smtp_password)
-
-        ctk.CTkLabel(optionsframe, text="E-mail From", anchor="w").grid(row=5, column=0, sticky="w")
-        email_from_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_from, width=entry_width)
-        email_from_entry.grid(column=1, row=5, sticky="w", padx=10, pady=10)
-        email_from_entry.bind("<FocusOut>", self._handle_email_from)
-
-        ctk.CTkLabel(optionsframe, text="E-mail Subject", anchor="w").grid(row=6, column=0, sticky="w")
-        email_subject_entry = ctk.CTkEntry(optionsframe, textvariable=self._email_subject, width=entry_width)
-        email_subject_entry.grid(column=1, row=6, sticky="w", padx=10, pady=10)
-        email_subject_entry.bind("<FocusOut>", self._handle_email_subject)
-
-        # Body Text
-        ctk.CTkLabel(optionsframe, text="E-mail Body", anchor="w").grid(row=7, column=0, sticky="w")
-
-        self.txtbodybox = ctk.CTkTextbox(master=optionsframe, state="normal", width=entry_width)
-        self.txtbodybox.grid(column=1, row=7, sticky="w", padx=10, pady=10)
-        self.txtbodybox.insert(tk.END, self._email_body)
-        self.txtbodybox.bind("<FocusOut>", self._handle_email_body)
-
-        # Add Command Buttons
-
-        ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
-
-        self.emailtest_btn = ctk.CTkButton(buttonsframe, text="Send Test EMails", command=self._handle_email_test_btn)
-        self.emailtest_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
-        self.emailall_btn = ctk.CTkButton(buttonsframe, text="Send All Emails", command=self._handle_email_all_btn)
-        self.emailall_btn.grid(column=1, row=1, sticky="news", padx=20, pady=10)
-
-        self.bar = ctk.CTkProgressBar(master=self, orientation="horizontal", mode="indeterminate")
-
-    def _handle_report_dir_browse(self) -> None:
-        directory = filedialog.askdirectory()
-        if len(directory) == 0:
-            return
-        directory = os.path.normpath(directory)
-        self._config.set_str("np_report_directory", directory)
-        self._np_report_directory.set(directory)
-
-    def _handle_email_smtp_server(self, event) -> bool:
-        self._config.set_str("email_smtp_server", event.widget.get())
-        return True
-
-    def _handle_email_smtp_port(self, event) -> bool:
-        self._config.set_str("email_smtp_port", event.widget.get())
-        return True
-
-    def _handle_email_smtp_user(self, event) -> bool:
-        self._config.set_str("email_smtp_user", event.widget.get())
-        self.password_entry.delete(0, tk.END)
-        return True
-
-    def _handle_email_smtp_password(self, event) -> bool:
-        if event.widget.get() != "Password":
-            keyring.set_password("SWON-DOCGEN", self._email_smtp_user.get(), event.widget.get())
-            logging.info("Password Changed for %s" % self._email_smtp_user.get())
-        return True
-
-    def _handle_email_from(self, event) -> bool:
-        self._config.set_str("email_from", event.widget.get())
-        return True
-
-    def _handle_email_subject(self, event) -> bool:
-        self._config.set_str("email_subject", event.widget.get())
-        return True
-
-    def _handle_email_body(self, event) -> bool:
-        self._config.set_str("email_body", event.widget.get("0.0", "end"))
-        return True
-
-    def buttons(self, newstate) -> None:
-        """Enable/disable all buttons"""
-        self.emailtest_btn.configure(state=newstate)
-        self.emailall_btn.configure(state=newstate)
-
-    def _handle_email_test_btn(self) -> None:
-        self.buttons("disabled")
-        email_thread = Email_Reports(True, self._config)
-        email_thread.start()
-        self.monitor_email_thread(email_thread)
-
-    def _handle_email_all_btn(self) -> None:
-        self.buttons("disabled")
-        email_thread = Email_Reports(False, self._config)
-        email_thread.start()
-        self.monitor_email_thread(email_thread)
-
-    def monitor_email_thread(self, thread):
-        if thread.is_alive():
-            # check the thread every 100ms
-            self.after(100, lambda: self.monitor_email_thread(thread))
-        else:
-            self.buttons("enabled")
-            thread.join()
 
 
 class NewPathway:
@@ -863,7 +607,13 @@ class NewPathway:
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #1 Date"],
                 entry["Chief Finish Judge/Chief Judge-Deck Evaluation #2 Date"],
             )
-            self.add_clinic(table, "Chief Recorder/Recorder", entry["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate"], "N/A", "N/A")
+            self.add_clinic(
+                table,
+                "Chief Recorder/Recorder",
+                entry["Chief Recorder and Recorder (formerly Recorder/Scorer) Clinic-ClinicDate"],
+                "N/A",
+                "N/A",
+            )
             self.add_clinic(table, "Referee", entry["Referee-ClinicDate"], "N/A", "N/A")
             self.add_clinic(table, "Para eModule", entry["Para Swimming eModule-ClinicDate"], "N/A", "N/A")
 
@@ -984,112 +734,17 @@ class Generate_Reports(Thread):
         logging.info("Report Complete")
 
 
-class Email_Reports(Thread):
-    def __init__(self, testmode: bool, config: AnalyzerConfig):
-        super().__init__()
-        self._testmode: bool = testmode
-        self._config: AnalyzerConfig = config
-        self._email_password: str = "EMPTY"
+def main():
+    """testing"""
+    root = ctk.CTk()
+    root.resizable(True, True)
+    options = AnalyzerConfig()
+    rtrdata = RTR(options)
+    #    settings = Pathway_Documents_Frame(root, options, rtrdata)
+    settings = Pathway_ROR_Frame(root, options, rtrdata)
+    settings.grid(column=0, row=0, sticky="news")
+    root.mainloop()
 
-        self._email_smtp_server = self._config.get_str("email_smtp_server")
-        self._email_smtp_port = self._config.get_str("email_smtp_port")
-        self._email_smtp_user = self._config.get_str("email_smtp_user")
-        self._email_from = self._config.get_str("email_from")
-        self._email_subject = self._config.get_str("email_subject")
-        self._email_body = self._config.get_str("email_body")
 
-    def run(self):
-        logging.info("Sending E-Mails...")
-
-        _report_directory = self._config.get_str("np_report_directory")
-        _email_list_csv = self._config.get_str("email_list_csv")
-        _full_csv_file = os.path.abspath(os.path.join(_report_directory, _email_list_csv))
-
-        try:
-            self._email_password = keyring.get_password("SWON-ANALZER", self._email_smtp_user)
-        except Exception as e:
-            logging.info("Unable to retrieve email password: {}".format(type(e).__name__))
-            logging.info("Exception message: {}".format(e))
-            return
-
-        if self._testmode:
-            logging.info("Test Mode - Sending max (3) mails to {}".format(self._email_from))
-
-        try:
-            email_list_df = pd.read_csv(_full_csv_file)
-        except Exception as e:
-            logging.info("Unable to load email list: {}".format(type(e).__name__))
-            logging.info("Exception message: {}".format(e))
-            return
-
-        context = ssl.create_default_context()
-
-        if self._email_smtp_port == "465":
-            try:
-                server = smtplib.SMTP_SSL(self._email_smtp_server, self._email_smtp_port, context=context)
-                server.login(self._email_smtp_user, self._email_password)
-            except Exception as e:
-                logging.info("Unable to connect to email server: {}".format(type(e).__name__))
-                logging.info("Exception message: {}".format(e))
-                return
-        else:  # Port 587
-            try:
-                server = smtplib.SMTP(self._email_smtp_server, self._email_smtp_port)
-                server.starttls(context=context)
-                server.login(self._email_smtp_user, self._email_password)
-            except Exception as e:
-                logging.info("Unable to connect to email server: {}".format(type(e).__name__))
-                logging.info("Exception message: {}".format(e))
-                return
-
-        # For each entry in the list encode the Document and send it.  In test mode, use sender address for to and limit to 5 files
-
-        for index, entry in email_list_df.iterrows():
-            if self._testmode and index > 2:
-                break
-            logging.info(f'Sending email to {entry["Last Name"]}, {entry["First Name"]}  E-Mail: {entry["EMail"]}')
-
-            if self._testmode:
-                self._send_email(self._email_from, entry["Filename"], server)
-            else:
-                self._send_email(entry["EMail"], entry["Filename"], server)
-
-        logging.info("Email Complete")
-
-    def _send_email(self, email_address: str, filename: str, server) -> None:
-        # Create a multipart message and set headers
-        message = MIMEMultipart()
-        message["From"] = self._email_from
-        message["To"] = email_address
-        message["Subject"] = self._email_subject
-
-        # Add body to email
-        message.attach(MIMEText(self._email_body, "plain"))
-
-        # Open document file in binary mode
-        with open(filename, "rb") as attachment:
-            # Add file as application/octet-stream
-            # Email client can usually download this automatically as attachment
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
-
-        # Encode file in ASCII characters to send by email
-        encoders.encode_base64(part)
-
-        # Add header as key/value pair to attachment part
-        basename = os.path.basename(filename)
-        part.add_header(
-            "Content-Disposition",
-            f"attachment; filename= {basename}",
-        )
-
-        # Add attachment to message and convert message to string
-        message.attach(part)
-        text = message.as_string()
-
-        # Log in to server using secure context and send email
-        try:
-            server.sendmail(self._email_from, email_address, text)
-        except Exception as e:
-            logging.info("Unable to send email: {}".format(type(e).__name__))
-            logging.info("Exception message: {}".format(e))
+if __name__ == "__main__":
+    main()

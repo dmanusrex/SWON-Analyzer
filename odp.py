@@ -21,7 +21,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-""" DocGen Main Screen """
+""" Recommendations (ODP) Main Screen """
 
 import logging
 import os
@@ -42,6 +42,7 @@ from config import AnalyzerConfig
 from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
 from rtr_fields import RTR_CLINICS
+from ui_common import Officials_Status_Frame
 from tooltip import ToolTip
 
 tkContainer = Any
@@ -60,12 +61,6 @@ class Generate_Documents_Frame(ctk.CTkFrame):
         self._officials_list_filename = StringVar(value=os.path.basename(self._officials_list.get()))
         self._odp_report_directory = StringVar(value=self._config.get_str("odp_report_directory"))
         self._odp_report_file = StringVar(value=self._config.get_str("odp_report_file_docx"))
-        self._ctk_theme = StringVar(value=self._config.get_str("Theme"))
-        self._ctk_size = StringVar(value=self._config.get_str("Scaling"))
-        self._ctk_colour = StringVar(value=self._config.get_str("Colour"))
-        self._incl_inv_pending = BooleanVar(value=self._config.get_bool("incl_inv_pending"))
-        self._incl_pso_pending = BooleanVar(value=self._config.get_bool("incl_pso_pending"))
-        self._incl_account_pending = BooleanVar(value=self._config.get_bool("incl_account_pending"))
 
         # Add support for the club selection
         self._club_list = ["None"]
@@ -73,14 +68,21 @@ class Generate_Documents_Frame(ctk.CTkFrame):
 
         # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
+
+        # Setup the frames
+
+        ctk.CTkLabel(self, text="Officials Recommendations").grid(column=0, row=0, sticky="we", pady=(10, 0))
+
+        club_select_frame = ctk.CTkFrame(self)
+        club_select_frame.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
+
+        Officials_Status_Frame(self, self._config).grid(column=0, row=2, sticky="news")
+
         filesframe = ctk.CTkFrame(self)
-        filesframe.grid(column=0, row=0, sticky="news")
+        filesframe.grid(column=0, row=3, sticky="news")
         filesframe.rowconfigure(0, weight=1)
         filesframe.rowconfigure(1, weight=1)
         filesframe.rowconfigure(2, weight=1)
-
-        optionsframe = ctk.CTkFrame(self)
-        optionsframe.grid(column=0, row=2, sticky="news")
 
         buttonsframe = ctk.CTkFrame(self)
         buttonsframe.grid(column=0, row=4, sticky="news")
@@ -90,95 +92,25 @@ class Generate_Documents_Frame(ctk.CTkFrame):
         ctk.CTkLabel(filesframe, text="Files and Directories").grid(column=0, row=0, sticky="w", padx=10)
 
         btn2 = ctk.CTkButton(filesframe, text="Recommendations Folder", command=self._handle_report_dir_browse)
-        btn2.grid(column=0, row=1, padx=20, pady=10)
+        btn2.grid(column=0, row=1, padx=20, pady=10, sticky="ew")
         ToolTip(btn2, text="Select where output files will be sent")
-        ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(column=1, row=1, sticky="w")
+        ctk.CTkLabel(filesframe, textvariable=self._odp_report_directory).grid(
+            column=1, row=1, sticky="w", padx=(0, 10)
+        )
 
         btn3 = ctk.CTkButton(filesframe, text="Consolidated Report File", command=self._handle_report_file_browse)
-        btn3.grid(column=0, row=2, padx=20, pady=10)
+        btn3.grid(column=0, row=2, padx=20, pady=10, sticky="ew")
         ToolTip(btn3, text="Set report file name")
-        ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w")
-
-        # Options Frame - Left and Right Panels
-
-        left_optionsframe = ctk.CTkFrame(optionsframe)
-        left_optionsframe.grid(column=0, row=0, sticky="news", padx=10, pady=10)
-        left_optionsframe.rowconfigure(0, weight=1)
-        right_optionsframe = ctk.CTkFrame(optionsframe)
-        right_optionsframe.grid(column=1, row=0, sticky="news", padx=10, pady=10)
-        right_optionsframe.rowconfigure(0, weight=1)
-        lower_optionsframe = ctk.CTkFrame(optionsframe)
-        lower_optionsframe.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
-
-        # Program Options on the left frame
-
-        ctk.CTkLabel(left_optionsframe, text="UI Appearance").grid(column=0, row=0, sticky="w", padx=10)
-
-        ctk.CTkLabel(left_optionsframe, text="Appearance Mode", anchor="w").grid(row=1, column=1, sticky="w")
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["Light", "Dark", "System"],
-            command=self.change_appearance_mode_event,
-            variable=self._ctk_theme,
-        ).grid(row=1, column=0, padx=20, pady=10)
-
-        ctk.CTkLabel(left_optionsframe, text="UI Scaling", anchor="w").grid(row=2, column=1, sticky="w")
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["80%", "90%", "100%", "110%", "120%"],
-            command=self.change_scaling_event,
-            variable=self._ctk_size,
-        ).grid(row=2, column=0, padx=20, pady=10)
-
-        ctk.CTkLabel(left_optionsframe, text="Colour (Application Restart Required)", anchor="w").grid(
-            row=3, column=1, sticky="w"
-        )
-        ctk.CTkOptionMenu(
-            left_optionsframe,
-            values=["blue", "green", "dark-blue"],
-            command=self.change_colour_event,
-            variable=self._ctk_colour,
-        ).grid(row=3, column=0, padx=20, pady=10)
+        ctk.CTkLabel(filesframe, textvariable=self._odp_report_file).grid(column=1, row=2, sticky="w", padx=(0, 10))
 
         # Right options frame for status options
 
-        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="PSO Pending",
-            variable=self._incl_pso_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_pso_pending,
-        ).grid(column=0, row=1, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Account Pending",
-            variable=self._incl_account_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_account_pending,
-        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Invoice Pending",
-            variable=self._incl_inv_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_inv_pending,
-        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
-
-        # Lower options frame for club selection
-
         self.club_dropdown = ctk.CTkOptionMenu(
-            lower_optionsframe, dynamic_resizing=True, values=self._club_list, variable=self._club_selected
+            club_select_frame, dynamic_resizing=True, values=self._club_list, variable=self._club_selected
         )
-        self.club_dropdown.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
-        ctk.CTkLabel(lower_optionsframe, text="Club", anchor="w").grid(
-            row=0, column=1, sticky="w", padx=20, pady=(20, 10)
+        self.club_dropdown.grid(row=0, column=1, padx=10, pady=(10, 10), sticky="w")
+        ctk.CTkLabel(club_select_frame, text="Club", anchor="w").grid(
+            row=0, column=0, sticky="w", padx=10, pady=(10, 10)
         )
 
         # Add Command Buttons
@@ -186,7 +118,7 @@ class Generate_Documents_Frame(ctk.CTkFrame):
         ctk.CTkLabel(buttonsframe, text="Actions").grid(column=0, row=0, sticky="w", padx=10)
 
         self.reports_btn = ctk.CTkButton(buttonsframe, text="Generate Reports", command=self._handle_reports_btn)
-        self.reports_btn.grid(column=0, row=1, sticky="news", padx=20, pady=10)
+        self.reports_btn.grid(column=0, row=1, sticky="ew", padx=20, pady=10)
 
         self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation="horizontal", mode="indeterminate")
 
@@ -224,30 +156,6 @@ class Generate_Documents_Frame(ctk.CTkFrame):
             return
         self._config.set_str("odp_report_file_docx", report_file)
         self._odp_report_file.set(report_file)
-
-    def _handle_incl_pso_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_pso_pending", self._incl_pso_pending.get())
-
-    def _handle_incl_account_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_account_pending", self._incl_account_pending.get())
-
-    def _handle_incl_inv_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_inv_pending", self._incl_inv_pending.get())
-
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        ctk.set_appearance_mode(new_appearance_mode)
-        self._config.set_str("Theme", new_appearance_mode)
-
-    def change_scaling_event(self, new_scaling: str) -> None:
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        ctk.set_widget_scaling(new_scaling_float)
-        ctk.set_window_scaling(new_scaling_float)
-        self._config.set_str("Scaling", new_scaling)
-
-    def change_colour_event(self, new_colour: str) -> None:
-        logging.info("Changing colour to : " + new_colour)
-        ctk.set_default_color_theme(new_colour)
-        self._config.set_str("Colour", new_colour)
 
     def buttons(self, newstate) -> None:
         """Enable/disable all buttons"""
@@ -582,3 +490,18 @@ class Generate_Reports(Thread):
             logging.info("Exception message: {}".format(e))
 
         logging.info("Report Complete")
+
+
+def main():
+    """testing"""
+    root = ctk.CTk()
+    root.resizable(True, True)
+    options = AnalyzerConfig()
+    rtrdata = RTR(options)
+    settings = Generate_Documents_Frame(root, options, rtrdata)
+    settings.grid(column=0, row=0, sticky="news")
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

@@ -39,6 +39,7 @@ from CTkMessagebox import CTkMessagebox  # type: ignore
 from rtr import RTR
 from rtr_fields import RTR_CLINICS
 from tooltip import ToolTip
+from ui_common import Officials_Status_Frame
 
 tkContainer = Any
 
@@ -50,10 +51,6 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         super().__init__(container)
         self._config = config
         self._rtr = rtr
-
-        self._incl_inv_pending = BooleanVar(value=self._config.get_bool("incl_inv_pending"))
-        self._incl_pso_pending = BooleanVar(value=self._config.get_bool("incl_pso_pending"))
-        self._incl_account_pending = BooleanVar(value=self._config.get_bool("incl_account_pending"))
 
         # Add support for the club selection
         self._club_list = ["None"]
@@ -83,19 +80,20 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         # self is a vertical container that will contain 3 frames
         self.columnconfigure(0, weight=1)
 
-        buttonsframe = ctk.CTkFrame(self)
-        buttonsframe.grid(column=0, row=0, sticky="news")
-        buttonsframe.rowconfigure(0, weight=0)
+        ctk.CTkLabel(self, text="RTR Data Browser").grid(column=0, row=0, sticky="we", pady=(10, 0))
+
+        club_select_frame = ctk.CTkFrame(self)
+        club_select_frame.grid(column=0, row=1, sticky="news", padx=10, pady=10)
 
         optionsframe = ctk.CTkFrame(self)
         optionsframe.grid(column=0, row=2, sticky="news")
 
         # Add Command Buttons
 
-        ctk.CTkLabel(buttonsframe, text="Club Selection").grid(column=0, row=0, sticky="w", padx=10)
+        ctk.CTkLabel(club_select_frame, text="Club Selection").grid(column=0, row=0, sticky="w", padx=10)
 
         self.club_dropdown = ctk.CTkOptionMenu(
-            buttonsframe,
+            club_select_frame,
             dynamic_resizing=True,
             values=self._club_list,
             variable=self._club_selected,
@@ -103,19 +101,18 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         )
         self.club_dropdown.grid(row=2, column=0, padx=20, pady=(20, 10), sticky="w")
 
-        self.reports_btn = ctk.CTkButton(buttonsframe, text="Full Export (CSV)", command=self._handle_reports_btn)
+        self.reports_btn = ctk.CTkButton(club_select_frame, text="Full Export (CSV)", command=self._handle_reports_btn)
         self.reports_btn.grid(column=1, row=2, sticky="w", padx=20, pady=(20, 10))
 
-        self.bar = ctk.CTkProgressBar(master=buttonsframe, orientation="horizontal", mode="indeterminate")
+        self.bar = ctk.CTkProgressBar(master=club_select_frame, orientation="horizontal", mode="indeterminate")
 
         # Options Frame - Left and Right Panels
 
         left_optionsframe = ctk.CTkFrame(optionsframe)
         left_optionsframe.grid(column=0, row=0, sticky="news", padx=10, pady=10)
         left_optionsframe.rowconfigure(0, weight=1)
-        right_optionsframe = ctk.CTkFrame(optionsframe)
+        right_optionsframe = Officials_Status_Frame(optionsframe, self._config)
         right_optionsframe.grid(column=1, row=0, sticky="news", padx=10, pady=10)
-        right_optionsframe.rowconfigure(0, weight=1)
         lower_optionsframe = ctk.CTkFrame(optionsframe)
         lower_optionsframe.grid(column=0, row=1, columnspan=2, sticky="news", padx=10, pady=10)
         lower_optionsframe.rowconfigure(0, weight=1)
@@ -143,40 +140,11 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         )
         self.qual_dropdown.grid(row=4, column=0, padx=20, pady=(10, 10), sticky="w")
 
-        # Right options frame for status options
-
-        ctk.CTkLabel(right_optionsframe, text="RTR Officials Status").grid(column=0, row=0, sticky="w", padx=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="PSO Pending",
-            variable=self._incl_pso_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_pso_pending,
-        ).grid(column=0, row=1, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Account Pending",
-            variable=self._incl_account_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_account_pending,
-        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
-
-        ctk.CTkSwitch(
-            right_optionsframe,
-            text="Invoice Pending",
-            variable=self._incl_inv_pending,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_inv_pending,
-        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
-
         # Lower options frame for club selection
 
-        ctk.CTkLabel(lower_optionsframe, text="Matching Officials   ").grid(column=0, row=0, sticky="ws", padx=10, pady=(10,0))
+        ctk.CTkLabel(lower_optionsframe, text="Matching Officials   ").grid(
+            column=0, row=0, sticky="ws", padx=10, pady=(10, 0)
+        )
 
         self.officials_list = ctk.CTkTextbox(lower_optionsframe, state="disabled")
         self.officials_list.grid(column=0, row=1, sticky="ew", padx=10, pady=10)
@@ -195,15 +163,6 @@ class RTR_Browse_Frame(ctk.CTkFrame):
             self.club_dropdown.set(self._club_list[0])
         self._update_officials_list()
         logging.info("RTR Browser - Club List Refreshed")
-
-    def _handle_incl_pso_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_pso_pending", self._incl_pso_pending.get())
-
-    def _handle_incl_account_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_account_pending", self._incl_account_pending.get())
-
-    def _handle_incl_inv_pending(self, *_arg) -> None:
-        self._config.set_bool("incl_inv_pending", self._incl_inv_pending.get())
 
     def _handle_club_change(self, *_arg) -> None:
         self._update_officials_list()
@@ -224,13 +183,13 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         pos_status = RTR_CLINICS[position]["status"]
         pos_signoffs = RTR_CLINICS[position]["signoffs"]
         status_values = ["Active"]
-        if self._incl_inv_pending.get():
-            status_values.append("Invoice Pending")
-        if self._incl_account_pending.get():
-            status_values.append("Account Pending")
-        if self._incl_pso_pending.get():
-            status_values.append("PSO Pending")
 
+        if self._config.get_bool("incl_inv_pending"):
+            status_values.append("Invoice Pending")
+        if self._config.get_bool("incl_account_pending"):
+            status_values.append("Account Pending")
+        if self._config.get_bool("incl_pso_pending"):
+            status_values.append("PSO Pending")
 
         if club == "None":
             self.officials_list.configure(state="disabled")
@@ -253,7 +212,7 @@ class RTR_Browse_Frame(ctk.CTkFrame):
             ]
 
         # Sort by last name
-#        self._rtr_filtered = self._rtr_filtered.sort_values(by=["Last Name"])
+        #        self._rtr_filtered = self._rtr_filtered.sort_values(by=["Last Name"])
 
         # Build the list of officials and number of signoffs
         officials = ""
@@ -354,3 +313,18 @@ class RTR_Browse_Frame(ctk.CTkFrame):
         self.bar.stop()
         self.bar.grid_forget()
         self.buttons("enable")
+
+
+def main():
+    """testing"""
+    root = ctk.CTk()
+    root.resizable(True, True)
+    options = AnalyzerConfig()
+    rtrdata = RTR(options)
+    settings = RTR_Browse_Frame(root, options, rtrdata)
+    settings.grid(column=0, row=0, sticky="news")
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

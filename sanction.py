@@ -38,268 +38,125 @@ from CTkMessagebox import CTkMessagebox  # type: ignore
 from config import AnalyzerConfig
 from club_summary import club_summary
 from rtr import RTR
+from ui_common import Officials_Status_Frame
 
 
-class Sanction_Preferences(ctk.CTkFrame):
-    """Miscellaneous settings"""
+class Sanctioning_Report_Options_Frame(ctk.CTkFrame):
+    """Sanctioning Report Options Options"""
 
     def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
-        super().__init__(container)  # , text="General Settings", padding=5
+        super().__init__(container)
         self._config = config
-        self._ctk_theme = StringVar(value=self._config.get_str("Theme"))
-        self._ctk_size = StringVar(value=self._config.get_str("Scaling"))
-        self._ctk_colour = StringVar(value=self._config.get_str("Colour"))
 
+        self._incl_errors_var = ctk.BooleanVar(value=self._config.get_bool("incl_errors"))
+        self._incl_affiliates_var = BooleanVar(value=self._config.get_bool("incl_affiliates"))
+        self._incl_sanction_errors_var = ctk.BooleanVar(value=self._config.get_bool("incl_sanction_errors"))
+
+        # self is a vertical container that will contain 1 frame
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
 
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
-        self.rowconfigure(3, weight=1)
+        # Options Frame - Left and Right Panels
 
-        # Row 0 - Labels
-        ctk.CTkLabel(self, text="Status Options").grid(column=0, row=0, sticky="ws", pady=10)
-        ctk.CTkLabel(self, text="Sanction Situations").grid(column=1, row=0, sticky="ws", pady=10)
-        ctk.CTkLabel(self, text="Analyzer/Report Settings").grid(column=2, row=0, sticky="ws", pady=10)
+        optionsframe = self
+#        optionsframe.grid(column=0, row=0, sticky="news", padx=10, pady=10)
+#        optionsframe.rowconfigure(0, weight=1)
 
-        # Row 1 - Account Pending, Include RTR Errors
-        self._incl_account_pending().grid(column=0, row=1, sticky="ws")
-        self._contractor_results().grid(column=1, row=1, sticky="ws")
-        self._incl_errors().grid(column=2, row=1, sticky="ws")
+        ctk.CTkLabel(optionsframe, text="Report Settings").grid(column=0, row=0, sticky="w", padx=10)
 
-        # Row 2 - PSO Pending, Sanction Errors
-        self._incl_pso_pending().grid(column=0, row=2, sticky="ws")
-        self._contractor_mm().grid(column=1, row=2, sticky="ws")
-        self._incl_sanction_errors().grid(column=2, row=2, sticky="ws")
-
-        # Row 3 - Invoice Pending, Use Affiliates
-        self._incl_inv_pending().grid(column=0, row=3, sticky="ws")
-        self._video_finish().grid(column=1, row=3, sticky="ws")
-        self._incl_affiliates().grid(column=2, row=3, sticky="ws")
-
-        fr4 = ctk.CTkFrame(self)
-        fr4.grid(column=0, row=4, sticky="news")
-        fr4.rowconfigure(0, weight=1)
-        self.appearance_mode_label = ctk.CTkLabel(fr4, text="Appearance Mode", anchor="w")
-        self.appearance_mode_label.grid(row=0, column=1)
-        self.appearance_mode_optionemenu = ctk.CTkOptionMenu(
-            fr4,
-            values=["Light", "Dark", "System"],
-            command=self.change_appearance_mode_event,
-            variable=self._ctk_theme,
-        )
-        self.appearance_mode_optionemenu.grid(row=0, column=0, padx=20, pady=10)
-
-        fr5 = ctk.CTkFrame(self)
-        fr5.grid(column=0, row=5, sticky="news")
-        fr5.rowconfigure(0, weight=1)
-        self.scaling_label = ctk.CTkLabel(fr5, text="UI Scaling", anchor="w")
-        self.scaling_label.grid(row=0, column=1)
-        self.scaling_optionemenu = ctk.CTkOptionMenu(
-            fr5,
-            values=["80%", "90%", "100%", "110%", "120%"],
-            command=self.change_scaling_event,
-            variable=self._ctk_size,
-        )
-        self.scaling_optionemenu.grid(row=0, column=0, padx=20, pady=10)
-
-        fr6 = ctk.CTkFrame(self)
-        fr6.grid(column=0, row=6, sticky="news")
-        fr6.rowconfigure(0, weight=1)
-        self.colour_label = ctk.CTkLabel(fr6, text="Colour (Restart Required)", anchor="w")
-        self.colour_label.grid(row=0, column=1)
-        self.colour_optionemenu = ctk.CTkOptionMenu(
-            fr6, values=["blue", "green", "dark-blue"], command=self.change_colour_event, variable=self._ctk_colour
-        )
-        self.colour_optionemenu.grid(row=0, column=0, padx=20, pady=10)
-
-    def _contractor_results(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._contractor_results_var = BooleanVar(frame, value=self._config.get_bool("contractor_results"))
         ctk.CTkSwitch(
-            frame,
-            text="Contractor for Results",
-            variable=self._contractor_results_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_contractor_results,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to use a contractor for results")
-        return frame
-
-    def _handle_contractor_results(self, *_arg):
-        self._config.set_bool("contractor_results", self._contractor_results_var.get())
-
-    def _contractor_mm(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._contractor_mm_var = BooleanVar(frame, value=self._config.get_bool("contractor_mm"))
-        ctk.CTkSwitch(
-            frame,
-            text="Contractor for Meet Management",
-            variable=self._contractor_mm_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_contractor_mm,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to use a contractor for meet management")
-        return frame
-
-    def _handle_contractor_mm(self, *_arg):
-        self._config.set_bool("contractor_mm", self._contractor_mm_var.get())
-
-    def _video_finish(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._video_finish_var = BooleanVar(frame, value=self._config.get_bool("video_finish"))
-        ctk.CTkSwitch(
-            frame,
-            text="Video Finish System",
-            variable=self._video_finish_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_video_finish,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to use a video finish system")
-        return frame
-
-    def _handle_video_finish(self, *_arg):
-        self._config.set_bool("video_finish", self._video_finish_var.get())
-
-    def _incl_errors(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_errors_var = ctk.BooleanVar(frame, value=self._config.get_bool("incl_errors"))
-        ctk.CTkSwitch(
-            frame,
+            optionsframe,
             text="RTR Errors/Warnings",
             command=self._handle_incl_errors,
             variable=self._incl_errors_var,
             onvalue=True,
             offvalue=False,
-        ).grid(column=0, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include errors and anomalies detected")
-        return frame
+        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
 
-    def _handle_incl_errors(self, *_arg):
-        self._config.set_bool("incl_errors", self._incl_errors_var.get())
-
-    def _incl_inv_pending(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_inv_pending_var = BooleanVar(frame, value=self._config.get_bool("incl_inv_pending"))
         ctk.CTkSwitch(
-            frame,
-            text="Invoice Pending",
-            variable=self._incl_inv_pending_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_inv_pending,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include Invoice Pending status")
-        return frame
-
-    def _handle_incl_inv_pending(self, *_arg):
-        self._config.set_bool("incl_inv_pending", self._incl_inv_pending_var.get())
-
-    def _incl_pso_pending(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_pso_pending_var = BooleanVar(frame, value=self._config.get_bool("incl_pso_pending"))
-        ctk.CTkSwitch(
-            frame,
-            text="PSO Pending",
-            variable=self._incl_pso_pending_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_pso_pending,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include PSO Pending status")
-        return frame
-
-    def _handle_incl_pso_pending(self, *_arg):
-        self._config.set_bool("incl_pso_pending", self._incl_pso_pending_var.get())
-
-    def _incl_account_pending(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_account_pending_var = BooleanVar(frame, value=self._config.get_bool("incl_account_pending"))
-        ctk.CTkSwitch(
-            frame,
-            text="Account Pending",
-            variable=self._incl_account_pending_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_incl_account_pending,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include Account Pending status")
-        return frame
-
-    def _handle_incl_account_pending(self, *_arg):
-        self._config.set_bool("incl_account_pending", self._incl_account_pending_var.get())
-
-    def _incl_affiliates(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_affiliates_var = BooleanVar(frame, value=self._config.get_bool("incl_affiliates"))
-        ctk.CTkSwitch(
-            frame,
+            optionsframe,
             text="Affiliated Officials",
             variable=self._incl_affiliates_var,
             onvalue=True,
             offvalue=False,
             command=self._handle_incl_affiliates,
-        ).grid(column=1, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include affiliated officials in the analysis")
-        return frame
+        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
 
-    def _handle_incl_affiliates(self, *_arg):
-        self._config.set_bool("incl_affiliates", self._incl_affiliates_var.get())
-
-    def _incl_sanction_errors(self) -> ctk.CTkFrame:
-        frame = ctk.CTkFrame(self)
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-        self._incl_sanction_errors_var = ctk.BooleanVar(frame, value=self._config.get_bool("incl_sanction_errors"))
         ctk.CTkSwitch(
-            frame,
+            optionsframe,
             text="Sanction Errors",
             command=self._handle_incl_sanction_errors,
             variable=self._incl_sanction_errors_var,
             onvalue=True,
             offvalue=False,
-        ).grid(column=0, row=0, sticky="n", padx=20, pady=10)
-        ToolTip(frame, "Select to include why the sanctioning tier could not be permitted")
-        return frame
+        ).grid(column=0, row=4, sticky="w", padx=20, pady=10)
+
+    def _handle_incl_affiliates(self, *_arg):
+        self._config.set_bool("incl_affiliates", self._incl_affiliates_var.get())
+
+    def _handle_incl_errors(self, *_arg):
+        self._config.set_bool("incl_errors", self._incl_errors_var.get())
 
     def _handle_incl_sanction_errors(self, *_arg):
         self._config.set_bool("incl_sanction_errors", self._incl_sanction_errors_var.get())
 
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        ctk.set_appearance_mode(new_appearance_mode)
-        self._config.set_str("Theme", new_appearance_mode)
 
-    def change_scaling_event(self, new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        ctk.set_widget_scaling(new_scaling_float)
-        ctk.set_window_scaling(new_scaling_float)
-        self._config.set_str("Scaling", new_scaling)
+class Sanctioning_Options_Frame(ctk.CTkFrame):
+    """Sanctioning Options"""
 
-    def change_colour_event(self, new_colour: str):
-        logging.info("Changing colour to : " + new_colour)
-        ctk.set_default_color_theme(new_colour)
-        self._config.set_str("Colour", new_colour)
+    def __init__(self, container: ctk.CTk, config: AnalyzerConfig):
+        super().__init__(container)
+        self._config = config
+
+        self._contractor_results_var = BooleanVar(value=self._config.get_bool("contractor_results"))
+        self._contractor_mm_var = BooleanVar(value=self._config.get_bool("contractor_mm"))
+        self._video_finish_var = BooleanVar(value=self._config.get_bool("video_finish"))
+
+        # self is a vertical container that will contain 1 frame
+        self.columnconfigure(0, weight=1)
+
+        # Options Frame - Left and Right Panels
+
+        optionsframe = self
+#        optionsframe.grid(column=0, row=0, sticky="news", padx=10, pady=10)
+#        optionsframe.rowconfigure(0, weight=1)
+
+        ctk.CTkLabel(optionsframe, text="Sanctioning Options").grid(column=0, row=0, sticky="w", padx=10)
+
+        ctk.CTkSwitch(
+            optionsframe,
+            text="Contractor for Results",
+            variable=self._contractor_results_var,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_contractor_results,
+        ).grid(column=0, row=2, sticky="w", padx=20, pady=10)
+
+        ctk.CTkSwitch(
+            optionsframe,
+            text="Contractor for Meet Management",
+            variable=self._contractor_mm_var,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_contractor_mm,
+        ).grid(column=0, row=3, sticky="w", padx=20, pady=10)
+
+        ctk.CTkSwitch(
+            optionsframe,
+            text="Video Finish System",
+            variable=self._video_finish_var,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_video_finish,
+        ).grid(column=0, row=4, sticky="w", padx=20, pady=10)
+
+    def _handle_contractor_results(self, *_arg):
+        self._config.set_bool("contractor_results", self._contractor_results_var.get())
+
+    def _handle_contractor_mm(self, *_arg):
+        self._config.set_bool("contractor_mm", self._contractor_mm_var.get())
+
+    def _handle_video_finish(self, *_arg):
+        self._config.set_bool("video_finish", self._video_finish_var.get())
 
 
 class Sanction_ROR(ctk.CTkFrame):
@@ -318,33 +175,33 @@ class Sanction_ROR(ctk.CTkFrame):
         self.rowconfigure(2, weight=1)
 
         # Setup the sub-frames
-        ctk.CTkLabel(self, text="ROR/POA Reporting (Multi-Club)").grid(column=0, row=0, sticky="we", pady=10)
+        ctk.CTkLabel(self, text="ROR/POA Reporting (Multi-Club)").grid(
+            column=0, row=0, sticky="we", pady=10, columnspan=3
+        )
+
+        genoptionsframe = ctk.CTkFrame(self)
+        genoptionsframe.grid(column=0, row=1, sticky="news", padx=10, pady=10, columnspan=3)
+        genoptionsframe.rowconfigure(0, weight=1)
+
+        Officials_Status_Frame(genoptionsframe, self._config).grid(column=0, row=1, sticky="news")
+        Sanctioning_Options_Frame(genoptionsframe, self._config).grid(column=1, row=1, sticky="news")
+        Sanctioning_Report_Options_Frame(genoptionsframe, self._config).grid(column=2, row=1, sticky="news")
 
         optionsframe = ctk.CTkFrame(self)
         optionsframe.grid(column=0, row=2, sticky="news", padx=10, pady=10)
 
         filesframe = ctk.CTkFrame(self)
-        filesframe.grid(column=0, row=4, sticky="news", padx=10, pady=10)
+        filesframe.grid(column=1, row=2, sticky="news", padx=10, pady=10, columnspan=2)
         filesframe.rowconfigure(0, weight=1)
         filesframe.rowconfigure(1, weight=1)
         filesframe.rowconfigure(2, weight=1)
 
         buttonsframe = ctk.CTkFrame(self)
-        buttonsframe.grid(column=0, row=6, sticky="news", padx=10, pady=10)
+        buttonsframe.grid(column=0, row=3, sticky="news", padx=10, pady=10, columnspan=3)
         buttonsframe.rowconfigure(0, weight=1)
         buttonsframe.columnconfigure(0, weight=1)
 
         # Report Options
-
-        self._gen_1_per_club_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_1_per_club"))
-        ctk.CTkSwitch(
-            optionsframe,
-            text="Individual Files",
-            variable=self._gen_1_per_club_var,
-            onvalue=True,
-            offvalue=False,
-            command=self._handle_gen_1_per_club,
-        ).grid(column=1, row=0, sticky="news", padx=20, pady=10)
 
         self._gen_word_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_word"))
         ctk.CTkSwitch(
@@ -354,6 +211,16 @@ class Sanction_ROR(ctk.CTkFrame):
             onvalue=True,
             offvalue=False,
             command=self._handle_gen_word,
+        ).grid(column=1, row=0, sticky="news", padx=20, pady=10)
+
+        self._gen_1_per_club_var = BooleanVar(optionsframe, value=self._config.get_bool("gen_1_per_club"))
+        ctk.CTkSwitch(
+            optionsframe,
+            text="Individual Files",
+            variable=self._gen_1_per_club_var,
+            onvalue=True,
+            offvalue=False,
+            command=self._handle_gen_1_per_club,
         ).grid(column=1, row=2, sticky="news", padx=20, pady=10)
 
         # Report File
@@ -449,18 +316,26 @@ class Sanction_COA_CoHost(ctk.CTkFrame):
         self.club3 = ctk.StringVar(value="None")
 
         # Setup the sub-frames
-        ctk.CTkLabel(self, text="COA/Co-Host Reporting").grid(column=0, row=0, sticky="we", pady=10)
+        ctk.CTkLabel(self, text="COA/Co-Host Reporting").grid(column=0, row=0, sticky="we", pady=10, columnspan=3)
+
+        optionsframe = ctk.CTkFrame(self)
+        optionsframe.grid(column=0, row=1, sticky="news", padx=10, pady=10)
+        optionsframe.rowconfigure(0, weight=1)
+
+        Officials_Status_Frame(optionsframe, self._config).grid(column=0, row=1, sticky="news")
+        Sanctioning_Options_Frame(optionsframe, self._config).grid(column=1, row=1, sticky="news")
+        Sanctioning_Report_Options_Frame(optionsframe, self._config).grid(column=2, row=1, sticky="news")
 
         dropdownframe = ctk.CTkFrame(self)
-        dropdownframe.grid(column=0, row=2, sticky="news", padx=10, pady=10)
+        dropdownframe.grid(column=0, row=2, sticky="news", padx=10, pady=10, columnspan=3)
         dropdownframe.rowconfigure(0, weight=1)
 
         filesframe = ctk.CTkFrame(self)
-        filesframe.grid(column=0, row=4, sticky="news", padx=10, pady=10)
+        filesframe.grid(column=0, row=4, sticky="news", padx=10, pady=10, columnspan=3)
         filesframe.rowconfigure(0, weight=1)
 
         buttonsframe = ctk.CTkFrame(self)
-        buttonsframe.grid(column=0, row=6, sticky="news", padx=10, pady=10)
+        buttonsframe.grid(column=0, row=6, sticky="news", padx=10, pady=10, columnspan=3)
         buttonsframe.rowconfigure(0, weight=1)
         buttonsframe.columnconfigure(0, weight=1)
 
@@ -715,3 +590,21 @@ class _Cohost_Analyzer(Thread):
             logging.info("Unable to save report")
 
         logging.info("COA/Co-Hosting Analysis Complete")
+
+
+def main():
+    """testing"""
+    root = ctk.CTk()
+    root.resizable(True, True)
+    options = AnalyzerConfig()
+    rtrdata = RTR(options)
+    # settings = Sanctioning_Report_Options_Frame(root, options)
+    # settings = Officials_Status_Frame(root, options)
+    # settings = Sanction_ROR(root, options, rtrdata)
+    settings = Sanction_COA_CoHost(root, options, rtrdata)
+    settings.grid(column=0, row=0, sticky="news")
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

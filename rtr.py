@@ -166,7 +166,7 @@ class _Data_Loader(Thread):
         self._rtr_data["NP_MM2"] = self._rtr_data.apply(lambda row: self._np_mm_2(row), axis=1)
 
         # Pre-format their full name (Last, First)
-        self._rtr_data["Full Name"] = self._rtr_data["Last Name"].astype(str)  + ", " + self._rtr_data["First Name"]
+        self._rtr_data["Full Name"] = self._rtr_data["Last Name"].astype(str) + ", " + self._rtr_data["First Name"]
 
         # final verion - Filter for all valid statuses and make a copy
 
@@ -250,7 +250,7 @@ class _Data_Loader(Thread):
                 "NP_Starter2",
                 "NP_MM1",
                 "NP_MM2",
-                "Full Name"
+                "Full Name",
             ],
         )
 
@@ -782,3 +782,18 @@ class RTR_Frame(ctk.CTkFrame):
             self.load_txt.grid(column=1, row=4, sticky="w")
 
             thread.join()
+
+
+def main():
+    """testing"""
+    root = ctk.CTk()
+    root.resizable(True, True)
+    options = AnalyzerConfig()
+    rtr_data = RTR(options)
+    settings = RTR_Frame(root, options, rtr_data)
+    settings.grid(column=0, row=0, sticky="news")
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

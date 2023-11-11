@@ -62,16 +62,11 @@ class AnalyzerConfig:
             "gen_np_csv": "False",  # Generate CSV File
             "gen_np_warnings": "False",  # Generate Pathway Warnings
             "email_list_csv": "docgen-email-list.csv",  # Email List File name
-            "email_smtp_server": "smtp.gmail.com",  # SMTP Server
-            "email_smtp_port": "587",  # SMTP Port
-            "email_smtp_user": "username@gmail.com",  # SMTP User
-            "email_from": "My Name <user@gmail.com>",  # Email From Address
-            "email_subject": "Officials Development Report",  # Email Subject
-            "email_body": "Attached is your Officials Development Report",
             "Theme": "System",  # Theme- System, Dark or Light
             "Scaling": "100%",  # Display Zoom Level
             "Colour": "blue",  # Colour Theme
             "client_id": "",  # Client ID
+            "DefaultMenu": "COA/Co-Host",  # Default Menu
         }
     }
 
