@@ -127,7 +127,7 @@ class SwonApp(ctk.CTkFrame):
         self._rtr_data = rtr_data
         self.df = pd.DataFrame()
         self.affiliates = pd.DataFrame()
-        self.unlocked: bool = True
+        self.unlocked: bool = False
         self.menu_mode: StringVar = StringVar(value=self._config.get_str("DefaultMenu"))
 
         # Configure the main window 1x2
