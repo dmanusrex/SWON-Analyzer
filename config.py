@@ -41,7 +41,7 @@ class AnalyzerConfig:
             "officials_list": "./officials_list.xls",  # Location of RTR export file
             "report_directory": ".",  # Report output directory
             "report_file_docx": "club_analysis.docx",  # Word File name
-            "report_file_cohost": "cohosting.docx",  # Co-hosting filename
+            "report_file_cohost": "sanctioning.docx",  # Co-hosting filename
             "odp_report_directory": ".",  # Report output directory
             "odp_report_file_docx": "officials-reports.docx",  # Word File name
             "np_report_directory": ".",  # New Pathway Folder

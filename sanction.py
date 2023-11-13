@@ -316,7 +316,7 @@ class Sanction_COA_CoHost(ctk.CTkFrame):
         self.club3 = ctk.StringVar(value="None")
 
         # Setup the sub-frames
-        ctk.CTkLabel(self, text="COA/Co-Host Reporting").grid(column=0, row=0, sticky="we", pady=10, columnspan=3)
+        ctk.CTkLabel(self, text="Sanctioning Reporting").grid(column=0, row=0, sticky="we", pady=10, columnspan=3)
 
         optionsframe = ctk.CTkFrame(self)
         optionsframe.grid(column=0, row=1, sticky="news", padx=10, pady=10)
@@ -358,14 +358,14 @@ class Sanction_COA_CoHost(ctk.CTkFrame):
 
         # Report File
 
-        rptbtn = ctk.CTkButton(filesframe, text="COA/Co-Host Report Filename", command=self._handle_cohost_file_browse)
+        rptbtn = ctk.CTkButton(filesframe, text="Sanctioning Report Filename", command=self._handle_cohost_file_browse)
         rptbtn.grid(column=0, row=0, padx=20, pady=(20, 10))
         ToolTip(rptbtn, text="Set report file name")
         ctk.CTkLabel(filesframe, textvariable=self._report_file).grid(column=1, row=0, sticky="w", pady=5)
 
         # Action Button
 
-        self.cohost_btn = ctk.CTkButton(buttonsframe, text="COA/Co-Host Report", command=self._handle_cohost_btn)
+        self.cohost_btn = ctk.CTkButton(buttonsframe, text="Sanctioning Report", command=self._handle_cohost_btn)
         self.cohost_btn.grid(column=0, row=0, sticky="ew", padx=20, pady=10)
 
         self._rtr.register_update_callback(self.refresh_club_list)
@@ -534,7 +534,7 @@ class _Cohost_Analyzer(Thread):
         self._selected_clubs: list = selected_clubs
 
     def run(self):
-        logging.info("COA/Host report in Progress...")
+        logging.info("Sanctioning report in Progress...")
 
         _report_directory = self._config.get_str("report_directory")
         _report_file_cohost = self._config.get_str("report_file_cohost")
@@ -583,7 +583,7 @@ class _Cohost_Analyzer(Thread):
         try:
             doc.save(_full_report_file)
             CTkMessagebox(
-                title="COA/Co-Host Report", message="Report complete", icon="check", option_1="OK", corner_radius=0
+                title="Sanctioning Report", message="Report complete", icon="check", option_1="OK", corner_radius=0
             )
         except:
             CTkMessagebox(title="Error", message="Unable to save report file", icon="cancel", corner_radius=0)

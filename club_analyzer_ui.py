@@ -129,6 +129,12 @@ class SwonApp(ctk.CTkFrame):
         self.affiliates = pd.DataFrame()
         self.unlocked: bool = False
         self.menu_mode: StringVar = StringVar(value=self._config.get_str("DefaultMenu"))
+    
+        # The mene name changed.   If we don't have a valid one, revert to the COA/MM one.
+        if self.menu_mode.get() not in ["COA/MM","ROR/POA"]:
+            self.menu_mode.set("COA/MM")
+            self._config.set_str("DefaultMenu", "COA/MM")
+    
 
         # Configure the main window 1x2
         self.grid_rowconfigure(0, weight=1, minsize=400)
@@ -150,7 +156,7 @@ class SwonApp(ctk.CTkFrame):
 
         self.mode_menu = ctk.CTkOptionMenu(
             self.navigation_frame,
-            values=["COA/Co-Host", "ROR/POA"],
+            values=["COA/MM", "ROR/POA"],
             variable=self.menu_mode,
             corner_radius=0,
             command=self.change_buttons,
@@ -202,14 +208,14 @@ class SwonApp(ctk.CTkFrame):
 
         self.rtr_browser_button.grid(row=4, column=0, sticky="ew")
 
-        # COA/Co-Host Options
+        # COA/MM Options
 
         self.sanction_coa_button = ctk.CTkButton(
             self.navigation_frame,
             corner_radius=0,
             height=40,
             border_spacing=10,
-            text="Sanctioning (COA/Co-Host)",
+            text="Sanctioning (Host Club/Co-Hosting)",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -392,7 +398,7 @@ class SwonApp(ctk.CTkFrame):
         self.rtr_button_event()
 
     def change_buttons(self, value):
-        if value == "COA/Co-Host":
+        if value == "COA/MM":
             self.sanction_ror_button.grid_forget()
             self.pathway_ror_button.grid_forget()
             self.sanction_coa_button.grid(row=5, column=0, sticky="ew")

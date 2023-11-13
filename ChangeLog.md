@@ -82,3 +82,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - :sparkles: Add new RTR Errors/Warnings
 - :sparkles: UI Re-designed based on job function rather than task
 - :bug: Fix Level III checks on recommendations
+
+### [1.6.1] - 2023-11-13
+- :sparkles: Change button and window labels
