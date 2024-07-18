@@ -821,7 +821,7 @@ class club_summary:
 
                 for index, affiliated_official in affiliated_officials.iterrows():
                     row = atable.add_row().cells
-                    row[0].text = affiliated_official["Registration Id"]
+                    row[0].text = str(affiliated_official["Registration Id"])
                     row[1].text = (
                         affiliated_official["Last Name"]
                         + ", "
