@@ -85,3 +85,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### [1.6.1] - 2023-11-13
 - :sparkles: Change button and window labels
+
+### [1.6.2] - 2024-07-17
+- :bug: Fix an issue with types changing when import is a CSV
