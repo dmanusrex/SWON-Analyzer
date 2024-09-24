@@ -242,7 +242,7 @@ class docgenCore:
 
             doc = Document()
 
-            doc.add_heading("2023/24 Officials Development", 0)
+            doc.add_heading("2024/25 Officials Development", 0)
 
             p = doc.add_paragraph()
             p.add_run("Report Date: " + reportdate)

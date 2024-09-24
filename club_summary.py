@@ -75,6 +75,7 @@ class club_summary:
         self.Level_3s: int = 0
         self.Level_4s: int = 0
         self.Level_5s: int = 0
+        self.Level_2_Qual_Refs: int = 0
         self.Qual_Refs: int = 0
 
         # Each list contains a summary count of the number of offiicals with 0, 1, or 2 certification dates
@@ -89,6 +90,7 @@ class club_summary:
         self.CFJ: list = []
         self.RecSec: list = []
         self.Referee: list = []
+        self.Level_2_Qualified_Refs: list = []
         self.Qualified_Refs: list = []
         self.Level_4_5s: list = []
         self.Level_3_list: list = []
@@ -98,6 +100,7 @@ class club_summary:
         self.NoLevel_Missing_SM: list = []
         self.NoLevel_Has_II: list = []
         self.Missing_Level_II: list = []
+        self.Invalid_Level_II: list = []
         self.Missing_Level_III: list = []
         self.SandT_IT_Combo_Error: list = []
         self.SandT_JS_Date_Warning: list = []
@@ -119,6 +122,7 @@ class club_summary:
         self._count_certifications()
         self._find_all_level4_5s()
         self._find_qualfied_refs()
+        self._find_level_2_refs()
         self._check_sanctions()
 
         # RTR Error Checks
@@ -147,6 +151,25 @@ class club_summary:
         self.Level_3s = level_counts.get(3, 0)
         self.Level_4s = level_counts.get(4, 0)
         self.Level_5s = level_counts.get(5, 0)
+
+    def _find_level_2_refs(self) -> None:
+        # To be a Level II referee you need CT, Clerk, Starter and qualfied in both CFJ and MM
+        # Para Domesitc and/or Para Swimming eModule are required for Level II Referee
+ 
+        level2_list = self._club_data.query("Level == 2")
+        self.Level_2_Qualified_Refs = []
+
+        for index, row in level2_list.iterrows():
+            if (
+                row["Referee_Status"] != "N"
+                and row["CT_Status"] == "C"
+                and row["Admin_Status"] == "C"
+                and row["Starter_Status"] == "C"
+                and (row["CFJ_Status"] == "Q" or row["MM_Status"] == "Q")
+#                and (row["Para Domestic"] == "yes" or row["Para Swimming eModule"] == "yes")
+            ):
+                self.Level_2_Qualified_Refs.append([row["Full Name"], row["Para Domestic"], row["Para Swimming eModule"]])
+        self.Level_2_Qual_Refs = len(self.Level_2_Qualified_Refs)
 
     def _find_qualfied_refs(self) -> None:
         # To be a Level III referee you need CT, Clerk, Starter and one of CFJ or MM
@@ -249,6 +272,31 @@ class club_summary:
                 if cert_count >= 1:
                     self.Missing_Level_II.append(row["Full Name"])
 
+    def _check_invalid_Level_II(self) -> None:
+        level_2_list = self._club_data.query("Level == 2")
+        self.Invalid_Level_II = []
+        clinics_to_check = ["CT_Status", "Admin_Status", "Starter_Status", "CFJ_Status", "MM_Status"]
+
+        if level_2_list.empty:
+            return
+
+        # For each Level II record confirm that they have Intro and either ST or IT/Jos and a valid Level II clinic for those
+        # who's Level II is on or after September 1, 2023
+
+        for index, row in level_2_list.iterrows():
+            if row["Intro_Status"] == "C" and (
+                row["ST_Status"] == "C" or (row["IT_Status"] == "C" and row["JoS_Status"] == "C")
+            ):
+                cert_count = 0
+                for clinic in clinics_to_check:
+                    if row[clinic] == "C":
+                        cert_count += 1
+
+                if cert_count == 0:
+                    self.Missing_Level_II.append(row["Full Name"]+" - Missing Level II Clinic")
+        else:
+            self.Invalid_Level_II.append(row["Full Name"]+" - Missing Intro or ST/IT/JoS")
+    
     def _check_SandT_errors(self) -> None:
         """Check for SandT errors"""
 
@@ -805,6 +853,18 @@ class club_summary:
                 )
             )
 
+        if len(self.Level_2_Qualified_Refs) > 0:
+            doc.add_heading("Qualified Level II Referees", level=3)
+            refp = doc.add_paragraph()
+            refp.add_run(
+                "\n".join(
+                    ref[0]
+                    + (" (Para eModule)" if ref[2] == "yes" else "")
+                    + (" (Para Domestic: " + ref[1] + ")" if not pd.isnull(ref[1]) else "")
+                    for ref in self.Level_2_Qualified_Refs
+                )
+            )
+
         if self._config.get_bool("incl_affiliates") and affiliates:
             affiliated_officials = self._club_data_full[self._club_data_full["Registration Id"].isin(affiliates)]
             if not affiliated_officials.empty:  # We could have affiliated officials but no supporting data
@@ -853,6 +913,11 @@ class club_summary:
                 doc.add_heading("RTR Error - Official(s) missing Level II Certification Record", level=2)
                 error_p3 = doc.add_paragraph()
                 error_p3.add_run("\n".join(self.Missing_Level_II))
+            
+            if self.Invalid_Level_II:
+                doc.add_heading("RTR Error - Official(s) has invalid Level II Certification Record", level=2)
+                error_p5 = doc.add_paragraph()
+                error_p5.add_run("\n".join(self.Invalid_Level_II))
 
             if self.Missing_Level_III:
                 doc.add_heading("RTR Possible Error - Official(s) missing Level III Certification Record", level=2)

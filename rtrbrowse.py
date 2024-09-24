@@ -234,16 +234,17 @@ class RTR_Browse_Frame(ctk.CTkFrame):
             CTkMessagebox(master=self, title="Error", message="Load RTR Data First", icon="cancel", corner_radius=0)
             return
         club = self._club_selected.get()
-        if club == "None":
+        """if club == "None":
             logging.info("Select a club first...")
             CTkMessagebox(master=self, title="Error", message="Select a club first", icon="cancel", corner_radius=0)
-            return
+            return """
         self.buttons("disabled")
         self.bar.grid(row=2, column=0, pady=10, padx=20, sticky="s")
         self.bar.set(0)
         self.bar.start()
 
         key_columns = [
+            "id",
             "Registration Id",
             "First Name",
             "Last Name",
@@ -274,6 +275,7 @@ class RTR_Browse_Frame(ctk.CTkFrame):
             "ChiefRec_Count",
             "Referee_Status",
             "Para Swimming eModule",
+            "Para Domestic",
         ]
 
         status_values = ["Active"]
@@ -289,6 +291,9 @@ class RTR_Browse_Frame(ctk.CTkFrame):
             (self._rtr.rtr_data["Status"].isin(status_values)) & (self._rtr.rtr_data["Club"] == club)
         ]
 
+        # dump filtered dataframe to a test.csv file
+        # self._rtr_filtered.to_csv("test.csv", index=False)
+
         try:
             report_file = filedialog.asksaveasfilename(
                 filetypes=[("CSV Files", "*.csv")],
@@ -303,6 +308,10 @@ class RTR_Browse_Frame(ctk.CTkFrame):
                 return
 
             self._rtr_filtered.to_csv(report_file, columns=key_columns, index=False)
+            # create temp dataframe with just the columns we need
+            # temp_df = self._rtr_filtered[key_columns]
+            # temp_df.to_json(report_file.replace(".csv", ".json"),  orient="records", lines=True)
+
             logging.info("CSV Report Saved: {}".format(report_file))
 
         except Exception as e:

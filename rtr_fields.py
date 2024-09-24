@@ -24,6 +24,7 @@
 # There are over 200 fields in the RTR export. These are the needed ones.
 
 REQUIRED_RTR_FIELDS = [
+    "id",
     "Registration Id",
     "First Name",
     "Last Name",
